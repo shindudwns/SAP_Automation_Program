@@ -1,0 +1,18 @@
+<Window x:Class="SimplifyQuoter.Views.ProcessWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Process Selected Rows" Height="400" Width="600">
+    <Grid Margin="10">
+        <DataGrid Name="ProcessGrid"
+              AutoGenerateColumns="False"
+              CanUserResizeColumns="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Row"       Binding="{Binding RowIndex}" />
+                <DataGridTextColumn Header="Name"      Binding="{Binding CustomerName}" />
+                <DataGridTextColumn Header="Item No."  Binding="{Binding ItemCode}" />
+                <DataGridTextColumn Header="Quantity"  Binding="{Binding Quantity}" />
+                <DataGridTextColumn Header="Free Text" Binding="{Binding FreeText}" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>
