@@ -5,7 +5,7 @@ using System.Windows.Data;
 using System.Collections.ObjectModel;
 using SimplifyQuoter.Models;
 using SimplifyQuoter.Services;
-using SimplifyQuoter.Views;
+using SimplifyQuoter.Views;    
 
 namespace SimplifyQuoter
 {
@@ -55,9 +55,8 @@ namespace SimplifyQuoter
 
         private void SheetGrid_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
-            // clear all
+            if (_rows == null) return;
             foreach (var rv in _rows) rv.IsSelected = false;
-            // mark rows that have any selected cell
             foreach (var cell in SheetGrid.SelectedCells)
                 if (cell.Item is RowView rv)
                     rv.IsSelected = true;
@@ -65,16 +64,22 @@ namespace SimplifyQuoter
 
         private void BtnProcess_Click(object sender, RoutedEventArgs e)
         {
-            // collect only those rows
-            var selectedRows = _rows.Where(r => r.IsSelected).ToList();
-            if (!selectedRows.Any())
+            var selectedRows = _rows?.Where(r => r.IsSelected).ToList();
+            if (selectedRows == null || !selectedRows.Any())
             {
                 MessageBox.Show("Please select at least one row.");
                 return;
             }
 
-            // open the next window
             var win = new ProcessWindow(selectedRows);
+            win.Owner = this;
+            win.ShowDialog();
+        }
+
+        // NEW: launch the Import flow
+        private void BtnImport_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ImportWindow();
             win.Owner = this;
             win.ShowDialog();
         }

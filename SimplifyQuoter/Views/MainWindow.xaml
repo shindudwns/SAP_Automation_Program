@@ -4,19 +4,19 @@
         Title="Simplify Quoter" Height="600" Width="900">
     <DockPanel Margin="10">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
-            <Button Name="BtnUpload" Content="Upload Excel" Width="120" Margin="0,0,10,0" Click="BtnUpload_Click"/>
-            <Button Name="BtnProcess" Content="Process" Width="100" Margin="0,0,10,0" Click="BtnProcess_Click"/>
-            <!-- (Optional) other action buttons… -->
+            <Button Name="BtnUpload"   Content="Upload Excel"        Width="120" Margin="0,0,10,0" Click="BtnUpload_Click"/>
+            <Button Name="BtnProcess"  Content="Process"             Width="100" Margin="0,0,10,0" Click="BtnProcess_Click"/>
+            <!-- NEW: Create Import TXT -->
+            <Button Name="BtnImport"   Content="Create Import TXT"   Width="140" Margin="0,0,10,0" Click="BtnImport_Click"/>
         </StackPanel>
 
+        <!-- your existing DataGrid -->
         <DataGrid x:Name="SheetGrid"
-              AutoGenerateColumns="False"
-              CanUserResizeColumns="True"
-              SelectionUnit="Cell"
-              SelectionMode="Extended"
-              SelectedCellsChanged="SheetGrid_SelectedCellsChanged">
-
-            <!-- highlight whole row when IsSelected==true -->
+                  AutoGenerateColumns="False"
+                  CanUserResizeColumns="True"
+                  SelectionUnit="Cell"
+                  SelectionMode="Extended"
+                  SelectedCellsChanged="SheetGrid_SelectedCellsChanged">
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow">
                     <Setter Property="Background" Value="White"/>
