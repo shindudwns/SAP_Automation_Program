@@ -5,7 +5,9 @@ using System.Windows.Data;
 using System.Collections.ObjectModel;
 using SimplifyQuoter.Models;
 using SimplifyQuoter.Services;
-using SimplifyQuoter.Views;    
+using SimplifyQuoter.Views;
+using Npgsql;
+
 
 namespace SimplifyQuoter
 {
@@ -16,6 +18,29 @@ namespace SimplifyQuoter
         public MainWindow()
         {
             InitializeComponent();
+            try
+            {
+                using (var db = new DatabaseService())
+                using (var cmd = new NpgsqlCommand("SELECT 1", db.Connection))
+                {
+                    var result = cmd.ExecuteScalar();
+                    MessageBox.Show(
+                        $"Database test returned: {result}",
+                        "DB Connection",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(
+                    $"Database connection failed:\n{ex.Message}",
+                    "DB Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
         }
 
         private void BtnUpload_Click(object sender, RoutedEventArgs e)
