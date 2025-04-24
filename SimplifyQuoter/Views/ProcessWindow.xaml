@@ -15,7 +15,6 @@
                   Margin="0,0,0,10"
                   Width="200"
                   Click="BtnProcessIMD_Click"/>
-
                     <DataGrid x:Name="ImdGrid"
                     AutoGenerateColumns="False"
                     CanUserResizeColumns="True"

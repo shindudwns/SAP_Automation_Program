@@ -12,13 +12,17 @@
             <Button Name="BtnProcessImport" Content="Process" Width="100" Click="BtnProcessImport_Click"/>
         </StackPanel>
 
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10" HorizontalAlignment="Left">
-            <Button Name="BtnDownloadA" Content="Download Sheet A" Width="140" Click="BtnDownloadA_Click" IsEnabled="False" Margin="0,0,10,0"/>
-            <Button Name="BtnDownloadB" Content="Download Sheet B" Width="140" Click="BtnDownloadB_Click" IsEnabled="False" Margin="0,0,10,0"/>
-            <Button Name="BtnDownloadC" Content="Download Sheet C" Width="140" Click="BtnDownloadC_Click" IsEnabled="False"/>
-        </StackPanel>
 
-        <TextBlock Text="Upload one or two Excel files, then click Process." 
+		<StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+			<Button Name="BtnDownloadA" Content="Download Sheet A" Width="140" Click="BtnDownloadA_Click" IsEnabled="False" Margin="0,0,10,0"/>
+			<Button Name="BtnDownloadB" Content="Download Sheet B" Width="140" Click="BtnDownloadB_Click" IsEnabled="False" Margin="0,0,10,0"/>
+			<Button Name="BtnDownloadC" Content="Download Sheet C" Width="140" Click="BtnDownloadC_Click"/>
+			<!-- NEW: import into SAP -->
+			<Button Name="BtnImportSap" Content="Import into SAP" Width="140" Click="BtnImportSap_Click" IsEnabled="False" Margin="20,0,0,0"/>
+		</StackPanel>
+
+
+		<TextBlock Text="Upload one or two Excel files, then click Process." 
                TextWrapping="Wrap" Margin="0,20,0,0"/>
     </DockPanel>
 </Window>

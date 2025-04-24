@@ -87,7 +87,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Models\RowView.cs" />
+    <Compile Include="Services\AutomationService.cs" />
+    <Compile Include="Services\DocumentGenerator.cs" />
     <Compile Include="Services\ExcelService.cs" />
+    <Compile Include="Services\ImportTxtService.cs" />
     <Compile Include="Services\Transformer.cs" />
     <Compile Include="Utilities\RelayCommand.cs" />
     <Compile Include="Utilities\ViewModelBase.cs" />
