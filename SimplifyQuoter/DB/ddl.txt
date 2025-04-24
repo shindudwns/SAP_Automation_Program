@@ -1,0 +1,83 @@
+﻿-- ===============================================
+-- 1) IMPORT-TXT FLOW
+-- ===============================================
+
+CREATE TABLE import_file (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  filename    TEXT        NOT NULL,
+  file_type   TEXT        NOT NULL  -- 'INFO_EXCEL' or 'INSIDE_EXCEL'
+               CHECK (file_type IN ('INFO_EXCEL','INSIDE_EXCEL')),
+  uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  run_count   INT         NOT NULL DEFAULT 0   -- how many times "Process" clicked
+);
+
+CREATE TABLE import_row (
+  id        UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
+  file_id   UUID    NOT NULL REFERENCES import_file(id) ON DELETE CASCADE,
+  row_index INT     NOT NULL,                    -- Excel row number
+  cells     JSONB   NOT NULL,                    -- raw row values
+  is_ready  BOOLEAN NOT NULL,                    -- cells[14]=='READY'
+  processed BOOLEAN NOT NULL DEFAULT FALSE,      -- after .txt export
+  exec_count INT   NOT NULL DEFAULT 0            -- how many times exported
+);
+
+
+-- ===============================================
+-- 2) SAP-AUTOMATION FLOW
+-- ===============================================
+
+CREATE TABLE sap_file (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  filename    TEXT        NOT NULL,
+  uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  run_count   INT         NOT NULL DEFAULT 0   -- how many times Process clicked
+);
+
+CREATE TABLE sap_row (
+  id             UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
+  file_id        UUID      NOT NULL REFERENCES sap_file(id) ON DELETE CASCADE,
+  row_index      INT       NOT NULL,
+  cells          JSONB     NOT NULL,
+  is_ready       BOOLEAN   NOT NULL,             -- cells[14]=='READY'
+  part_code      TEXT      NOT NULL,             -- cells[2] or [3]
+  processed_imd  BOOLEAN   NOT NULL DEFAULT FALSE,
+  processed_sq   BOOLEAN   NOT NULL DEFAULT FALSE,
+  imd_exec_count INT       NOT NULL DEFAULT 0,    -- times IMD ran
+  sq_exec_count  INT       NOT NULL DEFAULT 0     -- times SQ ran
+);
+
+
+-- ===============================================
+-- 3) SHARED LOOKUPS & AI CACHE
+-- ===============================================
+
+CREATE TABLE part (
+  code         TEXT        PRIMARY KEY,         -- part_code
+  description  TEXT,                            -- AI‐generated ≤10 words
+  item_group   TEXT,                            -- one of your predefined groups
+  is_manual    BOOLEAN   NOT NULL DEFAULT FALSE,-- true if user override
+  enriched_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE vendor_mapping (
+  manufacturer TEXT   PRIMARY KEY,
+  vendor_code  TEXT   NOT NULL
+);
+
+
+-- ===============================================
+-- 4) JOB PROGRESS TRACKING
+-- ===============================================
+
+CREATE TABLE process_job (
+  id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  import_file_id  UUID        REFERENCES import_file(id) ON DELETE SET NULL,
+  sap_file_id     UUID        REFERENCES sap_file(id)    ON DELETE SET NULL,
+  job_type        TEXT        NOT NULL
+                     CHECK (job_type IN ('IMPORT_TXT','IMD','SQ')),
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  completed_at    TIMESTAMPTZ,
+  total_rows      INT         NOT NULL,
+  processed_rows  INT         NOT NULL DEFAULT 0
+);
+s

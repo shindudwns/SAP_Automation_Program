@@ -1,23 +1,31 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using SimplifyQuoter.Models;
-using SimplifyQuoter.Services;  
+using SimplifyQuoter.Services;
+using System.Windows.Controls;
 
 namespace SimplifyQuoter.Views
 {
     public partial class ProcessWindow : Window
     {
-        public ProcessWindow(List<RowView> selectedRows)
+        private readonly Guid _sapFileId;
+        private readonly List<RowView> _rows;
+        private readonly AutomationService _autoSvc = new AutomationService();
+
+        // new DB-backed constructor
+        public ProcessWindow(Guid sapFileId, List<RowView> rows)
         {
             InitializeComponent();
+            _sapFileId = sapFileId;
+            _rows = rows;
 
-            int total = selectedRows.Count;
-
-            // Build and bind IMD list (unchanged)…
+            // IMD grid
             var imdList = new ObservableCollection<ImdRow>(
-                selectedRows.Select((rv, idx) => new ImdRow
+                _rows.Select((rv, idx) => new ImdRow
                 {
                     Sequence = idx + 1,
                     ItemNo = rv.Cells.Length > 2 ? rv.Cells[2] : string.Empty,
@@ -33,35 +41,60 @@ namespace SimplifyQuoter.Views
             );
             ImdGrid.ItemsSource = imdList;
 
-            // Build and bind SQ list, now with Korean→“WEEK ERO” logic
+            // SQ grid
             var sqList = new ObservableCollection<SqRow>(
-                selectedRows.Select((rv, idx) => {
-                    // raw value from column K (0-based index 10)
-                    string raw = rv.Cells.Length > 10 ? rv.Cells[10] : string.Empty;
-                    return new SqRow
-                    {
-                        Sequence = idx + 1,
-                        Name = rv.Cells.Length > 6 ? rv.Cells[6] : string.Empty,
-                        ItemNo = rv.Cells.Length > 2 ? rv.Cells[2] : string.Empty,
-                        Quantity = rv.Cells.Length > 3 ? rv.Cells[3] : string.Empty,
-                        FreeText = Transformer.ConvertDurationToFreeText(raw)
-                    };
+                _rows.Select((rv, idx) => new SqRow
+                {
+                    Sequence = idx + 1,
+                    Name = rv.Cells.Length > 6 ? rv.Cells[6] : string.Empty,
+                    ItemNo = rv.Cells.Length > 2 ? rv.Cells[2] : string.Empty,
+                    Quantity = rv.Cells.Length > 3 ? rv.Cells[3] : string.Empty,
+                    FreeText = Transformer.ConvertDurationToFreeText(
+                                 rv.Cells.Length > 10 ? rv.Cells[10] : string.Empty)
                 })
             );
             SqGrid.ItemsSource = sqList;
         }
 
+        // legacy overload if you still need it:
+        public ProcessWindow(List<RowView> rows)
+          : this(Guid.Empty, rows) { }
+
         private void BtnProcessIMD_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Will be implemented");
+            try
+            {
+                _autoSvc.RunItemMasterData(_sapFileId, _rows);
+                MessageBox.Show("IMD done");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"IMD error: {ex.Message}");
+            }
         }
 
         private void BtnProcessSQ_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Will be implemented");
+            try
+            {
+                _autoSvc.RunSalesQuotation(_sapFileId, _rows);
+                MessageBox.Show("SQ done");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"SQ error: {ex.Message}");
+            }
         }
 
-        // DTO for Item Master Data tab
+        /// <summary>
+        /// Dummy handler so the XAML SelectionChanged="SqGrid_SelectionChanged" compiles.
+        /// You can later wire this up if you need to respond to SQ‐grid selection.
+        /// </summary>
+        private void SqGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // no‐op for now
+        }
+
         public class ImdRow
         {
             public int Sequence { get; set; }
@@ -76,7 +109,6 @@ namespace SimplifyQuoter.Views
             public string UoMName { get; set; }
         }
 
-        // DTO for Sales Quotation tab
         public class SqRow
         {
             public int Sequence { get; set; }
@@ -84,11 +116,6 @@ namespace SimplifyQuoter.Views
             public string ItemNo { get; set; }
             public string Quantity { get; set; }
             public string FreeText { get; set; }
-        }
-
-        private void SqGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-
         }
     }
 }

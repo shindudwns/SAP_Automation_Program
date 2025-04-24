@@ -78,8 +78,8 @@ namespace SimplifyQuoter.Services
                 // BRAND comes from Column B (index 1)
                 r["BRAND"] = c.Length > 1 ? c[1] : "string.Empty";
 
-                r["Item Group"] = string.Empty;
-                r["DESCRIPTION"] = string.Empty;
+                r["Item Group"] = "string.Empty";
+                r["DESCRIPTION"] = "string.Empty";
                 r["Purchasing UOM"] = "EACH";
                 r["Sales UOM"] = "EACH";
                 r["Inventory UOM"] = "EACH";
