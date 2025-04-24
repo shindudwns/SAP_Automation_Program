@@ -1,0 +1,38 @@
+﻿# Build results
+/bin/
+/obj/
+
+# Visual Studio temporary files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+
+# NuGet packages
+*.nupkg
+packages/
+
+# MSBuild logs
+*.log
+
+# Auto‐generated files
+*.g.cs
+*.Designer.cs
+*.generated.cs
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Visual Studio Code
+.vscode/
+
+# DotCover
+*.dotCover
+
+# Files to avoid accidentally committing your API key
+App.config

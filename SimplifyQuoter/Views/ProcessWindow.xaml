@@ -85,7 +85,7 @@
                     CanUserAddRows="False"
                     CanUserSortColumns="True"
                     HeadersVisibility="Column"
-                    GridLinesVisibility="All">
+                    GridLinesVisibility="All" SelectionChanged="SqGrid_SelectionChanged">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="#"
                                   Binding="{Binding Sequence}"

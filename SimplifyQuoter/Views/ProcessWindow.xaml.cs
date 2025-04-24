@@ -85,5 +85,10 @@ namespace SimplifyQuoter.Views
             public string Quantity { get; set; }
             public string FreeText { get; set; }
         }
+
+        private void SqGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+
+        }
     }
 }
