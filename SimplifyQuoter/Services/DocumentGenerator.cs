@@ -27,10 +27,9 @@ namespace SimplifyQuoter.Services
         }
 
         private DataTable BuildSheetA(
-            IEnumerable<RowView> infoRows,
-            IEnumerable<RowView> insideRows)
+    IEnumerable<RowView> infoRows,
+    IEnumerable<RowView> insideRows)
         {
-            // 1) Define the columns (headers are *not* written to the .txt)
             var dt = new DataTable("SheetA");
             dt.Columns.Add("Item Code");
             dt.Columns.Add("PART#");
@@ -42,53 +41,60 @@ namespace SimplifyQuoter.Services
             dt.Columns.Add("Inventory UOM");
             dt.Columns.Add("Vendor Name");
 
-            // 2) Filter & map INFO_EXCEL rows (Column O == "READY")
+            // INFO_EXCEL: use D for Item Code/PART#, C for BRAND
             foreach (var rv in infoRows.Where(rv =>
-                     rv.Cells.Length > 14
-                     && string.Equals(rv.Cells[14]?.Trim(), "READY", StringComparison.OrdinalIgnoreCase)))
+                     rv.Cells.Length > 14 &&
+                     rv.Cells[14].Trim().Equals("READY", StringComparison.OrdinalIgnoreCase)))
             {
                 var c = rv.Cells;
                 var r = dt.NewRow();
-                // INFO_EXCEL uses Column D (index 3) for Item Code & PART#
-                r["Item Code"] = c.Length > 3 ? "H-" + c[3] : "string.Empty";
-                r["PART#"] = c.Length > 3 ? c[3] : "string.Empty";
-                // BRAND comes from Column C (index 2)  
-                r["BRAND"] = c.Length > 2 ? c[2] : "string.Empty";
 
-                r["Item Group"] = "string.Empty";
-                r["DESCRIPTION"] = "string.Empty";
+                // Column D is index 3
+                var code = c.Length > 3 ? c[3] : string.Empty;
+                r["Item Code"] = code;
+                r["PART#"] = code;
+
+                // Column C is index 2
+                r["BRAND"] = c.Length > 2 ? c[2] : string.Empty;
+
+                r["Item Group"] = string.Empty;
+                r["DESCRIPTION"] = string.Empty;
                 r["Purchasing UOM"] = "EACH";
                 r["Sales UOM"] = "EACH";
                 r["Inventory UOM"] = "EACH";
-                r["Vendor Name"] = "VL000442";
+                r["Vendor Name"] = string.Empty;   // or your default
 
                 dt.Rows.Add(r);
             }
 
-            // 3) Filter & map INSIDE_EXCEL rows (Column O == "READY")
+            // INSIDE_EXCEL: use C for Item Code/PART#, B for BRAND
             foreach (var rv in insideRows.Where(rv =>
-                     rv.Cells.Length > 14
-                     && string.Equals(rv.Cells[14]?.Trim(), "READY", StringComparison.OrdinalIgnoreCase)))
+                     rv.Cells.Length > 14 &&
+                     rv.Cells[14].Trim().Equals("READY", StringComparison.OrdinalIgnoreCase)))
             {
                 var c = rv.Cells;
                 var r = dt.NewRow();
-                // INSIDE_EXCEL uses Column C (index 2) for Item Code & PART#
-                r["Item Code"] = c.Length > 2 ? "H-" + c[2] : "string.Empty";
-                r["PART#"] = c.Length > 2 ? c[2] : "string.Empty";
-                // BRAND comes from Column B (index 1)
-                r["BRAND"] = c.Length > 1 ? c[1] : "string.Empty";
 
-                r["Item Group"] = "string.Empty";
-                r["DESCRIPTION"] = "string.Empty";
+                // Column C is index 2
+                var code = c.Length > 2 ? c[2] : string.Empty;
+                r["Item Code"] = code;
+                r["PART#"] = code;
+
+                // Column B is index 1
+                r["BRAND"] = c.Length > 1 ? c[1] : string.Empty;
+
+                r["Item Group"] = string.Empty;
+                r["DESCRIPTION"] = string.Empty;
                 r["Purchasing UOM"] = "EACH";
                 r["Sales UOM"] = "EACH";
                 r["Inventory UOM"] = "EACH";
-                r["Vendor Name"] = "VL000442";
+                r["Vendor Name"] = string.Empty;
 
                 dt.Rows.Add(r);
             }
 
             return dt;
         }
+
     }
 }

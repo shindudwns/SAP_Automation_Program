@@ -30,16 +30,18 @@ namespace SimplifyQuoter.Services
             IEnumerable<RowView> infoRows,
             IEnumerable<RowView> insideRows)
         {
-            var allRows = infoRows.Concat(insideRows);
-            var readyRows = allRows.Where(rv =>
-                rv.Cells.Length > 14 &&
-                string.Equals(rv.Cells[14]?.Trim(),
-                              "READY",
-                              StringComparison.OrdinalIgnoreCase))
-                                   .ToList();
+            // 1) pick out only the READY RowViews
+            var readyRows = infoRows
+                              .Concat(insideRows)
+                              .Where(rv =>
+                                  rv.Cells.Length > 14 &&
+                                  string.Equals(rv.Cells[14]?.Trim(),
+                                                "READY",
+                                                StringComparison.OrdinalIgnoreCase))
+                              .ToList();
             int total = readyRows.Count;
 
-            // create job
+            // 2) create a process_job record
             Guid jobId;
             using (var db = new DatabaseService())
             using (var cmd = db.Connection.CreateCommand())
@@ -52,37 +54,42 @@ VALUES(@fid,'IMPORT_TXT',@tot) RETURNING id";
                 jobId = (Guid)cmd.ExecuteScalar();
             }
 
-            // generate sheets
-            IList<DataTable> sheets = _docGen.GenerateImportSheets(infoRows, insideRows);
-            DataTable sheetA = sheets[0];
-            string outPath = Path.Combine(_tempDir, sheetA.TableName + ".txt");
+            // 3) build the DataTable mappings (only the 9 desired columns)
+            var sheets = _docGen.GenerateImportSheets(infoRows, insideRows);
+            var sheetA = sheets[0];    // DataTable with columns: Item Code, PART#, BRAND, …
 
-            // write file + update DB
+            // 4) write out the TXT by iterating the DataTable rows
+            //    and in parallel update each corresponding RowView in readyRows
+            string outPath = Path.Combine(_tempDir, sheetA.TableName + ".txt");
             using (var writer = new StreamWriter(outPath, false, Encoding.UTF8))
             {
-                foreach (var rv in readyRows)
+                for (int i = 0; i < readyRows.Count; i++)
                 {
-                    // write columns from sheetA
-                    var vals = sheetA.Columns.Cast<DataColumn>()
-                        .Select((col, i) => rv.Cells.Length > i ? rv.Cells[i] : string.Empty)
-                        .ToArray();
+                    var dr = sheetA.Rows[i];
+                    // extract each column’s value from the DataRow
+                    var vals = sheetA.Columns
+                                    .Cast<DataColumn>()
+                                    .Select(c => dr[c]?.ToString() ?? string.Empty);
                     writer.WriteLine(string.Join("\t", vals));
 
-                    // update import_row & process_job
+                    // now update import_row.processed & process_job.processed_rows
+                    var rv = readyRows[i];
                     using (var db = new DatabaseService())
                     using (var tx = db.Connection.BeginTransaction())
                     {
+                        // mark that row processed
                         using (var cmd = db.Connection.CreateCommand())
                         {
                             cmd.Transaction = tx;
                             cmd.CommandText = @"
 UPDATE import_row
-   SET processed = TRUE,
-       exec_count = exec_count + 1
+   SET processed   = TRUE,
+       exec_count  = exec_count + 1
  WHERE id = @rid";
                             cmd.Parameters.AddWithValue("rid", rv.RowId);
                             cmd.ExecuteNonQuery();
                         }
+                        // bump the job’s processed_rows
                         using (var cmd = db.Connection.CreateCommand())
                         {
                             cmd.Transaction = tx;
@@ -98,7 +105,7 @@ UPDATE process_job
                 }
             }
 
-            // finalize job
+            // 5) finalize the job
             using (var db = new DatabaseService())
             using (var cmd = db.Connection.CreateCommand())
             {
@@ -114,7 +121,7 @@ UPDATE process_job
         }
 
         /// <summary>
-        /// Stubbed SAP data import; you'll hook this up to your DI‐API later.
+        /// Stub for SAP import via DI-API—implement later.
         /// </summary>
         public void ImportIntoSap(IEnumerable<string> txtFiles)
         {
