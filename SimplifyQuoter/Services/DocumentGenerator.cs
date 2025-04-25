@@ -51,18 +51,19 @@ namespace SimplifyQuoter.Services
 
                 // Column D is index 3
                 var code = c.Length > 3 ? c[3] : string.Empty;
-                r["Item Code"] = code;
+                r["Item Code"] = "H-"+code;
                 r["PART#"] = code;
 
                 // Column C is index 2
-                r["BRAND"] = c.Length > 2 ? c[2] : string.Empty;
+                var brand = c.Length > 2 ? c[2] : string.Empty;
+                r["BRAND"] = brand;
 
-                r["Item Group"] = string.Empty;
-                r["DESCRIPTION"] = string.Empty;
+                r["Item Group"] = "string.Empty";
+                r["DESCRIPTION"] = brand + code + " TEST";
                 r["Purchasing UOM"] = "EACH";
                 r["Sales UOM"] = "EACH";
                 r["Inventory UOM"] = "EACH";
-                r["Vendor Name"] = string.Empty;   // or your default
+                r["Vendor Name"] = "VL000442"; 
 
                 dt.Rows.Add(r);
             }
@@ -77,18 +78,30 @@ namespace SimplifyQuoter.Services
 
                 // Column C is index 2
                 var code = c.Length > 2 ? c[2] : string.Empty;
-                r["Item Code"] = code;
+                r["Item Code"] = "H-"+code;
                 r["PART#"] = code;
 
                 // Column B is index 1
-                r["BRAND"] = c.Length > 1 ? c[1] : string.Empty;
+                var brand = c.Length > 1 ? c[1] : string.Empty;
+                r["BRAND"] = brand;
 
-                r["Item Group"] = string.Empty;
-                r["DESCRIPTION"] = string.Empty;
+                r["Item Group"] = "string.Empty";
+                r["DESCRIPTION"] = "brand + code + TEST";
+
                 r["Purchasing UOM"] = "EACH";
                 r["Sales UOM"] = "EACH";
                 r["Inventory UOM"] = "EACH";
-                r["Vendor Name"] = string.Empty;
+
+
+                /**
+                 *  TODO: Add below in ExcelService???
+                 */
+                //r["Vendor Name"] = "SM KOREA";
+                //r["Sales Price"] = "TODO:PRICE";
+                //r["Purchasing Price"] = "string.Empty";
+
+                //TODO: Change name to Vender Code
+                r["Vendor Name"] = "VL000442";
 
                 dt.Rows.Add(r);
             }

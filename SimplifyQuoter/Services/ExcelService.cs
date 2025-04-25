@@ -179,9 +179,13 @@ RETURNING id";
             using (var pkg = new ExcelPackage(new FileInfo(path)))
             {
                 var ws = pkg.Workbook.Worksheets[0];
-                int cols = ws.Dimension.End.Column;
-                int lastRow = ws.Dimension.End.Row;
 
+                // ALWAYS read through column O (15), even if Excel's used‐range is smaller:
+                int minCols = 15;
+                int usedCols = ws.Dimension?.End.Column ?? 0;
+                int cols = Math.Max(usedCols, minCols);
+
+                int lastRow = ws.Dimension?.End.Row ?? 0;
                 for (int r = 2; r <= lastRow; r++)
                 {
                     var rv = new RowView
@@ -190,11 +194,15 @@ RETURNING id";
                         Cells = new string[cols]
                     };
                     for (int c = 1; c <= cols; c++)
+                    {
+                        // ws.Cells[r,c].Text will be "" if truly blank
                         rv.Cells[c - 1] = ws.Cells[r, c].Text;
+                    }
                     rows.Add(rv);
                 }
             }
             return rows;
         }
+
     }
 }

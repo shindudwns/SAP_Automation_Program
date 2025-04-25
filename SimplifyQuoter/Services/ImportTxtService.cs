@@ -4,7 +4,6 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Npgsql;
 using SimplifyQuoter.Models;
 
 namespace SimplifyQuoter.Services
@@ -18,19 +17,18 @@ namespace SimplifyQuoter.Services
         {
             _docGen = docGen;
             _tempDir = Path.Combine(Path.GetTempPath(), "SimplifyQuoter_Import");
-            if (!Directory.Exists(_tempDir))
-                Directory.CreateDirectory(_tempDir);
+            Directory.CreateDirectory(_tempDir);
         }
 
         /// <summary>
-        /// Writes SheetA.txt and tracks import_row/process_job.
+        /// Writes SheetA.txt (only the mapped columns) and updates import_row/process_job.
         /// </summary>
         public string ProcessImport(
             Guid importFileId,
             IEnumerable<RowView> infoRows,
             IEnumerable<RowView> insideRows)
         {
-            // 1) pick out only the READY RowViews
+            // 1) filter only READY rows
             var readyRows = infoRows
                               .Concat(insideRows)
                               .Where(rv =>
@@ -39,9 +37,8 @@ namespace SimplifyQuoter.Services
                                                 "READY",
                                                 StringComparison.OrdinalIgnoreCase))
                               .ToList();
-            int total = readyRows.Count;
 
-            // 2) create a process_job record
+            // 2) create a job
             Guid jobId;
             using (var db = new DatabaseService())
             using (var cmd = db.Connection.CreateCommand())
@@ -50,34 +47,32 @@ namespace SimplifyQuoter.Services
 INSERT INTO process_job(import_file_id,job_type,total_rows)
 VALUES(@fid,'IMPORT_TXT',@tot) RETURNING id";
                 cmd.Parameters.AddWithValue("fid", importFileId);
-                cmd.Parameters.AddWithValue("tot", total);
+                cmd.Parameters.AddWithValue("tot", readyRows.Count);
                 jobId = (Guid)cmd.ExecuteScalar();
             }
 
-            // 3) build the DataTable mappings (only the 9 desired columns)
-            var sheets = _docGen.GenerateImportSheets(infoRows, insideRows);
-            var sheetA = sheets[0];    // DataTable with columns: Item Code, PART#, BRAND, …
+            // 3) build the mapped DataTable
+            var sheetA = _docGen.GenerateImportSheets(infoRows, insideRows)[0];
 
-            // 4) write out the TXT by iterating the DataTable rows
-            //    and in parallel update each corresponding RowView in readyRows
-            string outPath = Path.Combine(_tempDir, sheetA.TableName + ".txt");
+            // 4) export by reading the DataTable rows
+            var outPath = Path.Combine(_tempDir, sheetA.TableName + ".txt");
             using (var writer = new StreamWriter(outPath, false, Encoding.UTF8))
             {
                 for (int i = 0; i < readyRows.Count; i++)
                 {
-                    var dr = sheetA.Rows[i];
-                    // extract each column’s value from the DataRow
+                    DataRow dr = sheetA.Rows[i];
+                    // read exactly the mapped columns
                     var vals = sheetA.Columns
-                                    .Cast<DataColumn>()
-                                    .Select(c => dr[c]?.ToString() ?? string.Empty);
+                                     .Cast<DataColumn>()
+                                     .Select(c => dr[c]?.ToString() ?? string.Empty);
                     writer.WriteLine(string.Join("\t", vals));
 
-                    // now update import_row.processed & process_job.processed_rows
+                    // update import_row and process_job for this RowView
                     var rv = readyRows[i];
                     using (var db = new DatabaseService())
                     using (var tx = db.Connection.BeginTransaction())
                     {
-                        // mark that row processed
+                        // mark the import_row
                         using (var cmd = db.Connection.CreateCommand())
                         {
                             cmd.Transaction = tx;
@@ -89,7 +84,7 @@ UPDATE import_row
                             cmd.Parameters.AddWithValue("rid", rv.RowId);
                             cmd.ExecuteNonQuery();
                         }
-                        // bump the job’s processed_rows
+                        // bump the job counter
                         using (var cmd = db.Connection.CreateCommand())
                         {
                             cmd.Transaction = tx;
@@ -120,12 +115,9 @@ UPDATE process_job
             return outPath;
         }
 
-        /// <summary>
-        /// Stub for SAP import via DI-API—implement later.
-        /// </summary>
         public void ImportIntoSap(IEnumerable<string> txtFiles)
         {
-            throw new NotImplementedException("ImportIntoSap() to be implemented");
+            throw new NotImplementedException();
         }
     }
 }
