@@ -63,6 +63,14 @@ namespace SimplifyQuoter.Services
                 r["Purchasing UOM"] = "EACH";
                 r["Sales UOM"] = "EACH";
                 r["Inventory UOM"] = "EACH";
+                /**
+                 *  TODO: Add below in ExcelService???
+                 */
+                //r["Vendor Name"] = "SM KOREA";
+                //r["Sales Price"] = "TODO:PRICE";
+                //r["Purchasing Price"] = "string.Empty";
+
+                //TODO: Change name to Vender Code
                 r["Vendor Name"] = "VL000442"; 
 
                 dt.Rows.Add(r);
