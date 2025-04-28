@@ -39,7 +39,10 @@ namespace SimplifyQuoter.Services
             dt.Columns.Add("Purchasing UOM");
             dt.Columns.Add("Sales UOM");
             dt.Columns.Add("Inventory UOM");
-            dt.Columns.Add("Vendor Name");
+            dt.Columns.Add("Vender Name");
+            dt.Columns.Add("Sales Price");
+            dt.Columns.Add("Purchasing Price");
+            dt.Columns.Add("Vendor Code");
 
             // INFO_EXCEL: use D for Item Code/PART#, C for BRAND
             foreach (var rv in infoRows.Where(rv =>
@@ -71,7 +74,7 @@ namespace SimplifyQuoter.Services
                 //r["Purchasing Price"] = "string.Empty";
 
                 //TODO: Change name to Vender Code
-                r["Vendor Name"] = "VL000442"; 
+                r["Vendor Code"] = "VL000442"; 
 
                 dt.Rows.Add(r);
             }
@@ -100,7 +103,7 @@ namespace SimplifyQuoter.Services
                 r["Sales UOM"] = "EACH";
                 r["Inventory UOM"] = "EACH";
 
-
+                
                 /**
                  *  TODO: Add below in ExcelService???
                  */
@@ -109,7 +112,7 @@ namespace SimplifyQuoter.Services
                 //r["Purchasing Price"] = "string.Empty";
 
                 //TODO: Change name to Vender Code
-                r["Vendor Name"] = "VL000442";
+                r["Vendor Code"] = "VL000442";
 
                 dt.Rows.Add(r);
             }
