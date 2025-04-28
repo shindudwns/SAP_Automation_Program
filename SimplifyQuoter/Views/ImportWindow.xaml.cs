@@ -34,7 +34,7 @@ namespace SimplifyQuoter.Views
                 ? $"INFO_EXCEL: {_infoRows.Count} rows (FileID={_importFileId})"
                 : "No INFO_EXCEL loaded.");
         }
-
+         
         private void BtnUploadInside_Click(object sender, RoutedEventArgs e)
         {
             var svc = new ExcelService();

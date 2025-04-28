@@ -213,7 +213,7 @@ namespace SimplifyQuoter.Services
                 .AppendLine("    Packaging and Shipping, Plumbing and Fluid Handling, Pneumatics and Hydraulics,")
                 .AppendLine("    Precision Measuring Tools, SERVICE, STEEL FITTINGS, Safety and PPE, Surplus,")
                 .AppendLine("    Tools and Equipment, Welding and Soldering")
-                .AppendLine("  ]")
+                .AppendLine("  ], if you are uncertain, choose ETC.")
                 .AppendLine("Items:")
                 .Append(inputArray);
 

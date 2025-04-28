@@ -92,5 +92,10 @@ namespace SimplifyQuoter
             win.Owner = this;
             win.ShowDialog();
         }
+
+        private void SheetGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
     }
 }
