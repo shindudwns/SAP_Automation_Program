@@ -108,6 +108,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Models\RowView.cs" />
+    <Compile Include="Services\AiEnrichmentService.cs" />
     <Compile Include="Services\AutomationService.cs" />
     <Compile Include="Services\DatabaseService.cs" />
     <Compile Include="Services\DocumentGenerator.cs" />

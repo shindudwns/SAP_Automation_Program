@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Npgsql;
 using SimplifyQuoter.Models;
 
 namespace SimplifyQuoter.Services
@@ -16,63 +17,70 @@ namespace SimplifyQuoter.Services
         public ImportTxtService(DocumentGenerator docGen)
         {
             _docGen = docGen;
-            _tempDir = Path.Combine(Path.GetTempPath(), "SimplifyQuoter_Import");
-            Directory.CreateDirectory(_tempDir);
+            _tempDir = Path.Combine(
+                Path.GetTempPath(), "SimplifyQuoter_Import");
+            if (!Directory.Exists(_tempDir))
+                Directory.CreateDirectory(_tempDir);
         }
 
         /// <summary>
-        /// Writes SheetA.txt (only the mapped columns) and updates import_row/process_job.
+        /// Synchronously writes SheetA.txt and updates import_row/process_job.
+        /// This may block on the AI calls inside the generator, but we
+        /// will run *this* whole method on a background thread.
         /// </summary>
         public string ProcessImport(
             Guid importFileId,
             IEnumerable<RowView> infoRows,
             IEnumerable<RowView> insideRows)
         {
-            // 1) filter only READY rows
+            // 1) collect only READY rows
             var readyRows = infoRows
-                              .Concat(insideRows)
-                              .Where(rv =>
-                                  rv.Cells.Length > 14 &&
-                                  string.Equals(rv.Cells[14]?.Trim(),
-                                                "READY",
-                                                StringComparison.OrdinalIgnoreCase))
-                              .ToList();
+                .Concat(insideRows)
+                .Where(rv =>
+                    rv.Cells.Length > 14 &&
+                    String.Equals(rv.Cells[14]?.Trim(),
+                                  "READY", StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
-            // 2) create a job
+            // 2) insert process_job
             Guid jobId;
             using (var db = new DatabaseService())
             using (var cmd = db.Connection.CreateCommand())
             {
                 cmd.CommandText = @"
 INSERT INTO process_job(import_file_id,job_type,total_rows)
-VALUES(@fid,'IMPORT_TXT',@tot) RETURNING id";
+VALUES(@fid,'IMPORT_TXT',@tot)
+RETURNING id";
                 cmd.Parameters.AddWithValue("fid", importFileId);
                 cmd.Parameters.AddWithValue("tot", readyRows.Count);
                 jobId = (Guid)cmd.ExecuteScalar();
             }
 
-            // 3) build the mapped DataTable
-            var sheetA = _docGen.GenerateImportSheets(infoRows, insideRows)[0];
+            // 3) build the sheets (this blocks on GetDescriptionAsync inside)
+            IList<DataTable> sheets = _docGen.GenerateImportSheets(
+                infoRows, insideRows);
+            DataTable sheetA = sheets[0];
 
-            // 4) export by reading the DataTable rows
-            var outPath = Path.Combine(_tempDir, sheetA.TableName + ".txt");
-            using (var writer = new StreamWriter(outPath, false, Encoding.UTF8))
+            // 4) write out SheetA.txt and update each row
+            string outPath = Path.Combine(
+                _tempDir, sheetA.TableName + ".txt");
+
+            using (var writer = new StreamWriter(
+                       outPath, false, Encoding.UTF8))
             {
                 for (int i = 0; i < readyRows.Count; i++)
                 {
-                    DataRow dr = sheetA.Rows[i];
-                    // read exactly the mapped columns
+                    var dr = sheetA.Rows[i];
                     var vals = sheetA.Columns
-                                     .Cast<DataColumn>()
-                                     .Select(c => dr[c]?.ToString() ?? string.Empty);
+                        .Cast<DataColumn>()
+                        .Select(c => dr[c]?.ToString() ?? String.Empty);
                     writer.WriteLine(string.Join("\t", vals));
 
-                    // update import_row and process_job for this RowView
+                    // update import_row + process_job
                     var rv = readyRows[i];
                     using (var db = new DatabaseService())
                     using (var tx = db.Connection.BeginTransaction())
                     {
-                        // mark the import_row
                         using (var cmd = db.Connection.CreateCommand())
                         {
                             cmd.Transaction = tx;
@@ -84,7 +92,6 @@ UPDATE import_row
                             cmd.Parameters.AddWithValue("rid", rv.RowId);
                             cmd.ExecuteNonQuery();
                         }
-                        // bump the job counter
                         using (var cmd = db.Connection.CreateCommand())
                         {
                             cmd.Transaction = tx;

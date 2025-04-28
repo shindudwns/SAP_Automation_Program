@@ -6,29 +6,27 @@ using SimplifyQuoter.Models;
 
 namespace SimplifyQuoter.Services
 {
+    /// <summary>
+    /// Build the three import‐format DataTables.
+    /// SheetA now enriches DESCRIPTION via AI + cache (blocking on .Result).
+    /// </summary>
     public class DocumentGenerator
     {
-        /// <summary>
-        /// Build the three import‐format DataTables.
-        /// SheetA now merges two sources with distinct column mappings.
-        /// </summary>
         public IList<DataTable> GenerateImportSheets(
             IEnumerable<RowView> infoRows,
             IEnumerable<RowView> insideRows)
         {
-            var sheetA = BuildSheetA(infoRows ?? Enumerable.Empty<RowView>(),
-                                    insideRows ?? Enumerable.Empty<RowView>());
-
-            // placeholders for B & C (to be implemented later)
+            var sheetA = BuildSheetA(
+                  infoRows ?? Enumerable.Empty<RowView>(),
+                  insideRows ?? Enumerable.Empty<RowView>());
             var sheetB = new DataTable("SheetB");
             var sheetC = new DataTable("SheetC");
-
             return new List<DataTable> { sheetA, sheetB, sheetC };
         }
 
         private DataTable BuildSheetA(
-    IEnumerable<RowView> infoRows,
-    IEnumerable<RowView> insideRows)
+            IEnumerable<RowView> infoRows,
+            IEnumerable<RowView> insideRows)
         {
             var dt = new DataTable("SheetA");
             dt.Columns.Add("Item Code");
@@ -39,86 +37,53 @@ namespace SimplifyQuoter.Services
             dt.Columns.Add("Purchasing UOM");
             dt.Columns.Add("Sales UOM");
             dt.Columns.Add("Inventory UOM");
-            dt.Columns.Add("Vender Name");
-            dt.Columns.Add("Sales Price");
-            dt.Columns.Add("Purchasing Price");
             dt.Columns.Add("Vendor Code");
 
-            // INFO_EXCEL: use D for Item Code/PART#, C for BRAND
-            foreach (var rv in infoRows.Where(rv =>
-                     rv.Cells.Length > 14 &&
-                     rv.Cells[14].Trim().Equals("READY", StringComparison.OrdinalIgnoreCase)))
+            Func<RowView, bool> isReady = rv =>
+                rv.Cells.Length > 14 &&
+                String.Equals(rv.Cells[14]?.Trim(), "READY",
+                              StringComparison.OrdinalIgnoreCase);
+
+            // INFO_EXCEL rows
+            foreach (var rv in infoRows.Where(isReady))
             {
                 var c = rv.Cells;
+                var code = c.Length > 3 ? c[3].Trim() : String.Empty;
+                var brand = c.Length > 2 ? c[2].Trim() : String.Empty;
                 var r = dt.NewRow();
-
-                // Column D is index 3
-                var code = c.Length > 3 ? c[3] : string.Empty;
-                r["Item Code"] = "H-"+code;
+                r["Item Code"] = "H-" + code;
                 r["PART#"] = code;
-
-                // Column C is index 2
-                var brand = c.Length > 2 ? c[2] : string.Empty;
                 r["BRAND"] = brand;
-
-                r["Item Group"] = "string.Empty";
-                r["DESCRIPTION"] = brand + code + " TEST";
+                r["Item Group"] = String.Empty;
+                // *this* is the blocking AI call:
+                r["DESCRIPTION"] = Transformer.GetDescriptionAsync(code).Result;
                 r["Purchasing UOM"] = "EACH";
                 r["Sales UOM"] = "EACH";
                 r["Inventory UOM"] = "EACH";
-                /**
-                 *  TODO: Add below in ExcelService???
-                 */
-                //r["Vendor Name"] = "SM KOREA";
-                //r["Sales Price"] = "TODO:PRICE";
-                //r["Purchasing Price"] = "string.Empty";
-
-                //TODO: Change name to Vender Code
-                r["Vendor Code"] = "VL000442"; 
-
+                r["Vendor Code"] = "VL000442";
                 dt.Rows.Add(r);
             }
 
-            // INSIDE_EXCEL: use C for Item Code/PART#, B for BRAND
-            foreach (var rv in insideRows.Where(rv =>
-                     rv.Cells.Length > 14 &&
-                     rv.Cells[14].Trim().Equals("READY", StringComparison.OrdinalIgnoreCase)))
+            // INSIDE_EXCEL rows
+            foreach (var rv in insideRows.Where(isReady))
             {
                 var c = rv.Cells;
+                var code = c.Length > 2 ? c[2].Trim() : String.Empty;
+                var brand = c.Length > 1 ? c[1].Trim() : String.Empty;
                 var r = dt.NewRow();
-
-                // Column C is index 2
-                var code = c.Length > 2 ? c[2] : string.Empty;
-                r["Item Code"] = "H-"+code;
+                r["Item Code"] = "H-" + code;
                 r["PART#"] = code;
-
-                // Column B is index 1
-                var brand = c.Length > 1 ? c[1] : string.Empty;
                 r["BRAND"] = brand;
-
-                r["Item Group"] = "string.Empty";
-                r["DESCRIPTION"] = "brand + code + TEST";
-
+                r["Item Group"] = String.Empty;
+                r["DESCRIPTION"] = Transformer.GetDescriptionAsync(code).Result;
                 r["Purchasing UOM"] = "EACH";
                 r["Sales UOM"] = "EACH";
                 r["Inventory UOM"] = "EACH";
-
-                
-                /**
-                 *  TODO: Add below in ExcelService???
-                 */
-                //r["Vendor Name"] = "SM KOREA";
-                //r["Sales Price"] = "TODO:PRICE";
-                //r["Purchasing Price"] = "string.Empty";
-
-                //TODO: Change name to Vender Code
                 r["Vendor Code"] = "VL000442";
-
                 dt.Rows.Add(r);
             }
 
             return dt;
         }
-
     }
 }
