@@ -7,7 +7,7 @@ using Npgsql;
 namespace SimplifyQuoter.Services
 {
     /// <summary>
-    /// Wraps an open NpgsqlConnection, plus some part‐cache helpers.
+    /// Wraps an open NpgsqlConnection, plus some part-cache helpers.
     /// </summary>
     public class DatabaseService : IDisposable
     {
@@ -22,17 +22,11 @@ namespace SimplifyQuoter.Services
             _conn.Open();
         }
 
-        /// <summary>
-        /// The live, open NpgsqlConnection.
-        /// </summary>
         public NpgsqlConnection Connection
         {
             get { return _conn; }
         }
 
-        /// <summary>
-        /// Fetch all codes from the part table that intersect with the given list.
-        /// </summary>
         public HashSet<string> GetKnownPartCodes(IEnumerable<string> codes)
         {
             var arr = (codes ?? Enumerable.Empty<string>())
@@ -49,23 +43,19 @@ SELECT code
   FROM part
  WHERE code = ANY(@codes)";
                 cmd.Parameters.AddWithValue(
-                    "codes",
-                    NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Text,
-                    arr);
+                  "codes",
+                  NpgsqlTypes.NpgsqlDbType.Array |
+                  NpgsqlTypes.NpgsqlDbType.Text,
+                  arr);
 
                 var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 using (var rdr = cmd.ExecuteReader())
-                {
                     while (rdr.Read())
                         set.Add(rdr.GetString(0));
-                }
                 return set;
             }
         }
 
-        /// <summary>
-        /// Look up a single part’s description from the cache.
-        /// </summary>
         public string GetDescription(string code)
         {
             if (string.IsNullOrWhiteSpace(code))
@@ -86,10 +76,31 @@ SELECT description
             }
         }
 
-        /// <summary>
-        /// Inserts or updates a single part‐cache entry.
-        /// </summary>
-        public void UpsertPart(string code, string description, string itemGroup, bool isManual = false)
+        public string GetItemGroup(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+                return string.Empty;
+
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+SELECT item_group
+  FROM part
+ WHERE code = @code
+   AND item_group IS NOT NULL";
+                cmd.Parameters.AddWithValue("code", code.Trim());
+                var o = cmd.ExecuteScalar();
+                return (o == null || o == DBNull.Value)
+                    ? string.Empty
+                    : (string)o;
+            }
+        }
+
+        public void UpsertPart(
+            string code,
+            string description,
+            string itemGroup,
+            bool isManual = false)
         {
             using (var cmd = _conn.CreateCommand())
             {

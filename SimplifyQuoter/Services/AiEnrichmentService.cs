@@ -19,7 +19,7 @@ namespace SimplifyQuoter.Services
         private readonly HttpClient _http;
         private readonly string _apiKey;
         private readonly string _modelName;
-        private readonly TimeSpan[] _backoffs = new[]
+        private readonly TimeSpan[] _backoffs =
         {
             TimeSpan.FromMilliseconds(500),
             TimeSpan.FromSeconds(1),
@@ -35,27 +35,53 @@ namespace SimplifyQuoter.Services
 
             if (string.IsNullOrWhiteSpace(_apiKey))
                 throw new InvalidOperationException(
-                  "Missing OpenAI API key in App.config under <appSettings> key: OpenAI:ApiKey");
+                    "Missing OpenAI API key in App.config under <appSettings> key: OpenAI:ApiKey");
 
             _http = new HttpClient();
             _http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _apiKey);
         }
 
+        /// <summary>
+        /// Enrich *just* descriptions (legacy).
+        /// </summary>
         public async Task EnrichMissingAsync(IEnumerable<string> allCodes)
         {
             var distinct = allCodes
                 .Where(c => !string.IsNullOrWhiteSpace(c))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
-
             var known = _db.GetKnownPartCodes(distinct).ToList();
             var missing = distinct.Except(known, StringComparer.OrdinalIgnoreCase).ToList();
 
+            // chunk 20
             for (int i = 0; i < missing.Count; i += 20)
             {
                 var batch = missing.GetRange(i, Math.Min(20, missing.Count - i));
                 await CallOpenAiWithRetryAsync(batch);
+            }
+        }
+
+        /// <summary>
+        /// Enrich both description & item_group, using full context.
+        /// </summary>
+        public async Task EnrichMissingWithContextAsync(IEnumerable<PartContext> parts)
+        {
+            var list = parts
+                .Where(p => !string.IsNullOrWhiteSpace(p.Code))
+                .Distinct(new PartContextComparer())
+                .ToList();
+
+            var codes = list.Select(p => p.Code).ToList();
+            var known = _db.GetKnownPartCodes(codes);
+            var missing = list
+                .Where(p => !known.Contains(p.Code))
+                .ToList();
+
+            for (int i = 0; i < missing.Count; i += 20)
+            {
+                var batch = missing.GetRange(i, Math.Min(20, missing.Count - i));
+                await CallOpenAiContextWithRetryAsync(batch);
             }
         }
 
@@ -71,16 +97,33 @@ namespace SimplifyQuoter.Services
                         await CallOpenAiAsync(batch);
                         return;
                     }
-                    catch (HttpRequestException ex) when (ex.Message.Contains("429"))
+                    catch (HttpRequestException ex) when (ex.Message.Contains("429") && attempt < _backoffs.Length - 1)
                     {
-                        if (attempt == _backoffs.Length - 1) break;
-                        Debug.WriteLine($"Rate limit, backing off {_backoffs[attempt]}");
                         await Task.Delay(_backoffs[attempt]);
                     }
-                    catch (Exception ex)
+                }
+            }
+            finally
+            {
+                _throttle.Release();
+            }
+        }
+
+        private async Task CallOpenAiContextWithRetryAsync(List<PartContext> batch)
+        {
+            await _throttle.WaitAsync();
+            try
+            {
+                for (int attempt = 0; attempt < _backoffs.Length; attempt++)
+                {
+                    try
                     {
-                        Debug.WriteLine($"OpenAI call failed: {ex}");
+                        await CallOpenAiWithContextAsync(batch);
                         return;
+                    }
+                    catch (HttpRequestException ex) when (ex.Message.Contains("429") && attempt < _backoffs.Length - 1)
+                    {
+                        await Task.Delay(_backoffs[attempt]);
                     }
                 }
             }
@@ -92,53 +135,41 @@ namespace SimplifyQuoter.Services
 
         private async Task CallOpenAiAsync(List<string> batch)
         {
-            // build your prompt as before…
-            var partsList = string.Join(", ", batch.Select(c => "\"" + c + "\""));
-            var userContent = new StringBuilder()
-                .AppendLine("Provide a JSON array of objects, each with fields:")
-                .AppendLine("  code: string")
-                .AppendLine("  description: <=10-word summary")
-                .AppendLine("  item_group: one of [Pump, Valve, Motor, Sensor, Other]")
-                .AppendLine("Parts:")
-                .Append(partsList)
-                .ToString();
+            // legacy: only code → description
+            var partsList = string.Join(", ", batch.Select(c => $"\"{c}\""));
+            var userContent =
+                "Provide a JSON array of objects with fields:\n" +
+                "  code: string,\n" +
+                "  description: ≤10-word summary\n" +
+                "Parts:\n" + partsList;
 
             var bodyObj = new
             {
-                model = "gpt-4",
+                model = _modelName,
                 messages = new[]
                 {
-            new { role = "system", content = "You are an expert parts-classifier." },
-            new { role = "user",   content = userContent }
-        }
+                    new { role = "system", content = "You are an expert parts-classifier." },
+                    new { role = "user",   content = userContent }
+                }
             };
 
-            var request = new HttpRequestMessage(
-                HttpMethod.Post,
-                "https://api.openai.com/v1/chat/completions"
-            )
+            var req = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions")
             {
                 Content = new StringContent(
                     JsonConvert.SerializeObject(bodyObj),
                     Encoding.UTF8,
-                    "application/json"
-                )
+                    "application/json")
             };
 
-            var response = await _http.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+            var rsp = await _http.SendAsync(req);
+            rsp.EnsureSuccessStatusCode();
 
-            // get the assistant's raw response
-            var rspJson = await response.Content.ReadAsStringAsync();
-            dynamic parsed = JsonConvert.DeserializeObject(rspJson);
-            string content = ((string)parsed.choices[0].message.content) ?? string.Empty;
+            var json = await rsp.Content.ReadAsStringAsync();
+            dynamic parsed = JsonConvert.DeserializeObject(json);
+            string content = ((string)parsed.choices[0].message.content ?? "").Trim();
 
-            // ** SANITIZE JSON ** 
-            content = content.Trim();
-
-            // grab only what's between the first '[' and the last ']'
-            int start = content.IndexOf('[');
-            int end = content.LastIndexOf(']');
+            // extract JSON array
+            int start = content.IndexOf('['), end = content.LastIndexOf(']');
             if (start >= 0 && end > start)
                 content = content.Substring(start, end - start + 1);
 
@@ -147,28 +178,95 @@ namespace SimplifyQuoter.Services
             {
                 results = JsonConvert.DeserializeObject<List<Part>>(content);
             }
-            catch (Newtonsoft.Json.JsonReaderException ex)
+            catch (JsonReaderException ex)
             {
-                // log the bad payload for inspection
-                Debug.WriteLine($"Failed to deserialize parts list: {ex}\n\nPayload:\n{content}");
+                Debug.WriteLine($"Failed to parse AI-desc: {ex}\n{content}");
                 return;
             }
 
-            // upsert each into your part table
             foreach (var p in results)
             {
-                using (var db2 = new DatabaseService())
-                {
-                    db2.UpsertPart(
-                        p.code,
-                        p.description,
-                        p.item_group,
-                        p.is_manual
-                    );
-                }
+                using (var d = new DatabaseService())
+                    d.UpsertPart(p.code, p.description, p.item_group, p.is_manual);
             }
         }
 
+        private async Task CallOpenAiWithContextAsync(List<PartContext> batch)
+        {
+            var jsonInputs = batch
+                .Select(p =>
+                    $"{{\"code\":\"{p.Code}\",\"brand\":\"{p.Brand}\",\"vendor\":\"{p.Vendor}\"}}");
+            var inputArray = "[" + string.Join(",", jsonInputs) + "]";
+            Debug.WriteLine(inputArray);
+            var userBuilder = new StringBuilder()
+                .AppendLine("You are an expert parts-classifier.")
+                .AppendLine("For each item below, given its code, brand and vendor,")
+                .AppendLine("output a JSON array of objects with fields:")
+                .AppendLine("  code: string,")
+                .AppendLine("  description: ≤10-word summary,")
+                .AppendLine("  item_group: one of [")
+                // paste your full category list here:
+                .AppendLine("    Automation and Controls, BRASS FITTINGS, Bearings and Power Transmission,")
+                .AppendLine("    Bolts, Nuts, Washers, Charge, ETC, Electrical Components, Facility Maintenance,")
+                .AppendLine("    Fasteners and Hardware, HVAC and Refrigeration, IT and Office Supplies,")
+                .AppendLine("    Lighting and Electrical Fixtures, Lubricants and Chemicals, Material Handling,")
+                .AppendLine("    Packaging and Shipping, Plumbing and Fluid Handling, Pneumatics and Hydraulics,")
+                .AppendLine("    Precision Measuring Tools, SERVICE, STEEL FITTINGS, Safety and PPE, Surplus,")
+                .AppendLine("    Tools and Equipment, Welding and Soldering")
+                .AppendLine("  ]")
+                .AppendLine("Items:")
+                .Append(inputArray);
+
+            var bodyObj = new
+            {
+                model = _modelName,
+                messages = new[]
+                {
+                    new { role = "system", content = userBuilder.ToString() }
+                }
+            };
+
+            var req = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions")
+            {
+                Content = new StringContent(
+                    JsonConvert.SerializeObject(bodyObj),
+                    Encoding.UTF8,
+                    "application/json")
+            };
+
+            var rsp = await _http.SendAsync(req);
+            rsp.EnsureSuccessStatusCode();
+
+            var json = await rsp.Content.ReadAsStringAsync();
+            dynamic parsed = JsonConvert.DeserializeObject(json);
+            string content = ((string)parsed.choices[0].message.content ?? "").Trim();
+
+            // extract JSON array
+            int start = content.IndexOf('['), end = content.LastIndexOf(']');
+            if (start >= 0 && end > start)
+                content = content.Substring(start, end - start + 1);
+
+            List<Part> results;
+            try
+            {
+                results = JsonConvert.DeserializeObject<List<Part>>(content);
+            }
+            catch (JsonReaderException ex)
+            {
+                Debug.WriteLine($"Failed to parse AI-context: {ex}\n{content}");
+                return;
+            }
+
+            foreach (var p in results)
+            {
+                using (var d = new DatabaseService())
+                    d.UpsertPart(
+                        p.code,
+                        p.description,
+                        p.item_group,
+                        p.is_manual);
+            }
+        }
 
         private class Part
         {
@@ -176,6 +274,22 @@ namespace SimplifyQuoter.Services
             public string description { get; set; }
             public string item_group { get; set; }
             public bool is_manual { get; set; }
+        }
+
+        /// <summary>
+        /// Distinct-by-code comparer for PartContext.
+        /// </summary>
+        private class PartContextComparer : IEqualityComparer<PartContext>
+        {
+            public bool Equals(PartContext x, PartContext y)
+            {
+                return string.Equals(x.Code, y.Code,
+                                     StringComparison.OrdinalIgnoreCase);
+            }
+            public int GetHashCode(PartContext obj)
+            {
+                return obj.Code?.ToLowerInvariant().GetHashCode() ?? 0;
+            }
         }
     }
 }

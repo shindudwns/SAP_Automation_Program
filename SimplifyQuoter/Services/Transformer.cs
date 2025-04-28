@@ -1,6 +1,4 @@
-﻿// Services/Transformer.cs
-
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -8,8 +6,8 @@ using System.Threading.Tasks;
 namespace SimplifyQuoter.Services
 {
     /// <summary>
-    /// Converts Korean durations (e.g. "2개월", "3주") to "WEEK ERO"
-    /// and asynchronously fetches/​generates part descriptions via AI (with caching).
+    /// Converts Korean durations to "WEEK ERO" and
+    /// asynchronously fetches/generates part descriptions & item-groups via AI.
     /// </summary>
     public static class Transformer
     {
@@ -28,10 +26,6 @@ namespace SimplifyQuoter.Services
             return $"{weeks} WEEK ERO";
         }
 
-        /// <summary>
-        /// Return a cached description for this code—or generate it via AI if missing.
-        /// Any errors in the AI call are caught and result in an empty string fallback.
-        /// </summary>
         public static Task<string> GetDescriptionAsync(string code)
         {
             if (string.IsNullOrWhiteSpace(code))
@@ -42,51 +36,106 @@ namespace SimplifyQuoter.Services
 
         private static async Task<string> GetDescriptionInternalAsync(string code)
         {
-            // 1) cache lookup
-            string desc;
+            string desc = null;
             try
             {
-                using (var db1 = new DatabaseService())
-                    desc = db1.GetDescription(code);
+                using (var db = new DatabaseService())
+                    desc = db.GetDescription(code);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"DatabaseService.GetDescription failed for {code}: {ex}");
-                desc = null;
+                Debug.WriteLine($"GetDescription lookup failed for {code}: {ex}");
             }
-
             if (!string.IsNullOrEmpty(desc))
                 return desc;
 
-            // 2) kick off AI enrichment—but swallow any exceptions
             try
             {
-                using (var db2 = new DatabaseService())
+                using (var db = new DatabaseService())
                 {
-                    var ai = new AiEnrichmentService(db2);
+                    var ai = new AiEnrichmentService(db);
                     await ai.EnrichMissingAsync(new[] { code });
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"AiEnrichmentService failed for {code}: {ex}");
+                Debug.WriteLine($"AI enrichment (desc) failed for {code}: {ex}");
             }
 
-            // 3) re-read from cache
             try
             {
-                using (var db3 = new DatabaseService())
-                {
-                    desc = db3.GetDescription(code);
-                }
+                using (var db = new DatabaseService())
+                    desc = db.GetDescription(code);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"DatabaseService.GetDescription (post-AI) failed for {code}: {ex}");
-                desc = null;
+                Debug.WriteLine($"GetDescription post-AI failed for {code}: {ex}");
             }
 
             return desc ?? string.Empty;
         }
+
+        public static Task<string> GetItemGroupAsync(string code, string brand, string vendor)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+                return Task.FromResult("string.Empty");
+
+            return GetItemGroupInternalAsync(code.Trim(), brand ?? "", vendor ?? "");
+        }
+
+        private static async Task<string> GetItemGroupInternalAsync(
+            string code, string brand, string vendor)
+        {
+            string grp = null;
+            try
+            {
+                using (var db = new DatabaseService())
+                    grp = db.GetItemGroup(code);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"GetItemGroup lookup failed for {code}: {ex}");
+            }
+            if (!string.IsNullOrEmpty(grp))
+                return grp;
+
+            try
+            {
+                using (var db = new DatabaseService())
+                {
+                    var ai = new AiEnrichmentService(db);
+                    await ai.EnrichMissingWithContextAsync(new[]
+                    {
+                        new PartContext { Code = code, Brand = brand, Vendor = vendor }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"AI enrichment (group) failed for {code}: {ex}");
+            }
+
+            try
+            {
+                using (var db = new DatabaseService())
+                    grp = db.GetItemGroup(code);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"GetItemGroup post-AI failed for {code}: {ex}");
+            }
+
+            return grp ?? string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Holds the extra context for item-group enrichment.
+    /// </summary>
+    public class PartContext
+    {
+        public string Code { get; set; }
+        public string Brand { get; set; }
+        public string Vendor { get; set; }
     }
 }
