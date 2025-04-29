@@ -107,6 +107,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\ValueToWidthConverte.cs" />
     <Compile Include="Models\RowView.cs" />
     <Compile Include="Services\AiEnrichmentService.cs" />
     <Compile Include="Services\AutomationService.cs" />
