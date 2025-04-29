@@ -124,6 +124,9 @@
     <Compile Include="Views\ProcessWindow.xaml.cs">
       <DependentUpon>ProcessWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\ReviewWindow.xaml.cs">
+      <DependentUpon>ReviewWindow.xaml</DependentUpon>
+    </Compile>
     <Page Include="Views\ImportWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -140,6 +143,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Views\ProcessWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ReviewWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
@@ -174,6 +180,9 @@
     <Content Include=".gitignore" />
     <Resource Include="Assets\txt_icon.png" />
     <Resource Include="Assets\excel_icon.png" />
+    <Resource Include="Assets\info_icon.png" />
+    <Resource Include="Assets\inside_icon.png" />
+    <Resource Include="Assets\process_icon.png" />
     <Content Include="DB\text-file-outline-variant-svgrepo-com.svg" />
     <Resource Include="DB\ddl.txt" />
   </ItemGroup>

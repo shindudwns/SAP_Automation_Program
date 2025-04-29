@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window x:Class="SimplifyQuoter.Views.ReviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Review Selection" Height="500" Width="900">
+    <DockPanel Margin="10">
+        <!-- Top: Process button -->
+        <Button Name="BtnProcess"
+                Content="Process"
+                DockPanel.Dock="Top"
+                Margin="0,0,0,10"
+                Width="100"
+                Click="BtnProcess_Click"/>
+
+        <!-- The same DataGrid you had in MainWindow -->
+        <DataGrid x:Name="ReviewGrid"
+                  AutoGenerateColumns="False"
+                  CanUserResizeColumns="True"
+                  SelectionUnit="Cell"
+                  SelectionMode="Extended"
+                  SelectedCellsChanged="ReviewGrid_SelectedCellsChanged">
+            <!-- You'll build columns in code-behind -->
+        </DataGrid>
+    </DockPanel>
+</Window>
