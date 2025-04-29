@@ -172,8 +172,13 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
+    <Resource Include="Assets\txt_icon.png" />
+    <Resource Include="Assets\excel_icon.png" />
     <Content Include="DB\text-file-outline-variant-svgrepo-com.svg" />
     <Resource Include="DB\ddl.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="NewFolder1\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
