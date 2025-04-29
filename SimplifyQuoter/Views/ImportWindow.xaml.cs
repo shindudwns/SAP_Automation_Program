@@ -26,35 +26,33 @@ namespace SimplifyQuoter.Views
             _importSvc = new ImportTxtService(new DocumentGenerator());
         }
 
-        private void BtnUploadInfo_Click(object sender, RoutedEventArgs e)
+        private void BtnUploadInfo_Click(object s, RoutedEventArgs e)
         {
             var svc = new ExcelService();
             var tup = svc.LoadImportSheetViaDialog("INFO_EXCEL");
             _importFileId = tup.Item1;
             _infoRows = tup.Item2;
-            MessageBox.Show(
-                _infoRows?.Count > 0
-                    ? $"INFO_EXCEL: {_infoRows.Count} rows (FileID={_importFileId})"
-                    : "No INFO_EXCEL loaded.");
+            MessageBox.Show(_infoRows?.Count > 0
+                ? $"INFO_EXCEL: {_infoRows.Count} rows (FileID={_importFileId})"
+                : "No INFO_EXCEL loaded.");
         }
 
-        private void BtnUploadInside_Click(object sender, RoutedEventArgs e)
+        private void BtnUploadInside_Click(object s, RoutedEventArgs e)
         {
             var svc = new ExcelService();
             var tup = svc.LoadImportSheetViaDialog("INSIDE_EXCEL");
             if (_importFileId == Guid.Empty)
                 _importFileId = tup.Item1;
             _insideRows = tup.Item2;
-            MessageBox.Show(
-                _insideRows?.Count > 0
-                    ? $"INSIDE_EXCEL: {_insideRows.Count} rows"
-                    : "No INSIDE_EXCEL loaded.");
+            MessageBox.Show(_insideRows?.Count > 0
+                ? $"INSIDE_EXCEL: {_insideRows.Count} rows"
+                : "No INSIDE_EXCEL loaded.");
         }
 
-        private async void BtnProcessImport_Click(object sender, RoutedEventArgs e)
+        private async void BtnProcessImport_Click(object s, RoutedEventArgs e)
         {
             if (_importFileId == Guid.Empty
-             || ((_infoRows?.Count ?? 0) + (_insideRows?.Count ?? 0) == 0))
+             || ((_infoRows?.Count ?? 0) + (_insideRows?.Count ?? 0)) == 0)
             {
                 MessageBox.Show("Please upload at least one sheet.");
                 return;
@@ -63,7 +61,7 @@ namespace SimplifyQuoter.Views
             BtnProcessImport.IsEnabled = false;
             try
             {
-                // Run the sync ProcessImport on a background thread
+                // run sync on threadpool
                 _txtPaths = await Task.Run(() =>
                     _importSvc.ProcessImport(
                         _importFileId,
@@ -72,15 +70,15 @@ namespace SimplifyQuoter.Views
                     )
                 );
 
-                // enable Download buttons based on how many sheets we got
+                // enable downloads
                 BtnDownloadA.IsEnabled = _txtPaths.Count >= 1;
                 BtnDownloadB.IsEnabled = _txtPaths.Count >= 2;
                 BtnDownloadC.IsEnabled = _txtPaths.Count >= 3;
                 BtnImportSap.IsEnabled = true;
 
-                MessageBox.Show(
-                    $"Generated:\n{string.Join("\n", _txtPaths.Select((p, i) => $"Sheet{(char)('A' + i)}: {p}"))}"
-                );
+                MessageBox.Show($"Files generated:\n" +
+                    string.Join("\n", _txtPaths
+                                    .Select((p, i) => $"Sheet{(char)('A' + i)}: {p}")));
             }
             catch (Exception ex)
             {
@@ -92,17 +90,17 @@ namespace SimplifyQuoter.Views
             }
         }
 
-        private void Download(string defaultName, string srcPath)
+        private void Download(string name, string path)
         {
-            if (string.IsNullOrEmpty(srcPath)) return;
+            if (string.IsNullOrEmpty(path)) return;
             var dlg = new SaveFileDialog
             {
-                Title = $"Save {defaultName}",
+                Title = $"Save {name}",
                 Filter = "Text Files (*.txt)|*.txt",
-                FileName = defaultName
+                FileName = name
             };
             if (dlg.ShowDialog() == true)
-                System.IO.File.Copy(srcPath, dlg.FileName, overwrite: true);
+                System.IO.File.Copy(path, dlg.FileName, overwrite: true);
         }
 
         private void BtnDownloadA_Click(object s, RoutedEventArgs e)

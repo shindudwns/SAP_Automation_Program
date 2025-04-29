@@ -6,7 +6,6 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Npgsql;
 using SimplifyQuoter.Models;
 
 namespace SimplifyQuoter.Services
@@ -34,53 +33,51 @@ namespace SimplifyQuoter.Services
             IEnumerable<RowView> insideRows)
         {
             // 1) collect only READY rows
-            var readyRows = infoRows
-                .Concat(insideRows)
-                .Where(rv =>
-                    rv.Cells.Length > 14 &&
-                    string.Equals(rv.Cells[14]?.Trim(), "READY", StringComparison.OrdinalIgnoreCase))
+            var ready = infoRows.Concat(insideRows)
+                .Where(rv => rv.Cells.Length > 14
+                          && rv.Cells[14].Trim().Equals("READY", StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
-            // 2) insert process_job
+            // 2) start job
             Guid jobId;
             using (var db = new DatabaseService())
-            using (var cmd = db.Connection.CreateCommand())
+            using (var c = db.Connection.CreateCommand())
             {
-                cmd.CommandText = @"
+                c.CommandText = @"
 INSERT INTO process_job(import_file_id,job_type,total_rows)
 VALUES(@fid,'IMPORT_TXT',@tot)
 RETURNING id";
-                cmd.Parameters.AddWithValue("fid", importFileId);
-                cmd.Parameters.AddWithValue("tot", readyRows.Count);
-                jobId = (Guid)cmd.ExecuteScalar();
+                c.Parameters.AddWithValue("fid", importFileId);
+                c.Parameters.AddWithValue("tot", ready.Count);
+                jobId = (Guid)c.ExecuteScalar();
             }
 
-            // 3) build all three sheets
-            IList<DataTable> sheets = _docGen.GenerateImportSheets(infoRows, insideRows);
+            // 3) build sheets
+            var sheets = _docGen.GenerateImportSheets(infoRows, insideRows);
 
-            // 4) for each sheet, dump to TXT and track path
-            var outPaths = new List<string>();
+            // 4) dump each to TXT
+            var paths = new List<string>();
             foreach (var dt in sheets)
             {
-                string path = Path.Combine(_tempDir, dt.TableName + ".txt");
-                using (var writer = new StreamWriter(path, false, Encoding.UTF8))
+                var path = Path.Combine(_tempDir, dt.TableName + ".txt");
+                using (var w = new StreamWriter(path, false, Encoding.UTF8))
                 {
                     foreach (DataRow dr in dt.Rows)
                     {
-                        var vals = dt.Columns
-                                     .Cast<DataColumn>()
-                                     .Select(c => dr[c]?.ToString() ?? string.Empty);
-                        writer.WriteLine(string.Join("\t", vals));
+                        var line = string.Join("\t",
+                            dt.Columns.Cast<DataColumn>()
+                              .Select(col => dr[col]?.ToString() ?? ""));
+                        w.WriteLine(line);
                     }
                 }
-                outPaths.Add(path);
+                paths.Add(path);
 
-                // only SheetA needs import_row/process_job updates:
+                // update only SheetA rows in DB
                 if (dt.TableName == "SheetA")
                 {
-                    for (int i = 0; i < readyRows.Count; i++)
+                    for (int i = 0; i < ready.Count; i++)
                     {
-                        var rv = readyRows[i];
+                        var rv = ready[i];
                         using (var db = new DatabaseService())
                         using (var tx = db.Connection.BeginTransaction())
                         {
@@ -89,8 +86,8 @@ RETURNING id";
                                 cmd.Transaction = tx;
                                 cmd.CommandText = @"
 UPDATE import_row
-   SET processed  = TRUE,
-       exec_count = exec_count + 1
+   SET processed   = TRUE,
+       exec_count  = exec_count + 1
  WHERE id = @rid";
                                 cmd.Parameters.AddWithValue("rid", rv.RowId);
                                 cmd.ExecuteNonQuery();
@@ -111,7 +108,7 @@ UPDATE process_job
                 }
             }
 
-            // 5) finalize the job
+            // 5) finalize
             using (var db = new DatabaseService())
             using (var cmd = db.Connection.CreateCommand())
             {
@@ -123,12 +120,10 @@ UPDATE process_job
                 cmd.ExecuteNonQuery();
             }
 
-            return outPaths;
+            return paths;
         }
 
         public void ImportIntoSap(IEnumerable<string> txtFiles)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 }
