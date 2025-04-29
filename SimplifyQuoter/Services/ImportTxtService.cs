@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Services/ImportTxtService.cs
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -17,18 +19,16 @@ namespace SimplifyQuoter.Services
         public ImportTxtService(DocumentGenerator docGen)
         {
             _docGen = docGen;
-            _tempDir = Path.Combine(
-                Path.GetTempPath(), "SimplifyQuoter_Import");
+            _tempDir = Path.Combine(Path.GetTempPath(), "SimplifyQuoter_Import");
             if (!Directory.Exists(_tempDir))
                 Directory.CreateDirectory(_tempDir);
         }
 
         /// <summary>
-        /// Synchronously writes SheetA.txt and updates import_row/process_job.
-        /// This may block on the AI calls inside the generator, but we
-        /// will run *this* whole method on a background thread.
+        /// Synchronously writes SheetA.txt, SheetB.txt, SheetC.txt
+        /// and updates import_row/process_job for SheetA only.
         /// </summary>
-        public string ProcessImport(
+        public List<string> ProcessImport(
             Guid importFileId,
             IEnumerable<RowView> infoRows,
             IEnumerable<RowView> insideRows)
@@ -38,8 +38,7 @@ namespace SimplifyQuoter.Services
                 .Concat(insideRows)
                 .Where(rv =>
                     rv.Cells.Length > 14 &&
-                    String.Equals(rv.Cells[14]?.Trim(),
-                                  "READY", StringComparison.OrdinalIgnoreCase))
+                    string.Equals(rv.Cells[14]?.Trim(), "READY", StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             // 2) insert process_job
@@ -56,53 +55,58 @@ RETURNING id";
                 jobId = (Guid)cmd.ExecuteScalar();
             }
 
-            // 3) build the sheets (this blocks on GetDescriptionAsync inside)
-            IList<DataTable> sheets = _docGen.GenerateImportSheets(
-                infoRows, insideRows);
-            DataTable sheetA = sheets[0];
+            // 3) build all three sheets
+            IList<DataTable> sheets = _docGen.GenerateImportSheets(infoRows, insideRows);
 
-            // 4) write out SheetA.txt and update each row
-            string outPath = Path.Combine(
-                _tempDir, sheetA.TableName + ".txt");
-
-            using (var writer = new StreamWriter(
-                       outPath, false, Encoding.UTF8))
+            // 4) for each sheet, dump to TXT and track path
+            var outPaths = new List<string>();
+            foreach (var dt in sheets)
             {
-                for (int i = 0; i < readyRows.Count; i++)
+                string path = Path.Combine(_tempDir, dt.TableName + ".txt");
+                using (var writer = new StreamWriter(path, false, Encoding.UTF8))
                 {
-                    var dr = sheetA.Rows[i];
-                    var vals = sheetA.Columns
-                        .Cast<DataColumn>()
-                        .Select(c => dr[c]?.ToString() ?? String.Empty);
-                    writer.WriteLine(string.Join("\t", vals));
-
-                    // update import_row + process_job
-                    var rv = readyRows[i];
-                    using (var db = new DatabaseService())
-                    using (var tx = db.Connection.BeginTransaction())
+                    foreach (DataRow dr in dt.Rows)
                     {
-                        using (var cmd = db.Connection.CreateCommand())
+                        var vals = dt.Columns
+                                     .Cast<DataColumn>()
+                                     .Select(c => dr[c]?.ToString() ?? string.Empty);
+                        writer.WriteLine(string.Join("\t", vals));
+                    }
+                }
+                outPaths.Add(path);
+
+                // only SheetA needs import_row/process_job updates:
+                if (dt.TableName == "SheetA")
+                {
+                    for (int i = 0; i < readyRows.Count; i++)
+                    {
+                        var rv = readyRows[i];
+                        using (var db = new DatabaseService())
+                        using (var tx = db.Connection.BeginTransaction())
                         {
-                            cmd.Transaction = tx;
-                            cmd.CommandText = @"
+                            using (var cmd = db.Connection.CreateCommand())
+                            {
+                                cmd.Transaction = tx;
+                                cmd.CommandText = @"
 UPDATE import_row
-   SET processed   = TRUE,
-       exec_count  = exec_count + 1
+   SET processed  = TRUE,
+       exec_count = exec_count + 1
  WHERE id = @rid";
-                            cmd.Parameters.AddWithValue("rid", rv.RowId);
-                            cmd.ExecuteNonQuery();
-                        }
-                        using (var cmd = db.Connection.CreateCommand())
-                        {
-                            cmd.Transaction = tx;
-                            cmd.CommandText = @"
+                                cmd.Parameters.AddWithValue("rid", rv.RowId);
+                                cmd.ExecuteNonQuery();
+                            }
+                            using (var cmd = db.Connection.CreateCommand())
+                            {
+                                cmd.Transaction = tx;
+                                cmd.CommandText = @"
 UPDATE process_job
    SET processed_rows = processed_rows + 1
  WHERE id = @jid";
-                            cmd.Parameters.AddWithValue("jid", jobId);
-                            cmd.ExecuteNonQuery();
+                                cmd.Parameters.AddWithValue("jid", jobId);
+                                cmd.ExecuteNonQuery();
+                            }
+                            tx.Commit();
                         }
-                        tx.Commit();
                     }
                 }
             }
@@ -119,7 +123,7 @@ UPDATE process_job
                 cmd.ExecuteNonQuery();
             }
 
-            return outPath;
+            return outPaths;
         }
 
         public void ImportIntoSap(IEnumerable<string> txtFiles)

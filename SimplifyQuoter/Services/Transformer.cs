@@ -75,16 +75,16 @@ namespace SimplifyQuoter.Services
             return desc ?? string.Empty;
         }
 
-        public static Task<string> GetItemGroupAsync(string code, string brand, string vendor)
+        public static Task<string> GetItemGroupAsync(string code, string brand)
         {
             if (string.IsNullOrWhiteSpace(code))
                 return Task.FromResult("string.Empty");
 
-            return GetItemGroupInternalAsync(code.Trim(), brand ?? "", vendor ?? "");
+            return GetItemGroupInternalAsync(code.Trim(), brand ?? "");
         }
 
         private static async Task<string> GetItemGroupInternalAsync(
-            string code, string brand, string vendor)
+            string code, string brand)
         {
             string grp = null;
             try
@@ -106,7 +106,7 @@ namespace SimplifyQuoter.Services
                     var ai = new AiEnrichmentService(db);
                     await ai.EnrichMissingWithContextAsync(new[]
                     {
-                        new PartContext { Code = code, Brand = brand, Vendor = vendor }
+                        new PartContext { Code = code, Brand = brand}
                     });
                 }
             }

@@ -203,7 +203,7 @@ namespace SimplifyQuoter.Services
                 .AppendLine("For each item below, given its code, brand and vendor,")
                 .AppendLine("output a JSON array of objects with fields:")
                 .AppendLine("  code: string,")
-                .AppendLine("  description: ≤10-word summary including details, such as length, voltage etc,")
+                .AppendLine("  description: ≤20-word summary including details, such as length, voltage etc,")
                 .AppendLine("  item_group: one of [")
                 // full item group list here:
                 .AppendLine("    Automation and Controls, BRASS FITTINGS, Bearings and Power Transmission,")

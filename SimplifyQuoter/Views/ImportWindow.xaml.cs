@@ -1,6 +1,9 @@
-﻿using System;
+﻿// Views/ImportWindow.xaml.cs
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
@@ -30,11 +33,11 @@ namespace SimplifyQuoter.Views
             _importFileId = tup.Item1;
             _infoRows = tup.Item2;
             MessageBox.Show(
-              _infoRows?.Count > 0
-                ? $"INFO_EXCEL: {_infoRows.Count} rows (FileID={_importFileId})"
-                : "No INFO_EXCEL loaded.");
+                _infoRows?.Count > 0
+                    ? $"INFO_EXCEL: {_infoRows.Count} rows (FileID={_importFileId})"
+                    : "No INFO_EXCEL loaded.");
         }
-         
+
         private void BtnUploadInside_Click(object sender, RoutedEventArgs e)
         {
             var svc = new ExcelService();
@@ -43,9 +46,9 @@ namespace SimplifyQuoter.Views
                 _importFileId = tup.Item1;
             _insideRows = tup.Item2;
             MessageBox.Show(
-              _insideRows?.Count > 0
-                ? $"INSIDE_EXCEL: {_insideRows.Count} rows"
-                : "No INSIDE_EXCEL loaded.");
+                _insideRows?.Count > 0
+                    ? $"INSIDE_EXCEL: {_insideRows.Count} rows"
+                    : "No INSIDE_EXCEL loaded.");
         }
 
         private async void BtnProcessImport_Click(object sender, RoutedEventArgs e)
@@ -60,8 +63,8 @@ namespace SimplifyQuoter.Views
             BtnProcessImport.IsEnabled = false;
             try
             {
-                // Run the *sync* ProcessImport on a background thread
-                string path = await Task.Run(() =>
+                // Run the sync ProcessImport on a background thread
+                _txtPaths = await Task.Run(() =>
                     _importSvc.ProcessImport(
                         _importFileId,
                         _infoRows ?? new ObservableCollection<RowView>(),
@@ -69,12 +72,15 @@ namespace SimplifyQuoter.Views
                     )
                 );
 
-                _txtPaths = new List<string> { path };
-                BtnDownloadA.IsEnabled = true;
-                BtnDownloadB.IsEnabled = false;
-                BtnDownloadC.IsEnabled = false;
+                // enable Download buttons based on how many sheets we got
+                BtnDownloadA.IsEnabled = _txtPaths.Count >= 1;
+                BtnDownloadB.IsEnabled = _txtPaths.Count >= 2;
+                BtnDownloadC.IsEnabled = _txtPaths.Count >= 3;
                 BtnImportSap.IsEnabled = true;
-                MessageBox.Show($"SheetA.txt generated:\n{path}");
+
+                MessageBox.Show(
+                    $"Generated:\n{string.Join("\n", _txtPaths.Select((p, i) => $"Sheet{(char)('A' + i)}: {p}"))}"
+                );
             }
             catch (Exception ex)
             {
@@ -88,6 +94,7 @@ namespace SimplifyQuoter.Views
 
         private void Download(string defaultName, string srcPath)
         {
+            if (string.IsNullOrEmpty(srcPath)) return;
             var dlg = new SaveFileDialog
             {
                 Title = $"Save {defaultName}",
@@ -99,11 +106,11 @@ namespace SimplifyQuoter.Views
         }
 
         private void BtnDownloadA_Click(object s, RoutedEventArgs e)
-            => Download("SheetA.txt", _txtPaths[0]);
+            => Download("SheetA.txt", _txtPaths.ElementAtOrDefault(0));
         private void BtnDownloadB_Click(object s, RoutedEventArgs e)
-            => Download("SheetB.txt", _txtPaths.Count > 1 ? _txtPaths[1] : null);
+            => Download("SheetB.txt", _txtPaths.ElementAtOrDefault(1));
         private void BtnDownloadC_Click(object s, RoutedEventArgs e)
-            => Download("SheetC.txt", _txtPaths.Count > 2 ? _txtPaths[2] : null);
+            => Download("SheetC.txt", _txtPaths.ElementAtOrDefault(2));
 
         private void BtnImportSap_Click(object s, RoutedEventArgs e)
         {
