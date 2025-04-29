@@ -16,7 +16,7 @@
                   CanUserResizeColumns="True"
                   SelectionUnit="Cell"
                   SelectionMode="Extended"
-                  SelectedCellsChanged="SheetGrid_SelectedCellsChanged">
+                  SelectedCellsChanged="SheetGrid_SelectedCellsChanged" SelectionChanged="SheetGrid_SelectionChanged">
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow">
                     <Setter Property="Background" Value="White"/>

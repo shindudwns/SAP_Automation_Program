@@ -172,6 +172,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
+    <Content Include="DB\text-file-outline-variant-svgrepo-com.svg" />
     <Resource Include="DB\ddl.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
