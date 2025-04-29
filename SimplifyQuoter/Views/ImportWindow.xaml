@@ -116,7 +116,7 @@
         <!-- Download Sheet A -->
         <Button x:Name="BtnDownloadA"
             Style="{StaticResource LinkButtonStyle}"
-            Content="Download Sheet A"
+            Content="Download 'Item'"
             Click="BtnDownloadA_Click"
             IsEnabled="False"
             Canvas.Left="377"
@@ -125,7 +125,7 @@
         <!-- Download Sheet B -->
         <Button x:Name="BtnDownloadB"
             Style="{StaticResource LinkButtonStyle}"
-            Content="Download Sheet B"
+            Content="Download 'Purchasing Price'"
             Click="BtnDownloadB_Click"
             IsEnabled="False"
             Canvas.Left="377"
@@ -134,7 +134,7 @@
         <!-- Download Sheet C -->
         <Button x:Name="BtnDownloadC"
             Style="{StaticResource LinkButtonStyle}"
-            Content="Download Sheet C"
+            Content="Download 'Sales Price'"
             Click="BtnDownloadC_Click"
             IsEnabled="False"
             Canvas.Left="377"
