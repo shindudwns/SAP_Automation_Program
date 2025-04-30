@@ -120,6 +120,20 @@ ON CONFLICT(code) DO UPDATE
             }
         }
 
+        /// <summary>
+        /// Deletes all rows from the part table.
+        /// Returns the number of rows removed.
+        /// </summary>
+        public int CleanupParts()
+        {
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = @"DELETE FROM part";
+                return cmd.ExecuteNonQuery();
+            }
+        }
+
+
         public void Dispose()
         {
             if (_conn != null)

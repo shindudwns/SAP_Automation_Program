@@ -107,7 +107,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Converters\ValueToWidthConverte.cs" />
+    <Compile Include="Converters\ValueToWidthConverter.cs" />
     <Compile Include="Models\RowView.cs" />
     <Compile Include="Services\AiEnrichmentService.cs" />
     <Compile Include="Services\AutomationService.cs" />
@@ -184,6 +184,7 @@
     <Resource Include="Assets\info_icon.png" />
     <Resource Include="Assets\inside_icon.png" />
     <Resource Include="Assets\process_icon.png" />
+    <Resource Include="Assets\trash_can.png" />
     <Content Include="DB\text-file-outline-variant-svgrepo-com.svg" />
     <Resource Include="DB\ddl.txt" />
   </ItemGroup>

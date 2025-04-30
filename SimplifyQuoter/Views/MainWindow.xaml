@@ -44,7 +44,7 @@
                 Canvas.Top="114">
             <StackPanel>
                 <Image Source="/SimplifyQuoter;component/Assets/txt_icon.png"
-                       Width="80" Height="80"/>
+                       Width="89" Height="90"/>
                 <TextBlock Text="Import txt"
                            Margin="0,8,0,0"
                            HorizontalAlignment="Center"/>

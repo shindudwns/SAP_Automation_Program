@@ -133,17 +133,39 @@ namespace SimplifyQuoter.Views
         private void BtnDownloadC_Click(object s, RoutedEventArgs e)
             => Download("SheetC.txt", _txtPaths.ElementAtOrDefault(2));
 
-        private void BtnImportSap_Click(object s, RoutedEventArgs e)
+        private async void BtnCleanPartDB_Click(object sender, RoutedEventArgs e)
         {
+            BtnImportSap.IsEnabled = false;
+            TxtLog.Items.Add("Starting parts cleanup…");
             try
             {
-                _importSvc.ImportIntoSap(_txtPaths);
-                MessageBox.Show("Import into SAP completed.");
+                // Run cleanup off the UI thread
+                int deleted = await Task.Run(() => _importSvc.CleanupParts());
+
+                TxtLog.Items.Add($"  • {deleted} part records removed.");
+                MessageBox.Show(
+                    this,
+                    $"Cleanup complete: {deleted} rows removed.",
+                    "Cleanup Finished",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"SAP import failed:\n{ex.Message}");
+                MessageBox.Show(
+                    this,
+                    $"Cleanup failed:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+            finally
+            {
+                BtnImportSap.IsEnabled = true;
             }
         }
+
     }
 }

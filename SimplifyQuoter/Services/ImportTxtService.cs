@@ -173,6 +173,18 @@ UPDATE process_job
             return outPaths;
         }
 
+        /// <summary>
+        /// Deletes all rows in the part table and returns
+        /// how many were removed.
+        /// </summary>
+        public int CleanupParts()
+        {
+            using (var db = new DatabaseService())
+            {
+                return db.CleanupParts();
+            }
+        }
+
         public void ImportIntoSap(IEnumerable<string> txtFiles)
         {
             throw new NotImplementedException();

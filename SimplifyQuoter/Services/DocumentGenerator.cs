@@ -105,25 +105,25 @@ namespace SimplifyQuoter.Services
             // Add your columns exactly once:
             foreach (var name in new[]
             {
-        "Price List No",
-        "Item No.",
-        "Item No.Base Price List No.",
-        "Item No, Factor",
-        "Item No, List Price",
-        "Item No, Currency for List Price",
-        "Item No, Additional Price (1)",
-        "Item No, Currency for Add. Price 1",
-        "Item No, Additional Price (2)",
-        "Item No, Currency for Add. Price 2",
-        "Item No, With UOM",
-        "Item No, With UOM, UOM Entry",
-        "Item No, With UOM, UOM Price",
-        "Item No, With UOM, Reduced By %",
-        "Item No, With UOM, Additional Price (1)",
-        "Item No, With UOM, Reduced By 2",
-        "Item No, With UOM, Additional Price (2)",
-        "Item No. With UOM, Reduced By %"
-    })
+                "Price List No",
+                "Item No.",
+                "Item No.Base Price List No.",
+                "Item No, Factor",
+                "Item No, List Price",
+                "Item No, Currency for List Price",
+                "Item No, Additional Price (1)",
+                "Item No, Currency for Add. Price 1",
+                "Item No, Additional Price (2)",
+                "Item No, Currency for Add. Price 2",
+                "Item No, With UOM",
+                "Item No, With UOM, UOM Entry",
+                "Item No, With UOM, UOM Price",
+                "Item No, With UOM, Reduced By %",
+                "Item No, With UOM, Additional Price (1)",
+                "Item No, With UOM, Reduced By 2",
+                "Item No, With UOM, Additional Price (2)",
+                "Item No. With UOM, Reduced By %"
+            })
                 dt.Columns.Add(name);
 
             Func<RowView, bool> isReady = rv =>
@@ -267,7 +267,7 @@ namespace SimplifyQuoter.Services
 
                 var r = dt.NewRow();
                 r["Price List No"] = PL;
-                r["Item No."] = code;
+                r["Item No."] = "H-" + code;
                 r["Item No.Base Price List No."] = PL;
                 r["Item No, Factor"] = FX;
                 r["Item No, List Price"] = conv;
@@ -297,7 +297,7 @@ namespace SimplifyQuoter.Services
 
                 var r = dt.NewRow();
                 r["Price List No"] = PL;
-                r["Item No."] = code;
+                r["Item No."] = "H-" + code;
                 r["Item No.Base Price List No."] = PL;
                 r["Item No, Factor"] = FX;
                 r["Item No, List Price"] = conv;
