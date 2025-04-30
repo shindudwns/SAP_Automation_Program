@@ -117,8 +117,10 @@ namespace SimplifyQuoter
         public MainWindow()
         {
             InitializeComponent();
-            // Comment this out to activate License agreement part
+            // *** LicenseOverlay visible OR invisible
             LicenseOverlay.Visibility = Visibility.Collapsed;
+            //LicenseOverlay.Visibility = Visibility.Visible;
+
 
         }
 
