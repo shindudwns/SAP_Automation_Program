@@ -200,7 +200,7 @@ namespace SimplifyQuoter.Services
             Debug.WriteLine(inputArray);
             var userBuilder = new StringBuilder()
                 .AppendLine("You are an expert parts-classifier.")
-                .AppendLine("For each item below, given its code, brand and vendor,")
+                .AppendLine("For each item below, given its part number (code) and brand,")
                 .AppendLine("output a JSON array of objects with fields:")
                 .AppendLine("  code: string,")
                 .AppendLine("  description: ≤20-word summary including details, such as length, voltage etc,")

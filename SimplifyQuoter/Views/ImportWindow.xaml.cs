@@ -49,7 +49,7 @@ namespace SimplifyQuoter.Views
                 : "No INSIDE_EXCEL loaded.");
         }
 
-        private async void BtnProcessImport_Click(object sender, RoutedEventArgs e)
+        private async void BtnProcessImport_Click(object s, RoutedEventArgs e)
         {
             if (_importFileId == Guid.Empty
              || ((_infoRows?.Count ?? 0) + (_insideRows?.Count ?? 0)) == 0)
@@ -58,14 +58,15 @@ namespace SimplifyQuoter.Views
                 return;
             }
 
-            // Disable UI
+            // disable UI & init
             BtnProcessImport.IsEnabled = false;
             TxtLog.Items.Clear();
             PbProgress.Value = 0;
             PbProgress.Visibility = Visibility.Visible;
 
-            // Progress reporter that updates both bar & log
-            var progress = new Progress<string>(msg => Log(msg));
+            // two progress reporters:
+            var logProgress = new Progress<string>(msg => Log(msg));
+            var barProgress = new Progress<double>(pct => PbProgress.Value = pct);
 
             try
             {
@@ -74,11 +75,12 @@ namespace SimplifyQuoter.Views
                         _importFileId,
                         _infoRows ?? new ObservableCollection<RowView>(),
                         _insideRows ?? new ObservableCollection<RowView>(),
-                        progress
+                        logProgress,
+                        barProgress
                     )
                 );
 
-                // enable download buttons
+                // enable downloads
                 BtnDownloadA.IsEnabled = _txtPaths.Count >= 1;
                 BtnDownloadB.IsEnabled = _txtPaths.Count >= 2;
                 BtnDownloadC.IsEnabled = _txtPaths.Count >= 3;
@@ -96,6 +98,7 @@ namespace SimplifyQuoter.Views
                 BtnProcessImport.IsEnabled = true;
             }
         }
+
 
         private void Download(string name, string path)
         {

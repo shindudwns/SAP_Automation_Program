@@ -30,18 +30,18 @@ namespace SimplifyQuoter.Services
         /// Reports progress via the IProgress<string>.
         /// </summary>
         public List<string> ProcessImport(
-            Guid importFileId,
-            IEnumerable<RowView> infoRows,
-            IEnumerable<RowView> insideRows,
-            IProgress<string> progress)
+    Guid importFileId,
+    IEnumerable<RowView> infoRows,
+    IEnumerable<RowView> insideRows,
+    IProgress<string> progress,
+    IProgress<double> percent)
         {
             // 1) collect only READY rows
             var readyRows = infoRows
                 .Concat(insideRows)
                 .Where(rv =>
                     rv.Cells.Length > 14 &&
-                    string.Equals(rv.Cells[14]?.Trim(),
-                                  "READY", StringComparison.OrdinalIgnoreCase))
+                    string.Equals(rv.Cells[14]?.Trim(), "READY", StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             // 2) insert process_job
@@ -58,7 +58,7 @@ RETURNING id";
                 jobId = (Guid)cmd.ExecuteScalar();
             }
 
-            // generate all sheets
+            // build all sheets
             progress?.Report("Sheet A working...");
             var sheets = _docGen.GenerateImportSheets(infoRows, insideRows);
 
@@ -79,7 +79,7 @@ RETURNING id";
 
                     if (i < readyRows.Count)
                     {
-                        // update import_row & process_job
+                        // update import_row & process_job...
                         var rv = readyRows[i];
                         using (var db2 = new DatabaseService())
                         using (var tx = db2.Connection.BeginTransaction())
@@ -108,7 +108,9 @@ UPDATE process_job
                             tx.Commit();
                         }
 
+                        // report both textual log and percentage
                         progress?.Report($"  Row {i + 1}/{readyRows.Count} done");
+                        percent?.Report((i + 1) * 100.0 / readyRows.Count);
                     }
                 }
             }
@@ -162,8 +164,11 @@ UPDATE process_job
             }
 
             progress?.Report("--- Import complete ---");
+            percent?.Report(100); // ensure bar fills completely
             return outPaths;
         }
+
+
 
         public void ImportIntoSap(IEnumerable<string> txtFiles)
         {
