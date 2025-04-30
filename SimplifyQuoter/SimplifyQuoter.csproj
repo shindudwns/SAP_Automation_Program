@@ -115,12 +115,16 @@
     <Compile Include="Services\DocumentGenerator.cs" />
     <Compile Include="Services\ExcelService.cs" />
     <Compile Include="Services\ImportTxtService.cs" />
+    <Compile Include="Services\LicenseService.cs" />
     <Compile Include="Services\Transformer.cs" />
     <Compile Include="Utilities\RelayCommand.cs" />
     <Compile Include="Utilities\ViewModelBase.cs" />
     <Compile Include="ViewModels\RowSelectionViewModel.cs" />
     <Compile Include="Views\ImportWindow.xaml.cs">
       <DependentUpon>ImportWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\LicenseOverlayControl.xaml.cs">
+      <DependentUpon>LicenseOverlayControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ProcessWindow.xaml.cs">
       <DependentUpon>ProcessWindow.xaml</DependentUpon>
@@ -129,6 +133,9 @@
       <DependentUpon>ReviewWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="Views\ImportWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\LicenseOverlayControl.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\MainWindow.xaml">

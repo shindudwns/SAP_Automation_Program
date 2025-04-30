@@ -81,3 +81,75 @@ CREATE TABLE process_job (
   processed_rows  INT         NOT NULL DEFAULT 0
 );
 s
+
+
+-- ===============================================
+-- 5) License
+-- ===============================================
+
+
+CREATE TABLE acceptance_log (
+  id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  ip_address        TEXT        NOT NULL,
+  accepted_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  agreement_version TEXT        NOT NULL,
+  device_info       TEXT,
+  license_code      TEXT        NOT NULL,
+  license_accept    BOOLEAN     NOT NULL,
+  company_name      TEXT
+);
+
+CREATE TABLE public.license (
+  code           TEXT        PRIMARY KEY,
+  company_name   TEXT        NOT NULL,
+  valid_from     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  valid_until    TIMESTAMPTZ,
+  is_active      BOOLEAN     NOT NULL DEFAULT TRUE
+);
+
+
+
+
+
+
+
+
+
+----------------------------
+GRANT
+----------------------------
+DO
+$$
+DECLARE
+  tbl record;
+  svc_role CONSTANT text := 'user_1';  -- ← your app's DB role here
+  excluded_tables text[] := ARRAY[
+    'license',        -- only SELECT from the license codes table
+    'vendor_mapping', -- only SELECT from your lookup table
+    'acceptance_log'  -- only INSERT from your logging table if you want to write there separately
+  ];
+BEGIN
+  -- 1) Grant full DML on every other table
+  FOR tbl IN
+    SELECT tablename
+      FROM pg_tables
+     WHERE schemaname = 'public'
+       AND tablename <> ALL(excluded_tables)
+  LOOP
+    EXECUTE format(
+      'GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.%I TO %I;',
+      tbl.tablename,
+      svc_role
+    );
+  END LOOP;
+
+  -- 2) Grant only SELECT on the excluded tables:
+  EXECUTE format(
+    'GRANT SELECT ON TABLE public.%I, public.%I, public.%I TO %I;',
+    excluded_tables[1],
+    excluded_tables[2],
+    excluded_tables[3],
+    svc_role
+  );
+END
+$$;

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl x:Class="SimplifyQuoter.Views.LicenseOverlayControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             HorizontalAlignment="Stretch"
+             VerticalAlignment="Stretch">
+    <!-- Semi-transparent backdrop -->
+    <Grid Background="#80000000">
+        <!-- Center dialog at 80% of window size -->
+        <Border x:Name="DialogBorder"
+            Background="White"
+            CornerRadius="4"
+            Padding="16"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Title -->
+                <TextBlock Text="License Agreement"
+                   FontSize="16"
+                   FontWeight="Bold"
+                   Grid.Row="0"
+                   Margin="0,0,0,12"/>
+
+                <!-- Body -->
+                <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      Margin="0,0,0,12">
+                    <TextBlock TextWrapping="Wrap" FontSize="12"
+           Text="&#10;This License Agreement (&quot;Agreement&quot;) governs the use of the FlowScale software (&quot;Software&quot;) provided by [Your Full Name or Company Name] (&quot;Licensor&quot;). By accessing or using the Software, the user (&quot;Licensee&quot;) agrees to be bound by the following terms and conditions:&#10;&#10;1. Ownership &amp; Intellectual Property  &#10;The Software, including but not limited to its source code, user interface, algorithms, architecture, and documentation, is the sole property of the Licensor. This Agreement does not transfer ownership. The Licensee is granted a non-exclusive, non-transferable, revocable license to use the Software only under the conditions described herein.&#10;&#10;2. License Scope  &#10;This license permits the use of the Software strictly for internal business purposes as outlined in the associated subscription plan. The Licensee shall not:&#10;- Modify, reverse engineer, decompile, or disassemble the Software.&#10;- Resell, sublicense, or otherwise redistribute the Software.&#10;- Claim ownership of the Software or its components.&#10;&#10;3. Organizational Representation  &#10;By accepting this Agreement, the user affirms that they are acting as an authorized representative of their employer or organization and that such entity agrees to be bound by the terms of this Agreement. The employer or organization shall be jointly and severally liable for any breach of this license.&#10;&#10;4. Term &amp; Termination  &#10;The license is valid only during an active subscription period. Upon termination of the subscription, all access rights shall be revoked and continued use will be deemed unauthorized. The Licensor reserves the right to suspend or terminate access upon violation of these terms.&#10;&#10;5. Data &amp; Privacy  &#10;The Software may collect usage logs (e.g., email, IP address, timestamps) strictly for security, billing, and audit purposes. All data is processed in accordance with applicable data protection laws.&#10;&#10;6. Limitation of Liability  &#10;The Software is provided &quot;as is&quot; without warranty of any kind. The Licensor shall not be liable for any indirect, incidental, or consequential damages arising from use of the Software.&#10;&#10;7. Dispute Resolution  &#10;Any disputes arising from this Agreement shall be governed by the laws of the state of [Your State, e.g., Delaware or Alabama], and the parties agree to submit to the exclusive jurisdiction of its courts.&#10;&#10;8. Acceptance  &#10;By clicking &quot;I Agree&quot; or using the Software, the Licensee (and its organization) agree to be bound by the terms of this Agreement." />
+
+
+                </ScrollViewer>
+
+                <!-- Inputs & Continue -->
+                <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right"
+                    Margin="0,0,0,0">
+                    
+
+                    <TextBlock Text="Code:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <TextBox x:Name="TxtLicenseCode"
+                   Width="100"
+                   Margin="0,0,12,0"/>
+
+                    <CheckBox x:Name="ChkAgree"
+                    Content="I agree"
+                    VerticalAlignment="Center"
+                    Margin="0,0,12,0"/>
+
+                    <Button x:Name="BtnAgree"
+                  Content="Continue"
+                  IsEnabled="False"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,9 +1,10 @@
 ﻿<Window x:Class="SimplifyQuoter.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Simplify Quoter" Height="371" Width="658">
+        xmlns:views="clr-namespace:SimplifyQuoter.Views"
+        Title="Simplify Quoter"
+        Height="371" Width="658">
     <Window.Resources>
-        <!-- Flat icon-only button style -->
         <Style x:Key="IconButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -13,42 +14,45 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <ContentPresenter HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
+                              VerticalAlignment="Center"/>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
     </Window.Resources>
 
-    <Canvas>
-        <!-- SAP Automation button -->
-        <Button x:Name="BtnSapAutomation"
-                Style="{StaticResource IconButtonStyle}"
-                Click="BtnSapAutomation_Click"
-                Canvas.Left="141"
-                Canvas.Top="119">
-            <StackPanel>
-                <Image Source="/SimplifyQuoter;component/Assets/excel_icon.png"
-                       Width="80" Height="80" RenderTransformOrigin="0.856,0.757"/>
-                <TextBlock Text="SAP Automation"
-                           Margin="0,8,0,0"
-                           HorizontalAlignment="Center"/>
-            </StackPanel>
-        </Button>
+    <Grid>
+        <Canvas>
+            <!-- SAP Automation -->
+            <Button x:Name="BtnSapAutomation"
+              Style="{StaticResource IconButtonStyle}"
+              Click="BtnSapAutomation_Click"
+              Canvas.Left="141" Canvas.Top="119">
+                <StackPanel>
+                    <Image Source="/SimplifyQuoter;component/Assets/excel_icon.png"
+                 Width="80" Height="80"/>
+                    <TextBlock Text="SAP Automation"
+                     Margin="0,8,0,0"
+                     HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Button>
 
-        <!-- Import TXT button -->
-        <Button x:Name="BtnImport"
-                Style="{StaticResource IconButtonStyle}"
-                Click="BtnImport_Click"
-                Canvas.Left="421"
-                Canvas.Top="114">
-            <StackPanel>
-                <Image Source="/SimplifyQuoter;component/Assets/txt_icon.png"
-                       Width="89" Height="90"/>
-                <TextBlock Text="Import txt"
-                           Margin="0,8,0,0"
-                           HorizontalAlignment="Center"/>
-            </StackPanel>
-        </Button>
-    </Canvas>
+            <!-- Import TXT -->
+            <Button x:Name="BtnImport"
+              Style="{StaticResource IconButtonStyle}"
+              Click="BtnImport_Click"
+              Canvas.Left="421" Canvas.Top="114">
+                <StackPanel>
+                    <Image Source="/SimplifyQuoter;component/Assets/txt_icon.png"
+                 Width="89" Height="90"/>
+                    <TextBlock Text="Import txt"
+                     Margin="0,8,0,0"
+                     HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+        </Canvas>
+
+        <!-- license pull-down overlay -->
+        <views:LicenseOverlayControl />
+    </Grid>
 </Window>
