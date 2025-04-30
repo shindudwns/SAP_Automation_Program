@@ -195,8 +195,6 @@
     <Content Include="DB\text-file-outline-variant-svgrepo-com.svg" />
     <Resource Include="DB\ddl.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="NewFolder1\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

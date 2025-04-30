@@ -12,7 +12,7 @@ namespace SimplifyQuoter.Views
 {
     public partial class LicenseOverlayControl : UserControl
     {
-        private const double SCALE = 0.8;
+        private const double SCALE = 0.7;
         private const string VERSION = "1.0";
 
         public LicenseOverlayControl()
