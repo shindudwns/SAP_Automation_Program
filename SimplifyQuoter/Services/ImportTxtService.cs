@@ -36,15 +36,21 @@ namespace SimplifyQuoter.Services
     IProgress<string> progress,
     IProgress<double> percent)
         {
-            // 1) collect only READY rows
+            // 0% → just started
+            progress?.Report("Starting import…");
+            percent?.Report(0);
+
+            // 1) collect READY rows
             var readyRows = infoRows
                 .Concat(insideRows)
                 .Where(rv =>
                     rv.Cells.Length > 14 &&
                     string.Equals(rv.Cells[14]?.Trim(), "READY", StringComparison.OrdinalIgnoreCase))
                 .ToList();
+            progress?.Report($"Found {readyRows.Count} READY rows");
+            percent?.Report(5);
 
-            // 2) insert process_job
+            // insert process_job
             Guid jobId;
             using (var db = new DatabaseService())
             using (var cmd = db.Connection.CreateCommand())
@@ -58,13 +64,9 @@ RETURNING id";
                 jobId = (Guid)cmd.ExecuteScalar();
             }
 
-            // build all sheets
-            progress?.Report("Sheet A working...");
-            var sheets = _docGen.GenerateImportSheets(infoRows, insideRows);
-
-            var outPaths = new List<string>();
-
             // --- Sheet A ---
+            progress?.Report("Sheet A working…");
+            var sheets = _docGen.GenerateImportSheets(infoRows, insideRows);
             var sheetA = sheets[0];
             string pathA = Path.Combine(_tempDir, "SheetA.txt");
             using (var writer = new StreamWriter(pathA, false, Encoding.UTF8))
@@ -79,7 +81,7 @@ RETURNING id";
 
                     if (i < readyRows.Count)
                     {
-                        // update import_row & process_job...
+                        // update import_row & process_job
                         var rv = readyRows[i];
                         using (var db2 = new DatabaseService())
                         using (var tx = db2.Connection.BeginTransaction())
@@ -108,17 +110,19 @@ UPDATE process_job
                             tx.Commit();
                         }
 
-                        // report both textual log and percentage
-                        progress?.Report($"  Row {i + 1}/{readyRows.Count} done");
-                        percent?.Report((i + 1) * 100.0 / readyRows.Count);
+                        // per‐row log + percent
+                        progress?.Report($"  ● Row {i + 1}/{readyRows.Count} done");
+                        // map rows → 5%–35% of the bar
+                        double p = 5 + 30.0 * (i + 1) / readyRows.Count;
+                        percent?.Report(p);
                     }
                 }
             }
-            outPaths.Add(pathA);
             progress?.Report("Sheet A complete");
+            percent?.Report(35);
 
             // --- Sheet B ---
-            progress?.Report("Sheet B working...");
+            progress?.Report("Sheet B working…");
             var sheetB = sheets[1];
             string pathB = Path.Combine(_tempDir, "SheetB.txt");
             using (var writer = new StreamWriter(pathB, false, Encoding.UTF8))
@@ -131,11 +135,11 @@ UPDATE process_job
                     writer.WriteLine(string.Join("\t", vals));
                 }
             }
-            outPaths.Add(pathB);
             progress?.Report("Sheet B complete");
+            percent?.Report(70);
 
             // --- Sheet C ---
-            progress?.Report("Sheet C working...");
+            progress?.Report("Sheet C working…");
             var sheetC = sheets[2];
             string pathC = Path.Combine(_tempDir, "SheetC.txt");
             using (var writer = new StreamWriter(pathC, false, Encoding.UTF8))
@@ -148,10 +152,9 @@ UPDATE process_job
                     writer.WriteLine(string.Join("\t", vals));
                 }
             }
-            outPaths.Add(pathC);
             progress?.Report("Sheet C complete");
 
-            // 5) finalize the job
+            // finalize
             using (var db3 = new DatabaseService())
             using (var cmd3 = db3.Connection.CreateCommand())
             {
@@ -164,9 +167,11 @@ UPDATE process_job
             }
 
             progress?.Report("--- Import complete ---");
-            percent?.Report(100); // ensure bar fills completely
-            return outPaths;
+            percent?.Report(100);
+
+            return new List<string> { pathA, pathB, pathC };
         }
+
 
 
 

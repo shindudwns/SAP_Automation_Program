@@ -65,8 +65,14 @@ namespace SimplifyQuoter.Views
             PbProgress.Visibility = Visibility.Visible;
 
             // two progress reporters:
-            var logProgress = new Progress<string>(msg => Log(msg));
-            var barProgress = new Progress<double>(pct => PbProgress.Value = pct);
+            var logProgress = new Progress<string>(msg => {
+                TxtLog.Items.Add(msg);
+                TxtLog.ScrollIntoView(msg);
+            });
+            var barProgress = new Progress<double>(pct => {
+                PbProgress.Value = pct;
+            });
+
 
             try
             {
@@ -78,6 +84,7 @@ namespace SimplifyQuoter.Views
                         logProgress,
                         barProgress
                     )
+
                 );
 
                 // enable downloads
