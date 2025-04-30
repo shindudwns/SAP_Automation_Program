@@ -53,6 +53,6 @@
         </Canvas>
 
         <!-- license pull-down overlay -->
-        <views:LicenseOverlayControl />
+        <views:LicenseOverlayControl x:Name="LicenseOverlay"/>
     </Grid>
 </Window>

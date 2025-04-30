@@ -117,6 +117,9 @@ namespace SimplifyQuoter
         public MainWindow()
         {
             InitializeComponent();
+            // Comment this out to activate License agreement part
+            LicenseOverlay.Visibility = Visibility.Collapsed;
+
         }
 
         private void BtnSapAutomation_Click(object sender, RoutedEventArgs e)
