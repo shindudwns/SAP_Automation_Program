@@ -24,24 +24,21 @@ namespace SimplifyQuoter.Services
         }
 
         /// <summary>
-        /// Synchronously writes SheetA.txt, SheetB.txt, SheetC.txt
-        /// and updates import_row/process_job for SheetA only.
-        /// Reports human‐readable logs and numeric progress (0–100).
+        /// Writes SheetA/B/C and updates import_row/process_job for Sheet A.
+        /// Reports row-by-row logs (including cell values) and progress.
         /// </summary>
         public List<string> ProcessImport(
             Guid importFileId,
             IEnumerable<RowView> infoRows,
             IEnumerable<RowView> insideRows,
-            IProgress<string> progress,
+            IProgress<string> log,
             IProgress<double> percent)
         {
             // 1) collect only READY rows
-            var readyRows = infoRows
-                .Concat(insideRows)
+            var readyRows = infoRows.Concat(insideRows)
                 .Where(rv =>
                     rv.Cells.Length > 14 &&
-                    string.Equals(rv.Cells[14]?.Trim(),
-                                  "READY", StringComparison.OrdinalIgnoreCase))
+                    string.Equals(rv.Cells[14]?.Trim(), "READY", StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             // 2) insert process_job
@@ -62,102 +59,119 @@ RETURNING id";
             percent?.Report(0);
 
             // --- Sheet A ---
-            progress?.Report("Sheet A working…");
+            log?.Report("Sheet A working…");
             percent?.Report(5);
 
-            var sheets = _docGen.GenerateImportSheets(infoRows, insideRows);
+            // **PASS BOTH** log + percent into the generator now:
+            var sheets = _docGen.GenerateImportSheets(infoRows, insideRows, log, percent);
             var sheetA = sheets[0];
-            int total = readyRows.Count;
+            int totalA = sheetA.Rows.Count;   // should equal readyRows.Count
             string pathA = Path.Combine(_tempDir, "SheetA.txt");
 
-            using (var writer = new StreamWriter(pathA, false, Encoding.UTF8))
+            using (var writerA = new StreamWriter(pathA, false, Encoding.UTF8))
             {
-                for (int i = 0; i < sheetA.Rows.Count; i++)
+                for (int i = 0; i < totalA; i++)
                 {
-                    // write the line
                     var dr = sheetA.Rows[i];
-                    var vals = sheetA.Columns.Cast<DataColumn>()
-                                   .Select(c => dr[c]?.ToString() ?? string.Empty);
-                    writer.WriteLine(string.Join("\t", vals));
+                    var vals = sheetA.Columns
+                                      .Cast<DataColumn>()
+                                      .Select(c => dr[c]?.ToString() ?? string.Empty)
+                                      .ToArray();
+                    writerA.WriteLine(string.Join("\t", vals));
 
-                    // if this row maps to a READY import_row, update DB and report
-                    if (i < total)
+                    // update import_row + process_job counts for READY rows
+                    var rv = readyRows[i];
+                    using (var db2 = new DatabaseService())
+                    using (var tx = db2.Connection.BeginTransaction())
                     {
-                        var rv = readyRows[i];
-                        using (var db2 = new DatabaseService())
-                        using (var tx = db2.Connection.BeginTransaction())
-                        {
-                            // update import_row
-                            var c1 = db2.Connection.CreateCommand();
-                            c1.Transaction = tx;
-                            c1.CommandText = @"
+                        var c1 = db2.Connection.CreateCommand();
+                       c1.Transaction = tx;
+                        c1.CommandText = @"
 UPDATE import_row
    SET processed   = TRUE,
        exec_count  = exec_count + 1
  WHERE id = @rid";
-                            c1.Parameters.AddWithValue("rid", rv.RowId);
-                            c1.ExecuteNonQuery();
+                        c1.Parameters.AddWithValue("rid", rv.RowId);
+                        c1.ExecuteNonQuery();
 
-                            // update process_job
-                            var c2 = db2.Connection.CreateCommand();
-                            c2.Transaction = tx;
-                            c2.CommandText = @"
+                        var c2 = db2.Connection.CreateCommand();
+                        c2.Transaction = tx;
+                        c2.CommandText = @"
 UPDATE process_job
    SET processed_rows = processed_rows + 1
  WHERE id = @jid";
-                            c2.Parameters.AddWithValue("jid", jobId);
-                            c2.ExecuteNonQuery();
+                        c2.Parameters.AddWithValue("jid", jobId);
+                        c2.ExecuteNonQuery();
 
-                            tx.Commit();
-                        }
-
-                        // report per‐row log + progress%
-                        progress?.Report($"  • Row {i + 1}/{total} done");
-                        double p = 5 + 30.0 * (i + 1) / total;  // map to 5–35%
-                        percent?.Report(p);
+                        tx.Commit();
                     }
+
+                    // log + bar already handled inside BuildSheetA
+                    // but we can still repeat if desired:
+                    log?.Report($"  • Sheet A row {i + 1}/{totalA}: {string.Join(" | ", vals)}");
+                    // percent also updated by the generator, so this is optional:
+                    double pA = 5 + 65.0 * (i + 1) / totalA;
+                    percent?.Report(pA);
                 }
             }
             outPaths.Add(pathA);
-            progress?.Report("Sheet A complete");
-            percent?.Report(35);
-
-            // --- Sheet B ---
-            progress?.Report("Sheet B working…");
-            percent?.Report(40);
-
-            var sheetB = sheets[1];
-            string pathB = Path.Combine(_tempDir, "SheetB.txt");
-            using (var writer = new StreamWriter(pathB, false, Encoding.UTF8))
-                foreach (DataRow dr in sheetB.Rows)
-                {
-                    var vals = sheetB.Columns.Cast<DataColumn>()
-                                   .Select(c => dr[c]?.ToString() ?? string.Empty);
-                    writer.WriteLine(string.Join("\t", vals));
-                }
-            outPaths.Add(pathB);
-            progress?.Report("Sheet B complete");
+            log?.Report("Sheet A complete");
             percent?.Report(70);
 
+            // --- Sheet B ---
+            log?.Report("Sheet B working…");
+            percent?.Report(70);
+
+            var sheetB = sheets[1];
+            int totalB = sheetB.Rows.Count;
+            string pathB = Path.Combine(_tempDir, "SheetB.txt");
+
+            using (var writerB = new StreamWriter(pathB, false, Encoding.UTF8))
+            {
+                for (int j = 0; j < totalB; j++)
+                {
+                    var dr = sheetB.Rows[j];
+                    var vals = sheetB.Columns
+                                      .Cast<DataColumn>()
+                                      .Select(c => dr[c]?.ToString() ?? string.Empty);
+                    writerB.WriteLine(string.Join("\t", vals));
+
+                    // percent updated by BuildSheetB; repeat if needed:
+                    double pB = 70 + 15.0 * (j + 1) / totalB;
+                    percent?.Report(pB);
+                }
+            }
+            outPaths.Add(pathB);
+            log?.Report("Sheet B complete");
+            percent?.Report(85);
+
             // --- Sheet C ---
-            progress?.Report("Sheet C working…");
-            percent?.Report(75);
+            log?.Report("Sheet C working…");
+            percent?.Report(85);
 
             var sheetC = sheets[2];
+            int totalC = sheetC.Rows.Count;
             string pathC = Path.Combine(_tempDir, "SheetC.txt");
-            using (var writer = new StreamWriter(pathC, false, Encoding.UTF8))
-                foreach (DataRow dr in sheetC.Rows)
+
+            using (var writerC = new StreamWriter(pathC, false, Encoding.UTF8))
+            {
+                for (int k = 0; k < totalC; k++)
                 {
-                    var vals = sheetC.Columns.Cast<DataColumn>()
-                                   .Select(c => dr[c]?.ToString() ?? string.Empty);
-                    writer.WriteLine(string.Join("\t", vals));
+                    var dr = sheetC.Rows[k];
+                    var vals = sheetC.Columns
+                                      .Cast<DataColumn>()
+                                      .Select(c => dr[c]?.ToString() ?? string.Empty);
+                    writerC.WriteLine(string.Join("\t", vals));
+
+                    double pC = 85 + 15.0 * (k + 1) / totalC;
+                    percent?.Report(pC);
                 }
+            }
             outPaths.Add(pathC);
-            progress?.Report("Sheet C complete");
+            log?.Report("Sheet C complete");
             percent?.Report(100);
 
-
-            // 5) finalize the job
+            // --- finalize the job ---
             using (var db3 = new DatabaseService())
             using (var cmd3 = db3.Connection.CreateCommand())
             {
@@ -169,20 +183,18 @@ UPDATE process_job
                 cmd3.ExecuteNonQuery();
             }
 
-            progress?.Report("--- Import complete ---");
+            log?.Report("--- Import complete ---");
             return outPaths;
         }
 
+
         /// <summary>
-        /// Deletes all rows in the part table and returns
-        /// how many were removed.
+        /// Deletes all rows in the part table and returns how many were removed.
         /// </summary>
         public int CleanupParts()
         {
             using (var db = new DatabaseService())
-            {
                 return db.CleanupParts();
-            }
         }
 
         public void ImportIntoSap(IEnumerable<string> txtFiles)

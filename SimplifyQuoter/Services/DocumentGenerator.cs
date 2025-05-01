@@ -1,5 +1,4 @@
 ﻿// Services/DocumentGenerator.cs
-
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -19,47 +18,49 @@ namespace SimplifyQuoter.Services
     {
         public IList<DataTable> GenerateImportSheets(
             IEnumerable<RowView> infoRows,
-            IEnumerable<RowView> insideRows)
+            IEnumerable<RowView> insideRows,
+            IProgress<string> log,
+            IProgress<double> percent)       // <-- now double!
         {
-            var sheetA = BuildSheetA(infoRows, insideRows);
+            var sheetA = BuildSheetA(infoRows, insideRows, log, percent);
             var sheetB = BuildSheetB(infoRows, insideRows);
             var sheetC = BuildSheetC(infoRows, insideRows);
+
             return new List<DataTable> { sheetA, sheetB, sheetC };
         }
 
         private DataTable BuildSheetA(
             IEnumerable<RowView> infoRows,
-            IEnumerable<RowView> insideRows)
+            IEnumerable<RowView> insideRows,
+            IProgress<string> log,
+            IProgress<double> percent)
         {
             var dt = new DataTable("SheetA");
-            // Add SheetA columns
             foreach (var name in new[]
             {
-                "Item Code",
-                "PART#",
-                "BRAND",
-                "Item Group",
-                "DESCRIPTION",
-                "Purchasing UOM",
-                "Sales UOM",
-                "Inventory UOM",
-                "Vendor Code"
+                "Item Code","PART#","BRAND","Item Group","DESCRIPTION",
+                "Purchasing UOM","Sales UOM","Inventory UOM","Vendor Code"
             })
-            {
                 dt.Columns.Add(name);
-            }
 
             Func<RowView, bool> isReady = rv =>
                 rv.Cells.Length > 14 &&
                 string.Equals(rv.Cells[14]?.Trim(), "READY", StringComparison.OrdinalIgnoreCase);
+
             const string vendorCodeDefault = "VL000442";
 
-            // INFO_EXCEL rows
+            // build a flat list of all READY rows for counting
+            var readyList = infoRows.Concat(insideRows).Where(isReady).ToList();
+            int total = readyList.Count;
+            int counter = 0;
+
+            // INFO_EXCEL rows first
             foreach (var rv in infoRows.Where(isReady))
             {
+                counter++;
                 var c = rv.Cells;
-                var code = c.Length > 3 ? c[3].Trim() : string.Empty;  // D
-                var brand = c.Length > 2 ? c[2].Trim() : string.Empty;  // C
+                var code = c.Length > 3 ? c[3].Trim() : string.Empty;
+                var brand = c.Length > 2 ? c[2].Trim() : string.Empty;
 
                 var row = dt.NewRow();
                 row["Item Code"] = "H-" + code;
@@ -72,14 +73,22 @@ namespace SimplifyQuoter.Services
                 row["Inventory UOM"] = "EACH";
                 row["Vendor Code"] = vendorCodeDefault;
                 dt.Rows.Add(row);
+
+                // report log + bar
+                log?.Report(
+                    $"  • Building Sheet A row {counter}/{total}: "
+                  + string.Join(" | ", row.ItemArray)
+                );
+                percent?.Report(5 + 30.0 * counter / total);
             }
 
-            // INSIDE_EXCEL rows
+            // INSIDE_EXCEL rows next
             foreach (var rv in insideRows.Where(isReady))
             {
+                counter++;
                 var c = rv.Cells;
-                var code = c.Length > 2 ? c[2].Trim() : string.Empty;  // C
-                var brand = c.Length > 1 ? c[1].Trim() : string.Empty;  // B
+                var code = c.Length > 2 ? c[2].Trim() : string.Empty;
+                var brand = c.Length > 1 ? c[1].Trim() : string.Empty;
 
                 var row = dt.NewRow();
                 row["Item Code"] = "H-" + code;
@@ -92,17 +101,23 @@ namespace SimplifyQuoter.Services
                 row["Inventory UOM"] = "EACH";
                 row["Vendor Code"] = vendorCodeDefault;
                 dt.Rows.Add(row);
+
+                // report log + bar
+                log?.Report(
+                    $"  • Building Sheet A row {counter}/{total}: "
+                  + string.Join(" | ", row.ItemArray)
+                );
+                percent?.Report(5 + 30.0 * counter / total);
             }
 
             return dt;
         }
 
         private DataTable BuildSheetB(
-    IEnumerable<RowView> infoRows,
-    IEnumerable<RowView> insideRows)
+            IEnumerable<RowView> infoRows,
+            IEnumerable<RowView> insideRows)
         {
             var dt = new DataTable("SheetB");
-            // Add your columns exactly once:
             foreach (var name in new[]
             {
                 "Price List No",
@@ -134,7 +149,6 @@ namespace SimplifyQuoter.Services
             const string FX = "1";
             const string UOM = "EACH";
 
-            // Helper that removes everything but digits and dot
             string OnlyNumeric(string raw)
             {
                 if (string.IsNullOrWhiteSpace(raw)) return string.Empty;
@@ -142,7 +156,6 @@ namespace SimplifyQuoter.Services
                 return new string(filtered);
             }
 
-            // INFO_EXCEL rows (Column D = idx 3, List-Price Column K = idx 10)
             foreach (var rv in infoRows.Where(isReady))
             {
                 var c = rv.Cells;
@@ -172,7 +185,6 @@ namespace SimplifyQuoter.Services
                 dt.Rows.Add(r);
             }
 
-            // INSIDE_EXCEL rows (Column C = idx 2, List-Price Column J = idx 9)
             foreach (var rv in insideRows.Where(isReady))
             {
                 var c = rv.Cells;
