@@ -195,7 +195,7 @@ namespace SimplifyQuoter.Services
         {
             var jsonInputs = batch
                 .Select(p =>
-                    $"{{\"code\":\"{p.Code}\",\"brand\":\"{p.Brand}\",\"vendor\":\"{p.Vendor}\"}}");
+                    $"{{\"code\":\"{p.Code}\",\"brand\":\"{p.Brand}\"}}");
             var inputArray = "[" + string.Join(",", jsonInputs) + "]";
             Debug.WriteLine(inputArray);
             var userBuilder = new StringBuilder()

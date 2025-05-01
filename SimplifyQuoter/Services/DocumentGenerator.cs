@@ -89,13 +89,17 @@ namespace SimplifyQuoter.Services
                 var c = rv.Cells;
                 var code = c.Length > 2 ? c[2].Trim() : string.Empty;
                 var brand = c.Length > 1 ? c[1].Trim() : string.Empty;
+                var remark = c.Length > 13 ? c[13].Trim() : string.Empty;
 
                 var row = dt.NewRow();
                 row["Item Code"] = "H-" + code;
                 row["PART#"] = code;
                 row["BRAND"] = brand;
                 row["Item Group"] = Transformer.GetItemGroupAsync(code, brand).Result;
-                row["DESCRIPTION"] = Transformer.GetDescriptionAsync(code).Result;
+                
+                //row["DESCRIPTION"] = Transformer.GetDescriptionAsync(code).Result;
+                row["DESCRIPTION"] = brand + ", " + code + ", " + remark;
+                
                 row["Purchasing UOM"] = "EACH";
                 row["Sales UOM"] = "EACH";
                 row["Inventory UOM"] = "EACH";
