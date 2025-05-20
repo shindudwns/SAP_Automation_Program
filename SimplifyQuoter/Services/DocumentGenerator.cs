@@ -67,7 +67,7 @@ namespace SimplifyQuoter.Services
                 row["PART#"] = code;
                 row["BRAND"] = brand;
                 row["Item Group"] = Transformer.GetItemGroupAsync(code, brand).Result;
-                row["DESCRIPTION"] = Transformer.GetDescriptionAsync(code).Result;
+                row["DESCRIPTION"] = brand + ", " + code + ", " + Transformer.GetDescriptionAsync(code).Result;
                 row["Purchasing UOM"] = "EACH";
                 row["Sales UOM"] = "EACH";
                 row["Inventory UOM"] = "EACH";
