@@ -1,0 +1,1962 @@
+Folder PATH listing
+Volume serial number is 88DD-0D95
+C:.
+|   .gitattributes
+|   .gitignore
+|   README.md
+|   SimplifyQuoter.sln
+|   tree.txt
+|   
++---packages
+|   +---Azure.Core.1.44.1
+|   |   |   .signature.p7s
+|   |   |   Azure.Core.1.44.1.nupkg
+|   |   |   azureicon.png
+|   |   |   CHANGELOG.md
+|   |   |   README.md
+|   |   |   
+|   |   \---lib
+|   |       +---net461
+|   |       |       Azure.Core.dll
+|   |       |       Azure.Core.xml
+|   |       |       
+|   |       +---net472
+|   |       |       Azure.Core.dll
+|   |       |       Azure.Core.xml
+|   |       |       
+|   |       +---net6.0
+|   |       |       Azure.Core.dll
+|   |       |       Azure.Core.xml
+|   |       |       
+|   |       \---netstandard2.0
+|   |               Azure.Core.dll
+|   |               Azure.Core.xml
+|   |               
+|   +---EPPlus.8.0.2
+|   |   |   .signature.p7s
+|   |   |   EPPlus.8.0.2.nupkg
+|   |   |   EPPlusLogo.png
+|   |   |   license.md
+|   |   |   readme.md
+|   |   |   readme.txt
+|   |   |   
+|   |   \---lib
+|   |       +---net35
+|   |       |       EPPlus.dll
+|   |       |       EPPlus.xml
+|   |       |       
+|   |       +---net462
+|   |       |       EPPlus.dll
+|   |       |       EPPlus.xml
+|   |       |       
+|   |       +---net8.0
+|   |       |       EPPlus.dll
+|   |       |       EPPlus.xml
+|   |       |       
+|   |       +---net9.0
+|   |       |       EPPlus.dll
+|   |       |       EPPlus.xml
+|   |       |       
+|   |       +---netstandard2.0
+|   |       |       EPPlus.dll
+|   |       |       EPPlus.xml
+|   |       |       
+|   |       \---netstandard2.1
+|   |               EPPlus.dll
+|   |               EPPlus.xml
+|   |               
+|   +---EPPlus.Interfaces.8.0.0
+|   |   |   .signature.p7s
+|   |   |   EPPlus.Interfaces.8.0.0.nupkg
+|   |   |   EPPlusLogo.png
+|   |   |   license.md
+|   |   |   readme.md
+|   |   |   
+|   |   \---lib
+|   |       +---net35
+|   |       |       EPPlus.Interfaces.dll
+|   |       |       
+|   |       +---net462
+|   |       |       EPPlus.Interfaces.dll
+|   |       |       
+|   |       +---net8.0
+|   |       |       EPPlus.Interfaces.dll
+|   |       |       
+|   |       +---net9.0
+|   |       |       EPPlus.Interfaces.dll
+|   |       |       
+|   |       +---netstandard2.0
+|   |       |       EPPlus.Interfaces.dll
+|   |       |       
+|   |       \---netstandard2.1
+|   |               EPPlus.Interfaces.dll
+|   |               
+|   +---Microsoft.Bcl.AsyncInterfaces.1.1.0
+|   |   |   .signature.p7s
+|   |   |   LICENSE.TXT
+|   |   |   Microsoft.Bcl.AsyncInterfaces.1.1.0.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   version.txt
+|   |   |   
+|   |   +---lib
+|   |   |   +---net461
+|   |   |   |       Microsoft.Bcl.AsyncInterfaces.dll
+|   |   |   |       Microsoft.Bcl.AsyncInterfaces.xml
+|   |   |   |       
+|   |   |   +---netstandard2.0
+|   |   |   |       Microsoft.Bcl.AsyncInterfaces.dll
+|   |   |   |       Microsoft.Bcl.AsyncInterfaces.xml
+|   |   |   |       
+|   |   |   \---netstandard2.1
+|   |   |           Microsoft.Bcl.AsyncInterfaces.dll
+|   |   |           Microsoft.Bcl.AsyncInterfaces.xml
+|   |   |           
+|   |   \---ref
+|   |       +---net461
+|   |       |       Microsoft.Bcl.AsyncInterfaces.dll
+|   |       |       
+|   |       +---netstandard2.0
+|   |       |       Microsoft.Bcl.AsyncInterfaces.dll
+|   |       |       
+|   |       \---netstandard2.1
+|   |               Microsoft.Bcl.AsyncInterfaces.dll
+|   |               
+|   +---Microsoft.Bcl.AsyncInterfaces.6.0.0
+|   |   |   .signature.p7s
+|   |   |   Icon.png
+|   |   |   LICENSE.TXT
+|   |   |   Microsoft.Bcl.AsyncInterfaces.6.0.0.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   
+|   |   \---lib
+|   |       +---net461
+|   |       |       Microsoft.Bcl.AsyncInterfaces.dll
+|   |       |       Microsoft.Bcl.AsyncInterfaces.xml
+|   |       |       
+|   |       +---netstandard2.0
+|   |       |       Microsoft.Bcl.AsyncInterfaces.dll
+|   |       |       Microsoft.Bcl.AsyncInterfaces.xml
+|   |       |       
+|   |       \---netstandard2.1
+|   |               Microsoft.Bcl.AsyncInterfaces.dll
+|   |               Microsoft.Bcl.AsyncInterfaces.xml
+|   |               
+|   +---Microsoft.Extensions.Configuration.2.1.0
+|   |   |   .signature.p7s
+|   |   |   Microsoft.Extensions.Configuration.2.1.0.nupkg
+|   |   |   
+|   |   \---lib
+|   |       \---netstandard2.0
+|   |               Microsoft.Extensions.Configuration.dll
+|   |               Microsoft.Extensions.Configuration.xml
+|   |               
+|   +---Microsoft.Extensions.Configuration.Abstractions.2.1.0
+|   |   |   .signature.p7s
+|   |   |   Microsoft.Extensions.Configuration.Abstractions.2.1.0.nupkg
+|   |   |   
+|   |   \---lib
+|   |       \---netstandard2.0
+|   |               Microsoft.Extensions.Configuration.Abstractions.dll
+|   |               Microsoft.Extensions.Configuration.Abstractions.xml
+|   |               
+|   +---Microsoft.Extensions.Configuration.Binder.2.1.0
+|   |   |   .signature.p7s
+|   |   |   Microsoft.Extensions.Configuration.Binder.2.1.0.nupkg
+|   |   |   
+|   |   \---lib
+|   |       \---netstandard2.0
+|   |               Microsoft.Extensions.Configuration.Binder.dll
+|   |               Microsoft.Extensions.Configuration.Binder.xml
+|   |               
+|   +---Microsoft.Extensions.DependencyInjection.Abstractions.2.1.0
+|   |   |   .signature.p7s
+|   |   |   Microsoft.Extensions.DependencyInjection.Abstractions.2.1.0.nupkg
+|   |   |   
+|   |   \---lib
+|   |       \---netstandard2.0
+|   |               Microsoft.Extensions.DependencyInjection.Abstractions.dll
+|   |               Microsoft.Extensions.DependencyInjection.Abstractions.xml
+|   |               
+|   +---Microsoft.Extensions.Http.2.1.0
+|   |   |   .signature.p7s
+|   |   |   Microsoft.Extensions.Http.2.1.0.nupkg
+|   |   |   
+|   |   \---lib
+|   |       \---netstandard2.0
+|   |               Microsoft.Extensions.Http.dll
+|   |               Microsoft.Extensions.Http.xml
+|   |               
+|   +---Microsoft.Extensions.Logging.2.1.0
+|   |   |   .signature.p7s
+|   |   |   Microsoft.Extensions.Logging.2.1.0.nupkg
+|   |   |   
+|   |   \---lib
+|   |       \---netstandard2.0
+|   |               Microsoft.Extensions.Logging.dll
+|   |               Microsoft.Extensions.Logging.xml
+|   |               
+|   +---Microsoft.Extensions.Logging.Abstractions.2.1.0
+|   |   |   .signature.p7s
+|   |   |   Microsoft.Extensions.Logging.Abstractions.2.1.0.nupkg
+|   |   |   
+|   |   \---lib
+|   |       \---netstandard2.0
+|   |               Microsoft.Extensions.Logging.Abstractions.dll
+|   |               Microsoft.Extensions.Logging.Abstractions.xml
+|   |               
+|   +---Microsoft.Extensions.Options.2.1.0
+|   |   |   .signature.p7s
+|   |   |   Microsoft.Extensions.Options.2.1.0.nupkg
+|   |   |   
+|   |   \---lib
+|   |       \---netstandard2.0
+|   |               Microsoft.Extensions.Options.dll
+|   |               Microsoft.Extensions.Options.xml
+|   |               
+|   +---Microsoft.Extensions.Primitives.2.1.0
+|   |   |   .signature.p7s
+|   |   |   Microsoft.Extensions.Primitives.2.1.0.nupkg
+|   |   |   
+|   |   \---lib
+|   |       \---netstandard2.0
+|   |               Microsoft.Extensions.Primitives.dll
+|   |               Microsoft.Extensions.Primitives.xml
+|   |               
+|   +---Microsoft.IO.RecyclableMemoryStream.3.0.1
+|   |   |   .signature.p7s
+|   |   |   Microsoft.IO.RecyclableMemoryStream.3.0.1.nupkg
+|   |   |   README.md
+|   |   |   
+|   |   \---lib
+|   |       +---net6.0
+|   |       |       Microsoft.IO.RecyclableMemoryStream.dll
+|   |       |       Microsoft.IO.RecyclableMemoryStream.xml
+|   |       |       
+|   |       +---netstandard2.0
+|   |       |       Microsoft.IO.RecyclableMemoryStream.dll
+|   |       |       Microsoft.IO.RecyclableMemoryStream.xml
+|   |       |       
+|   |       \---netstandard2.1
+|   |               Microsoft.IO.RecyclableMemoryStream.dll
+|   |               Microsoft.IO.RecyclableMemoryStream.xml
+|   |               
+|   +---Newtonsoft.Json.13.0.3
+|   |   |   .signature.p7s
+|   |   |   LICENSE.md
+|   |   |   Newtonsoft.Json.13.0.3.nupkg
+|   |   |   packageIcon.png
+|   |   |   README.md
+|   |   |   
+|   |   \---lib
+|   |       +---net20
+|   |       |       Newtonsoft.Json.dll
+|   |       |       Newtonsoft.Json.xml
+|   |       |       
+|   |       +---net35
+|   |       |       Newtonsoft.Json.dll
+|   |       |       Newtonsoft.Json.xml
+|   |       |       
+|   |       +---net40
+|   |       |       Newtonsoft.Json.dll
+|   |       |       Newtonsoft.Json.xml
+|   |       |       
+|   |       +---net45
+|   |       |       Newtonsoft.Json.dll
+|   |       |       Newtonsoft.Json.xml
+|   |       |       
+|   |       +---net6.0
+|   |       |       Newtonsoft.Json.dll
+|   |       |       Newtonsoft.Json.xml
+|   |       |       
+|   |       +---netstandard1.0
+|   |       |       Newtonsoft.Json.dll
+|   |       |       Newtonsoft.Json.xml
+|   |       |       
+|   |       +---netstandard1.3
+|   |       |       Newtonsoft.Json.dll
+|   |       |       Newtonsoft.Json.xml
+|   |       |       
+|   |       \---netstandard2.0
+|   |               Newtonsoft.Json.dll
+|   |               Newtonsoft.Json.xml
+|   |               
+|   +---Npgsql.4.1.9
+|   |   |   .signature.p7s
+|   |   |   Npgsql.4.1.9.nupkg
+|   |   |   postgresql.png
+|   |   |   
+|   |   \---lib
+|   |       +---net461
+|   |       |       Npgsql.dll
+|   |       |       Npgsql.xml
+|   |       |       
+|   |       +---netcoreapp3.0
+|   |       |       Npgsql.dll
+|   |       |       Npgsql.xml
+|   |       |       
+|   |       +---netstandard2.0
+|   |       |       Npgsql.dll
+|   |       |       Npgsql.xml
+|   |       |       
+|   |       \---netstandard2.1
+|   |               Npgsql.dll
+|   |               Npgsql.xml
+|   |               
+|   +---OpenAI.2.0.0-beta.3
+|   |   |   .signature.p7s
+|   |   |   OpenAI.2.0.0-beta.3.nupkg
+|   |   |   OpenAI.png
+|   |   |   README.md
+|   |   |   
+|   |   \---lib
+|   |       +---net6.0
+|   |       |       OpenAI.dll
+|   |       |       OpenAI.xml
+|   |       |       
+|   |       \---netstandard2.0
+|   |               OpenAI.dll
+|   |               OpenAI.xml
+|   |               
+|   +---SharpVectors.1.7.0
+|   |   |   .signature.p7s
+|   |   |   SharpVectors.1.7.0.nupkg
+|   |   |   
+|   |   +---images
+|   |   |       SharpVectors64.png
+|   |   |       
+|   |   \---lib
+|   |       +---net40
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Gdi.dll
+|   |       |       SharpVectors.Rendering.Gdi.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       +---net45
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Gdi.dll
+|   |       |       SharpVectors.Rendering.Gdi.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       +---net46
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Gdi.dll
+|   |       |       SharpVectors.Rendering.Gdi.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       +---net47
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Gdi.dll
+|   |       |       SharpVectors.Rendering.Gdi.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       +---net48
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Gdi.dll
+|   |       |       SharpVectors.Rendering.Gdi.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       +---net5.0-windows
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Gdi.dll
+|   |       |       SharpVectors.Rendering.Gdi.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       \---netcoreapp3.1
+|   |               SharpVectors.Converters.Wpf.dll
+|   |               SharpVectors.Converters.Wpf.xml
+|   |               SharpVectors.Core.dll
+|   |               SharpVectors.Core.xml
+|   |               SharpVectors.Css.dll
+|   |               SharpVectors.Css.xml
+|   |               SharpVectors.Dom.dll
+|   |               SharpVectors.Dom.xml
+|   |               SharpVectors.Model.dll
+|   |               SharpVectors.Model.xml
+|   |               SharpVectors.Rendering.Gdi.dll
+|   |               SharpVectors.Rendering.Gdi.xml
+|   |               SharpVectors.Rendering.Wpf.dll
+|   |               SharpVectors.Rendering.Wpf.xml
+|   |               SharpVectors.Runtime.Wpf.dll
+|   |               SharpVectors.Runtime.Wpf.xml
+|   |               
+|   +---SharpVectors.Wpf.1.8.4.2
+|   |   |   .signature.p7s
+|   |   |   SharpVectors.Wpf.1.8.4.2.nupkg
+|   |   |   
+|   |   +---docs
+|   |   |       SharpVectors.Wpf.md
+|   |   |       
+|   |   +---images
+|   |   |       SharpVectors64.png
+|   |   |       
+|   |   \---lib
+|   |       |   License.txt
+|   |       |   
+|   |       +---net40
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       +---net45
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       +---net46
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       +---net47
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       +---net48
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       +---net6.0-windows7.0
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       +---net7.0-windows7.0
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       +---net8.0-windows7.0
+|   |       |       SharpVectors.Converters.Wpf.dll
+|   |       |       SharpVectors.Converters.Wpf.xml
+|   |       |       SharpVectors.Core.dll
+|   |       |       SharpVectors.Core.xml
+|   |       |       SharpVectors.Css.dll
+|   |       |       SharpVectors.Css.xml
+|   |       |       SharpVectors.Dom.dll
+|   |       |       SharpVectors.Dom.xml
+|   |       |       SharpVectors.Model.dll
+|   |       |       SharpVectors.Model.xml
+|   |       |       SharpVectors.Rendering.Wpf.dll
+|   |       |       SharpVectors.Rendering.Wpf.xml
+|   |       |       SharpVectors.Runtime.Wpf.dll
+|   |       |       SharpVectors.Runtime.Wpf.xml
+|   |       |       
+|   |       \---netcoreapp3.1
+|   |               SharpVectors.Converters.Wpf.dll
+|   |               SharpVectors.Converters.Wpf.xml
+|   |               SharpVectors.Core.dll
+|   |               SharpVectors.Core.xml
+|   |               SharpVectors.Css.dll
+|   |               SharpVectors.Css.xml
+|   |               SharpVectors.Dom.dll
+|   |               SharpVectors.Dom.xml
+|   |               SharpVectors.Model.dll
+|   |               SharpVectors.Model.xml
+|   |               SharpVectors.Rendering.Wpf.dll
+|   |               SharpVectors.Rendering.Wpf.xml
+|   |               SharpVectors.Runtime.Wpf.dll
+|   |               SharpVectors.Runtime.Wpf.xml
+|   |               
+|   +---Syncfusion.Compression.Base.29.2.4
+|   |   |   .signature.p7s
+|   |   |   LICENSE.txt
+|   |   |   Syncfusion.Compression.Base.29.2.4.nupkg
+|   |   |   syncfusion_logo.png
+|   |   |   
+|   |   \---lib
+|   |       +---net462
+|   |       |       Syncfusion.Compression.Base.dll
+|   |       |       Syncfusion.Compression.Base.xml
+|   |       |       
+|   |       +---net8.0-windows7.0
+|   |       |       Syncfusion.Compression.Base.dll
+|   |       |       Syncfusion.Compression.Base.xml
+|   |       |       
+|   |       \---net9.0-windows7.0
+|   |               Syncfusion.Compression.Base.dll
+|   |               Syncfusion.Compression.Base.xml
+|   |               
+|   +---Syncfusion.Licensing.29.2.4
+|   |   |   .signature.p7s
+|   |   |   LICENSE.txt
+|   |   |   README.md
+|   |   |   Syncfusion.Licensing.29.2.4.nupkg
+|   |   |   syncfusion_logo.png
+|   |   |   
+|   |   \---lib
+|   |       +---MonoAndroid90
+|   |       |       Syncfusion.Licensing.dll
+|   |       |       
+|   |       +---net462
+|   |       |       Syncfusion.Licensing.dll
+|   |       |       
+|   |       +---net8.0
+|   |       |       Syncfusion.Licensing.dll
+|   |       |       
+|   |       +---net9.0
+|   |       |       Syncfusion.Licensing.dll
+|   |       |       
+|   |       +---netstandard2.0
+|   |       |       Syncfusion.Licensing.dll
+|   |       |       
+|   |       +---uap10.0
+|   |       |       Syncfusion.Licensing.dll
+|   |       |       
+|   |       +---Xamarin.iOS10
+|   |       |       Syncfusion.Licensing.dll
+|   |       |       
+|   |       \---Xamarin.Mac
+|   |               Syncfusion.Licensing.dll
+|   |               
+|   +---Syncfusion.SfCellGrid.WPF.29.2.4
+|   |   |   .signature.p7s
+|   |   |   LICENSE.txt
+|   |   |   Syncfusion.SfCellGrid.WPF.29.2.4.nupkg
+|   |   |   syncfusion_logo.png
+|   |   |   
+|   |   \---lib
+|   |       +---net462
+|   |       |       Syncfusion.SfCellGrid.WPF.dll
+|   |       |       Syncfusion.SfCellGrid.WPF.xml
+|   |       |       
+|   |       +---net8.0-windows7.0
+|   |       |       Syncfusion.SfCellGrid.WPF.dll
+|   |       |       Syncfusion.SfCellGrid.WPF.xml
+|   |       |       
+|   |       \---net9.0-windows7.0
+|   |               Syncfusion.SfCellGrid.WPF.dll
+|   |               Syncfusion.SfCellGrid.WPF.xml
+|   |               
+|   +---Syncfusion.SfGridCommon.WPF.29.2.4
+|   |   |   .signature.p7s
+|   |   |   LICENSE.txt
+|   |   |   Syncfusion.SfGridCommon.WPF.29.2.4.nupkg
+|   |   |   syncfusion_logo.png
+|   |   |   
+|   |   \---lib
+|   |       +---net462
+|   |       |       Syncfusion.SfGridCommon.WPF.dll
+|   |       |       Syncfusion.SfGridCommon.WPF.xml
+|   |       |       
+|   |       +---net8.0-windows7.0
+|   |       |       Syncfusion.SfGridCommon.WPF.dll
+|   |       |       Syncfusion.SfGridCommon.WPF.xml
+|   |       |       
+|   |       \---net9.0-windows7.0
+|   |               Syncfusion.SfGridCommon.WPF.dll
+|   |               Syncfusion.SfGridCommon.WPF.xml
+|   |               
+|   +---Syncfusion.Shared.WPF.29.2.4
+|   |   |   .signature.p7s
+|   |   |   LICENSE.txt
+|   |   |   README.md
+|   |   |   Syncfusion.Shared.WPF.29.2.4.nupkg
+|   |   |   syncfusion_logo.png
+|   |   |   
+|   |   +---lib
+|   |   |   +---net462
+|   |   |   |   |   Syncfusion.Shared.WPF.dll
+|   |   |   |   |   Syncfusion.Shared.WPF.xml
+|   |   |   |   |   
+|   |   |   |   \---Design
+|   |   |   |           Syncfusion.Design.Wpf.dll
+|   |   |   |           Syncfusion.Shared.WPF.DesignTools.dll
+|   |   |   |           Syncfusion.Shared.Wpf.dll.Design.dll
+|   |   |   |           Syncfusion.Shared.Wpf.Expression.Design.dll
+|   |   |   |           Syncfusion.Shared.Wpf.VisualStudio.Design.dll
+|   |   |   |           
+|   |   |   +---net8.0-windows7.0
+|   |   |   |   |   Syncfusion.Shared.WPF.dll
+|   |   |   |   |   Syncfusion.Shared.WPF.xml
+|   |   |   |   |   
+|   |   |   |   \---Design
+|   |   |   |           Syncfusion.Shared.WPF.DesignTools.dll
+|   |   |   |           
+|   |   |   \---net9.0-windows7.0
+|   |   |       |   Syncfusion.Shared.WPF.dll
+|   |   |       |   Syncfusion.Shared.WPF.xml
+|   |   |       |   
+|   |   |       \---Design
+|   |   |               Syncfusion.Shared.WPF.DesignTools.dll
+|   |   |               
+|   |   \---tools
+|   |           VisualStudioToolsManifest.xml
+|   |           
+|   +---Syncfusion.Tools.WPF.29.2.4
+|   |   |   .signature.p7s
+|   |   |   LICENSE.txt
+|   |   |   README.md
+|   |   |   Syncfusion.Tools.WPF.29.2.4.nupkg
+|   |   |   syncfusion_logo.png
+|   |   |   
+|   |   +---lib
+|   |   |   +---net462
+|   |   |   |   |   Syncfusion.Tools.WPF.dll
+|   |   |   |   |   Syncfusion.Tools.WPF.xml
+|   |   |   |   |   
+|   |   |   |   \---Design
+|   |   |   |           Syncfusion.Design.Wpf.dll
+|   |   |   |           Syncfusion.Tools.WPF.DesignTools.dll
+|   |   |   |           Syncfusion.Tools.Wpf.dll.Design.dll
+|   |   |   |           Syncfusion.Tools.Wpf.Expression.Design.dll
+|   |   |   |           Syncfusion.Tools.Wpf.VisualStudio.Design.dll
+|   |   |   |           
+|   |   |   +---net8.0-windows7.0
+|   |   |   |   |   Syncfusion.Tools.WPF.dll
+|   |   |   |   |   Syncfusion.Tools.WPF.xml
+|   |   |   |   |   
+|   |   |   |   \---Design
+|   |   |   |           Syncfusion.Tools.WPF.DesignTools.dll
+|   |   |   |           
+|   |   |   \---net9.0-windows7.0
+|   |   |       |   Syncfusion.Tools.WPF.dll
+|   |   |       |   Syncfusion.Tools.WPF.xml
+|   |   |       |   
+|   |   |       \---Design
+|   |   |               Syncfusion.Tools.WPF.DesignTools.dll
+|   |   |               
+|   |   \---tools
+|   |           VisualStudioToolsManifest.xml
+|   |           
+|   +---Syncfusion.XlsIO.Wpf.29.2.4
+|   |   |   .signature.p7s
+|   |   |   LICENSE.txt
+|   |   |   README.md
+|   |   |   Syncfusion.XlsIO.Wpf.29.2.4.nupkg
+|   |   |   syncfusion_logo.png
+|   |   |   
+|   |   \---lib
+|   |       +---net462
+|   |       |       Syncfusion.XlsIO.Base.dll
+|   |       |       Syncfusion.XlsIO.Base.xml
+|   |       |       
+|   |       +---net8.0-windows7.0
+|   |       |       Syncfusion.XlsIO.Base.dll
+|   |       |       Syncfusion.XlsIO.Base.xml
+|   |       |       
+|   |       \---net9.0-windows7.0
+|   |               Syncfusion.XlsIO.Base.dll
+|   |               Syncfusion.XlsIO.Base.xml
+|   |               
+|   +---System.Buffers.4.5.1
+|   |   |   .signature.p7s
+|   |   |   LICENSE.TXT
+|   |   |   System.Buffers.4.5.1.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   version.txt
+|   |   |   
+|   |   +---lib
+|   |   |   +---net461
+|   |   |   |       System.Buffers.dll
+|   |   |   |       System.Buffers.xml
+|   |   |   |       
+|   |   |   +---netcoreapp2.0
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---netstandard1.1
+|   |   |   |       System.Buffers.dll
+|   |   |   |       System.Buffers.xml
+|   |   |   |       
+|   |   |   +---netstandard2.0
+|   |   |   |       System.Buffers.dll
+|   |   |   |       System.Buffers.xml
+|   |   |   |       
+|   |   |   \---uap10.0.16299
+|   |   |           _._
+|   |   |           
+|   |   \---ref
+|   |       +---net45
+|   |       |       System.Buffers.dll
+|   |       |       System.Buffers.xml
+|   |       |       
+|   |       +---netcoreapp2.0
+|   |       |       _._
+|   |       |       
+|   |       +---netstandard1.1
+|   |       |       System.Buffers.dll
+|   |       |       System.Buffers.xml
+|   |       |       
+|   |       +---netstandard2.0
+|   |       |       System.Buffers.dll
+|   |       |       System.Buffers.xml
+|   |       |       
+|   |       \---uap10.0.16299
+|   |               _._
+|   |               
+|   +---System.ClientModel.1.2.1
+|   |   |   .signature.p7s
+|   |   |   CHANGELOG.md
+|   |   |   DotNetPackageIcon.png
+|   |   |   README.md
+|   |   |   System.ClientModel.1.2.1.nupkg
+|   |   |   
+|   |   \---lib
+|   |       +---net6.0
+|   |       |       System.ClientModel.dll
+|   |       |       System.ClientModel.xml
+|   |       |       
+|   |       \---netstandard2.0
+|   |               System.ClientModel.dll
+|   |               System.ClientModel.xml
+|   |               
+|   +---System.ComponentModel.Annotations.5.0.0
+|   |   |   .signature.p7s
+|   |   |   Icon.png
+|   |   |   LICENSE.TXT
+|   |   |   System.ComponentModel.Annotations.5.0.0.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   version.txt
+|   |   |   
+|   |   +---lib
+|   |   |   +---MonoAndroid10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---MonoTouch10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---net45
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---net461
+|   |   |   |       System.ComponentModel.Annotations.dll
+|   |   |   |       
+|   |   |   +---netcore50
+|   |   |   |       System.ComponentModel.Annotations.dll
+|   |   |   |       
+|   |   |   +---netstandard1.4
+|   |   |   |       System.ComponentModel.Annotations.dll
+|   |   |   |       
+|   |   |   +---netstandard2.0
+|   |   |   |       System.ComponentModel.Annotations.dll
+|   |   |   |       
+|   |   |   +---netstandard2.1
+|   |   |   |       System.ComponentModel.Annotations.dll
+|   |   |   |       System.ComponentModel.Annotations.xml
+|   |   |   |       
+|   |   |   +---portable-net45+win8
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---win8
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---xamarinios10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---xamarinmac20
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---xamarintvos10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   \---xamarinwatchos10
+|   |   |           _._
+|   |   |           
+|   |   \---ref
+|   |       +---MonoAndroid10
+|   |       |       _._
+|   |       |       
+|   |       +---MonoTouch10
+|   |       |       _._
+|   |       |       
+|   |       +---net45
+|   |       |       _._
+|   |       |       
+|   |       +---net461
+|   |       |       System.ComponentModel.Annotations.dll
+|   |       |       System.ComponentModel.Annotations.xml
+|   |       |       
+|   |       +---netcore50
+|   |       |   |   System.ComponentModel.Annotations.dll
+|   |       |   |   System.ComponentModel.Annotations.xml
+|   |       |   |   
+|   |       |   +---de
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---es
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---fr
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---it
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---ja
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---ko
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---ru
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---zh-hans
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   \---zh-hant
+|   |       |           System.ComponentModel.Annotations.xml
+|   |       |           
+|   |       +---netstandard1.1
+|   |       |   |   System.ComponentModel.Annotations.dll
+|   |       |   |   System.ComponentModel.Annotations.xml
+|   |       |   |   
+|   |       |   +---de
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---es
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---fr
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---it
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---ja
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---ko
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---ru
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---zh-hans
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   \---zh-hant
+|   |       |           System.ComponentModel.Annotations.xml
+|   |       |           
+|   |       +---netstandard1.3
+|   |       |   |   System.ComponentModel.Annotations.dll
+|   |       |   |   System.ComponentModel.Annotations.xml
+|   |       |   |   
+|   |       |   +---de
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---es
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---fr
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---it
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---ja
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---ko
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---ru
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---zh-hans
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   \---zh-hant
+|   |       |           System.ComponentModel.Annotations.xml
+|   |       |           
+|   |       +---netstandard1.4
+|   |       |   |   System.ComponentModel.Annotations.dll
+|   |       |   |   System.ComponentModel.Annotations.xml
+|   |       |   |   
+|   |       |   +---de
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---es
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---fr
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---it
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---ja
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---ko
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---ru
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   +---zh-hans
+|   |       |   |       System.ComponentModel.Annotations.xml
+|   |       |   |       
+|   |       |   \---zh-hant
+|   |       |           System.ComponentModel.Annotations.xml
+|   |       |           
+|   |       +---netstandard2.0
+|   |       |       System.ComponentModel.Annotations.dll
+|   |       |       System.ComponentModel.Annotations.xml
+|   |       |       
+|   |       +---netstandard2.1
+|   |       |       System.ComponentModel.Annotations.dll
+|   |       |       System.ComponentModel.Annotations.xml
+|   |       |       
+|   |       +---portable-net45+win8
+|   |       |       _._
+|   |       |       
+|   |       +---win8
+|   |       |       _._
+|   |       |       
+|   |       +---xamarinios10
+|   |       |       _._
+|   |       |       
+|   |       +---xamarinmac20
+|   |       |       _._
+|   |       |       
+|   |       +---xamarintvos10
+|   |       |       _._
+|   |       |       
+|   |       \---xamarinwatchos10
+|   |               _._
+|   |               
+|   +---System.Diagnostics.DiagnosticSource.6.0.1
+|   |   |   .signature.p7s
+|   |   |   Icon.png
+|   |   |   LICENSE.TXT
+|   |   |   System.Diagnostics.DiagnosticSource.6.0.1.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   
+|   |   +---buildTransitive
+|   |   |   +---netcoreapp2.0
+|   |   |   |       System.Diagnostics.DiagnosticSource.targets
+|   |   |   |       
+|   |   |   \---netcoreapp3.1
+|   |   |           _._
+|   |   |           
+|   |   \---lib
+|   |       +---net461
+|   |       |       System.Diagnostics.DiagnosticSource.dll
+|   |       |       System.Diagnostics.DiagnosticSource.xml
+|   |       |       
+|   |       +---net5.0
+|   |       |       System.Diagnostics.DiagnosticSource.dll
+|   |       |       System.Diagnostics.DiagnosticSource.xml
+|   |       |       
+|   |       +---net6.0
+|   |       |       System.Diagnostics.DiagnosticSource.dll
+|   |       |       System.Diagnostics.DiagnosticSource.xml
+|   |       |       
+|   |       \---netstandard2.0
+|   |               System.Diagnostics.DiagnosticSource.dll
+|   |               System.Diagnostics.DiagnosticSource.xml
+|   |               
+|   +---System.Memory.4.5.5
+|   |   |   .signature.p7s
+|   |   |   LICENSE.TXT
+|   |   |   System.Memory.4.5.5.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   version.txt
+|   |   |   
+|   |   +---lib
+|   |   |   +---net461
+|   |   |   |       System.Memory.dll
+|   |   |   |       System.Memory.xml
+|   |   |   |       
+|   |   |   +---netcoreapp2.1
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---netstandard1.1
+|   |   |   |       System.Memory.dll
+|   |   |   |       System.Memory.xml
+|   |   |   |       
+|   |   |   \---netstandard2.0
+|   |   |           System.Memory.dll
+|   |   |           System.Memory.xml
+|   |   |           
+|   |   \---ref
+|   |       \---netcoreapp2.1
+|   |               _._
+|   |               
+|   +---System.Memory.Data.6.0.0
+|   |   |   .signature.p7s
+|   |   |   Icon.png
+|   |   |   LICENSE.TXT
+|   |   |   System.Memory.Data.6.0.0.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   
+|   |   +---buildTransitive
+|   |   |   +---netcoreapp2.0
+|   |   |   |       System.Memory.Data.targets
+|   |   |   |       
+|   |   |   \---netcoreapp3.1
+|   |   |           _._
+|   |   |           
+|   |   \---lib
+|   |       +---net461
+|   |       |       System.Memory.Data.dll
+|   |       |       System.Memory.Data.xml
+|   |       |       
+|   |       +---net6.0
+|   |       |       System.Memory.Data.dll
+|   |       |       System.Memory.Data.xml
+|   |       |       
+|   |       \---netstandard2.0
+|   |               System.Memory.Data.dll
+|   |               System.Memory.Data.xml
+|   |               
+|   +---System.Numerics.Vectors.4.5.0
+|   |   |   .signature.p7s
+|   |   |   LICENSE.TXT
+|   |   |   System.Numerics.Vectors.4.5.0.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   version.txt
+|   |   |   
+|   |   +---lib
+|   |   |   +---MonoAndroid10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---MonoTouch10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---net46
+|   |   |   |       System.Numerics.Vectors.dll
+|   |   |   |       System.Numerics.Vectors.xml
+|   |   |   |       
+|   |   |   +---netcoreapp2.0
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---netstandard1.0
+|   |   |   |       System.Numerics.Vectors.dll
+|   |   |   |       System.Numerics.Vectors.xml
+|   |   |   |       
+|   |   |   +---netstandard2.0
+|   |   |   |       System.Numerics.Vectors.dll
+|   |   |   |       System.Numerics.Vectors.xml
+|   |   |   |       
+|   |   |   +---portable-net45+win8+wp8+wpa81
+|   |   |   |       System.Numerics.Vectors.dll
+|   |   |   |       System.Numerics.Vectors.xml
+|   |   |   |       
+|   |   |   +---uap10.0.16299
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---xamarinios10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---xamarinmac20
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---xamarintvos10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   \---xamarinwatchos10
+|   |   |           _._
+|   |   |           
+|   |   \---ref
+|   |       +---MonoAndroid10
+|   |       |       _._
+|   |       |       
+|   |       +---MonoTouch10
+|   |       |       _._
+|   |       |       
+|   |       +---net45
+|   |       |       System.Numerics.Vectors.dll
+|   |       |       System.Numerics.Vectors.xml
+|   |       |       
+|   |       +---net46
+|   |       |       System.Numerics.Vectors.dll
+|   |       |       System.Numerics.Vectors.xml
+|   |       |       
+|   |       +---netcoreapp2.0
+|   |       |       _._
+|   |       |       
+|   |       +---netstandard1.0
+|   |       |       System.Numerics.Vectors.dll
+|   |       |       System.Numerics.Vectors.xml
+|   |       |       
+|   |       +---netstandard2.0
+|   |       |       System.Numerics.Vectors.dll
+|   |       |       System.Numerics.Vectors.xml
+|   |       |       
+|   |       +---uap10.0.16299
+|   |       |       _._
+|   |       |       
+|   |       +---xamarinios10
+|   |       |       _._
+|   |       |       
+|   |       +---xamarinmac20
+|   |       |       _._
+|   |       |       
+|   |       +---xamarintvos10
+|   |       |       _._
+|   |       |       
+|   |       \---xamarinwatchos10
+|   |               _._
+|   |               
+|   +---System.Runtime.CompilerServices.Unsafe.4.6.0
+|   |   |   .signature.p7s
+|   |   |   LICENSE.TXT
+|   |   |   System.Runtime.CompilerServices.Unsafe.4.6.0.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   version.txt
+|   |   |   
+|   |   +---lib
+|   |   |   +---netcoreapp2.0
+|   |   |   |       System.Runtime.CompilerServices.Unsafe.dll
+|   |   |   |       System.Runtime.CompilerServices.Unsafe.xml
+|   |   |   |       
+|   |   |   +---netstandard1.0
+|   |   |   |       System.Runtime.CompilerServices.Unsafe.dll
+|   |   |   |       System.Runtime.CompilerServices.Unsafe.xml
+|   |   |   |       
+|   |   |   \---netstandard2.0
+|   |   |           System.Runtime.CompilerServices.Unsafe.dll
+|   |   |           System.Runtime.CompilerServices.Unsafe.xml
+|   |   |           
+|   |   \---ref
+|   |       +---netstandard1.0
+|   |       |       System.Runtime.CompilerServices.Unsafe.dll
+|   |       |       System.Runtime.CompilerServices.Unsafe.xml
+|   |       |       
+|   |       \---netstandard2.0
+|   |               System.Runtime.CompilerServices.Unsafe.dll
+|   |               System.Runtime.CompilerServices.Unsafe.xml
+|   |               
+|   +---System.Runtime.CompilerServices.Unsafe.6.0.0
+|   |   |   .signature.p7s
+|   |   |   Icon.png
+|   |   |   LICENSE.TXT
+|   |   |   System.Runtime.CompilerServices.Unsafe.6.0.0.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   
+|   |   +---buildTransitive
+|   |   |   +---netcoreapp2.0
+|   |   |   |       System.Runtime.CompilerServices.Unsafe.targets
+|   |   |   |       
+|   |   |   \---netcoreapp3.1
+|   |   |           _._
+|   |   |           
+|   |   \---lib
+|   |       +---net461
+|   |       |       System.Runtime.CompilerServices.Unsafe.dll
+|   |       |       System.Runtime.CompilerServices.Unsafe.xml
+|   |       |       
+|   |       +---net6.0
+|   |       |       System.Runtime.CompilerServices.Unsafe.dll
+|   |       |       System.Runtime.CompilerServices.Unsafe.xml
+|   |       |       
+|   |       +---netcoreapp3.1
+|   |       |       System.Runtime.CompilerServices.Unsafe.dll
+|   |       |       System.Runtime.CompilerServices.Unsafe.xml
+|   |       |       
+|   |       \---netstandard2.0
+|   |               System.Runtime.CompilerServices.Unsafe.dll
+|   |               System.Runtime.CompilerServices.Unsafe.xml
+|   |               
+|   +---System.Security.Cryptography.Xml.8.0.2
+|   |   |   .signature.p7s
+|   |   |   Icon.png
+|   |   |   LICENSE.TXT
+|   |   |   System.Security.Cryptography.Xml.8.0.2.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   
+|   |   +---buildTransitive
+|   |   |   +---net461
+|   |   |   |       System.Security.Cryptography.Xml.targets
+|   |   |   |       
+|   |   |   +---net462
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---net6.0
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   \---netcoreapp2.0
+|   |   |           System.Security.Cryptography.Xml.targets
+|   |   |           
+|   |   \---lib
+|   |       +---net462
+|   |       |       System.Security.Cryptography.Xml.dll
+|   |       |       System.Security.Cryptography.Xml.xml
+|   |       |       
+|   |       +---net6.0
+|   |       |       System.Security.Cryptography.Xml.dll
+|   |       |       System.Security.Cryptography.Xml.xml
+|   |       |       
+|   |       +---net7.0
+|   |       |       System.Security.Cryptography.Xml.dll
+|   |       |       System.Security.Cryptography.Xml.xml
+|   |       |       
+|   |       +---net8.0
+|   |       |       System.Security.Cryptography.Xml.dll
+|   |       |       System.Security.Cryptography.Xml.xml
+|   |       |       
+|   |       \---netstandard2.0
+|   |               System.Security.Cryptography.Xml.dll
+|   |               System.Security.Cryptography.Xml.xml
+|   |               
+|   +---System.Text.Encodings.Web.4.6.0
+|   |   |   .signature.p7s
+|   |   |   LICENSE.TXT
+|   |   |   System.Text.Encodings.Web.4.6.0.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   version.txt
+|   |   |   
+|   |   \---lib
+|   |       +---netcoreapp3.0
+|   |       |       System.Text.Encodings.Web.dll
+|   |       |       System.Text.Encodings.Web.xml
+|   |       |       
+|   |       +---netstandard1.0
+|   |       |       System.Text.Encodings.Web.dll
+|   |       |       System.Text.Encodings.Web.xml
+|   |       |       
+|   |       \---netstandard2.0
+|   |               System.Text.Encodings.Web.dll
+|   |               System.Text.Encodings.Web.xml
+|   |               
+|   +---System.Text.Encodings.Web.6.0.0
+|   |   |   .signature.p7s
+|   |   |   Icon.png
+|   |   |   LICENSE.TXT
+|   |   |   System.Text.Encodings.Web.6.0.0.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   
+|   |   +---buildTransitive
+|   |   |   +---netcoreapp2.0
+|   |   |   |       System.Text.Encodings.Web.targets
+|   |   |   |       
+|   |   |   \---netcoreapp3.1
+|   |   |           _._
+|   |   |           
+|   |   +---lib
+|   |   |   +---net461
+|   |   |   |       System.Text.Encodings.Web.dll
+|   |   |   |       System.Text.Encodings.Web.xml
+|   |   |   |       
+|   |   |   +---net6.0
+|   |   |   |       System.Text.Encodings.Web.dll
+|   |   |   |       System.Text.Encodings.Web.xml
+|   |   |   |       
+|   |   |   +---netcoreapp3.1
+|   |   |   |       System.Text.Encodings.Web.dll
+|   |   |   |       System.Text.Encodings.Web.xml
+|   |   |   |       
+|   |   |   \---netstandard2.0
+|   |   |           System.Text.Encodings.Web.dll
+|   |   |           System.Text.Encodings.Web.xml
+|   |   |           
+|   |   \---runtimes
+|   |       \---browser
+|   |           \---lib
+|   |               \---net6.0
+|   |                       System.Text.Encodings.Web.dll
+|   |                       System.Text.Encodings.Web.xml
+|   |                       
+|   +---System.Text.Json.4.6.0
+|   |   |   .signature.p7s
+|   |   |   LICENSE.TXT
+|   |   |   System.Text.Json.4.6.0.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   version.txt
+|   |   |   
+|   |   \---lib
+|   |       +---net461
+|   |       |       System.Text.Json.dll
+|   |       |       System.Text.Json.xml
+|   |       |       
+|   |       +---netcoreapp3.0
+|   |       |       System.Text.Json.dll
+|   |       |       System.Text.Json.xml
+|   |       |       
+|   |       \---netstandard2.0
+|   |               System.Text.Json.dll
+|   |               System.Text.Json.xml
+|   |               
+|   +---System.Text.Json.6.0.10
+|   |   |   .signature.p7s
+|   |   |   Icon.png
+|   |   |   LICENSE.TXT
+|   |   |   System.Text.Json.6.0.10.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   
+|   |   +---analyzers
+|   |   |   \---dotnet
+|   |   |       +---roslyn3.11
+|   |   |       |   \---cs
+|   |   |       |       |   System.Text.Json.SourceGeneration.dll
+|   |   |       |       |   
+|   |   |       |       +---cs
+|   |   |       |       |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |       |       |       
+|   |   |       |       +---de
+|   |   |       |       |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |       |       |       
+|   |   |       |       +---es
+|   |   |       |       |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |       |       |       
+|   |   |       |       +---fr
+|   |   |       |       |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |       |       |       
+|   |   |       |       +---it
+|   |   |       |       |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |       |       |       
+|   |   |       |       +---ja
+|   |   |       |       |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |       |       |       
+|   |   |       |       +---ko
+|   |   |       |       |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |       |       |       
+|   |   |       |       +---pl
+|   |   |       |       |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |       |       |       
+|   |   |       |       +---pt-BR
+|   |   |       |       |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |       |       |       
+|   |   |       |       +---ru
+|   |   |       |       |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |       |       |       
+|   |   |       |       +---tr
+|   |   |       |       |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |       |       |       
+|   |   |       |       +---zh-Hans
+|   |   |       |       |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |       |       |       
+|   |   |       |       \---zh-Hant
+|   |   |       |               System.Text.Json.SourceGeneration.resources.dll
+|   |   |       |               
+|   |   |       \---roslyn4.0
+|   |   |           \---cs
+|   |   |               |   System.Text.Json.SourceGeneration.dll
+|   |   |               |   
+|   |   |               +---cs
+|   |   |               |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |               |       
+|   |   |               +---de
+|   |   |               |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |               |       
+|   |   |               +---es
+|   |   |               |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |               |       
+|   |   |               +---fr
+|   |   |               |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |               |       
+|   |   |               +---it
+|   |   |               |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |               |       
+|   |   |               +---ja
+|   |   |               |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |               |       
+|   |   |               +---ko
+|   |   |               |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |               |       
+|   |   |               +---pl
+|   |   |               |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |               |       
+|   |   |               +---pt-BR
+|   |   |               |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |               |       
+|   |   |               +---ru
+|   |   |               |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |               |       
+|   |   |               +---tr
+|   |   |               |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |               |       
+|   |   |               +---zh-Hans
+|   |   |               |       System.Text.Json.SourceGeneration.resources.dll
+|   |   |               |       
+|   |   |               \---zh-Hant
+|   |   |                       System.Text.Json.SourceGeneration.resources.dll
+|   |   |                       
+|   |   +---buildTransitive
+|   |   |   +---netcoreapp2.0
+|   |   |   |       System.Text.Json.targets
+|   |   |   |       
+|   |   |   +---netcoreapp3.1
+|   |   |   |       System.Text.Json.targets
+|   |   |   |       
+|   |   |   \---netstandard2.0
+|   |   |           System.Text.Json.targets
+|   |   |           
+|   |   \---lib
+|   |       +---net461
+|   |       |       System.Text.Json.dll
+|   |       |       System.Text.Json.xml
+|   |       |       
+|   |       +---net6.0
+|   |       |       System.Text.Json.dll
+|   |       |       System.Text.Json.xml
+|   |       |       
+|   |       +---netcoreapp3.1
+|   |       |       System.Text.Json.dll
+|   |       |       System.Text.Json.xml
+|   |       |       
+|   |       \---netstandard2.0
+|   |               System.Text.Json.dll
+|   |               System.Text.Json.xml
+|   |               
+|   +---System.Threading.Tasks.Extensions.4.5.3
+|   |   |   .signature.p7s
+|   |   |   LICENSE.TXT
+|   |   |   System.Threading.Tasks.Extensions.4.5.3.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   version.txt
+|   |   |   
+|   |   +---lib
+|   |   |   +---MonoAndroid10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---MonoTouch10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---netcoreapp2.1
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---netstandard1.0
+|   |   |   |       System.Threading.Tasks.Extensions.dll
+|   |   |   |       System.Threading.Tasks.Extensions.xml
+|   |   |   |       
+|   |   |   +---netstandard2.0
+|   |   |   |       System.Threading.Tasks.Extensions.dll
+|   |   |   |       System.Threading.Tasks.Extensions.xml
+|   |   |   |       
+|   |   |   +---portable-net45+win8+wp8+wpa81
+|   |   |   |       System.Threading.Tasks.Extensions.dll
+|   |   |   |       System.Threading.Tasks.Extensions.xml
+|   |   |   |       
+|   |   |   +---xamarinios10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---xamarinmac20
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---xamarintvos10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   \---xamarinwatchos10
+|   |   |           _._
+|   |   |           
+|   |   \---ref
+|   |       +---MonoAndroid10
+|   |       |       _._
+|   |       |       
+|   |       +---MonoTouch10
+|   |       |       _._
+|   |       |       
+|   |       +---netcoreapp2.1
+|   |       |       _._
+|   |       |       
+|   |       +---xamarinios10
+|   |       |       _._
+|   |       |       
+|   |       +---xamarinmac20
+|   |       |       _._
+|   |       |       
+|   |       +---xamarintvos10
+|   |       |       _._
+|   |       |       
+|   |       \---xamarinwatchos10
+|   |               _._
+|   |               
+|   +---System.Threading.Tasks.Extensions.4.5.4
+|   |   |   .signature.p7s
+|   |   |   LICENSE.TXT
+|   |   |   System.Threading.Tasks.Extensions.4.5.4.nupkg
+|   |   |   THIRD-PARTY-NOTICES.TXT
+|   |   |   useSharedDesignerContext.txt
+|   |   |   version.txt
+|   |   |   
+|   |   +---lib
+|   |   |   +---MonoAndroid10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---MonoTouch10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---net461
+|   |   |   |       System.Threading.Tasks.Extensions.dll
+|   |   |   |       System.Threading.Tasks.Extensions.xml
+|   |   |   |       
+|   |   |   +---netcoreapp2.1
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---netstandard1.0
+|   |   |   |       System.Threading.Tasks.Extensions.dll
+|   |   |   |       System.Threading.Tasks.Extensions.xml
+|   |   |   |       
+|   |   |   +---netstandard2.0
+|   |   |   |       System.Threading.Tasks.Extensions.dll
+|   |   |   |       System.Threading.Tasks.Extensions.xml
+|   |   |   |       
+|   |   |   +---portable-net45+win8+wp8+wpa81
+|   |   |   |       System.Threading.Tasks.Extensions.dll
+|   |   |   |       System.Threading.Tasks.Extensions.xml
+|   |   |   |       
+|   |   |   +---xamarinios10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---xamarinmac20
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   +---xamarintvos10
+|   |   |   |       _._
+|   |   |   |       
+|   |   |   \---xamarinwatchos10
+|   |   |           _._
+|   |   |           
+|   |   \---ref
+|   |       +---MonoAndroid10
+|   |       |       _._
+|   |       |       
+|   |       +---MonoTouch10
+|   |       |       _._
+|   |       |       
+|   |       +---netcoreapp2.1
+|   |       |       _._
+|   |       |       
+|   |       +---xamarinios10
+|   |       |       _._
+|   |       |       
+|   |       +---xamarinmac20
+|   |       |       _._
+|   |       |       
+|   |       +---xamarintvos10
+|   |       |       _._
+|   |       |       
+|   |       \---xamarinwatchos10
+|   |               _._
+|   |               
+|   \---System.ValueTuple.4.5.0
+|       |   .signature.p7s
+|       |   LICENSE.TXT
+|       |   System.ValueTuple.4.5.0.nupkg
+|       |   THIRD-PARTY-NOTICES.TXT
+|       |   useSharedDesignerContext.txt
+|       |   version.txt
+|       |   
+|       +---lib
+|       |   +---MonoAndroid10
+|       |   |       _._
+|       |   |       
+|       |   +---MonoTouch10
+|       |   |       _._
+|       |   |       
+|       |   +---net461
+|       |   |       System.ValueTuple.dll
+|       |   |       System.ValueTuple.xml
+|       |   |       
+|       |   +---net47
+|       |   |       System.ValueTuple.dll
+|       |   |       System.ValueTuple.xml
+|       |   |       
+|       |   +---netcoreapp2.0
+|       |   |       _._
+|       |   |       
+|       |   +---netstandard1.0
+|       |   |       System.ValueTuple.dll
+|       |   |       System.ValueTuple.xml
+|       |   |       
+|       |   +---netstandard2.0
+|       |   |       _._
+|       |   |       
+|       |   +---portable-net40+sl4+win8+wp8
+|       |   |       System.ValueTuple.dll
+|       |   |       System.ValueTuple.xml
+|       |   |       
+|       |   +---uap10.0.16299
+|       |   |       _._
+|       |   |       
+|       |   +---xamarinios10
+|       |   |       _._
+|       |   |       
+|       |   +---xamarinmac20
+|       |   |       _._
+|       |   |       
+|       |   +---xamarintvos10
+|       |   |       _._
+|       |   |       
+|       |   \---xamarinwatchos10
+|       |           _._
+|       |           
+|       \---ref
+|           +---MonoAndroid10
+|           |       _._
+|           |       
+|           +---MonoTouch10
+|           |       _._
+|           |       
+|           +---net461
+|           |       System.ValueTuple.dll
+|           |       
+|           +---net47
+|           |       System.ValueTuple.dll
+|           |       
+|           +---netcoreapp2.0
+|           |       _._
+|           |       
+|           +---netstandard2.0
+|           |       _._
+|           |       
+|           +---portable-net40+sl4+win8+wp8
+|           |       System.ValueTuple.dll
+|           |       
+|           +---uap10.0.16299
+|           |       _._
+|           |       
+|           +---xamarinios10
+|           |       _._
+|           |       
+|           +---xamarinmac20
+|           |       _._
+|           |       
+|           +---xamarintvos10
+|           |       _._
+|           |       
+|           \---xamarinwatchos10
+|                   _._
+|                   
+\---SimplifyQuoter
+    |   .gitignore
+    |   App.config
+    |   App.xaml
+    |   App.xaml.cs
+    |   packages.config
+    |   SimplifyQuoter.csproj
+    |   
+    +---Assets
+    |       excel_icon.png
+    |       info_icon.png
+    |       inside_icon.png
+    |       process_icon.png
+    |       trash_can.png
+    |       txt_icon.png
+    |       
+    +---bin
+    |   +---Debug
+    |   |       EPPlus.dll
+    |   |       EPPlus.Interfaces.dll
+    |   |       EPPlus.xml
+    |   |       Microsoft.Bcl.AsyncInterfaces.dll
+    |   |       Microsoft.Bcl.AsyncInterfaces.xml
+    |   |       Microsoft.IO.RecyclableMemoryStream.dll
+    |   |       Microsoft.IO.RecyclableMemoryStream.xml
+    |   |       Newtonsoft.Json.dll
+    |   |       Newtonsoft.Json.xml
+    |   |       Npgsql.dll
+    |   |       Npgsql.xml
+    |   |       SimplifyQuoter.exe
+    |   |       SimplifyQuoter.exe.config
+    |   |       SimplifyQuoter.pdb
+    |   |       Syncfusion.Compression.Base.dll
+    |   |       Syncfusion.Compression.Base.xml
+    |   |       Syncfusion.Licensing.dll
+    |   |       Syncfusion.SfCellGrid.WPF.dll
+    |   |       Syncfusion.SfCellGrid.WPF.xml
+    |   |       Syncfusion.SfGridCommon.WPF.dll
+    |   |       Syncfusion.SfGridCommon.WPF.xml
+    |   |       Syncfusion.Shared.WPF.dll
+    |   |       Syncfusion.Shared.WPF.xml
+    |   |       Syncfusion.Tools.WPF.dll
+    |   |       Syncfusion.Tools.WPF.xml
+    |   |       Syncfusion.XlsIO.Base.dll
+    |   |       Syncfusion.XlsIO.Base.xml
+    |   |       System.Buffers.dll
+    |   |       System.Buffers.xml
+    |   |       System.ComponentModel.Annotations.dll
+    |   |       System.Memory.dll
+    |   |       System.Memory.xml
+    |   |       System.Numerics.Vectors.dll
+    |   |       System.Numerics.Vectors.xml
+    |   |       System.Runtime.CompilerServices.Unsafe.dll
+    |   |       System.Runtime.CompilerServices.Unsafe.xml
+    |   |       System.Security.Cryptography.Xml.dll
+    |   |       System.Security.Cryptography.Xml.xml
+    |   |       System.Text.Encodings.Web.dll
+    |   |       System.Text.Encodings.Web.xml
+    |   |       System.Text.Json.dll
+    |   |       System.Text.Json.xml
+    |   |       System.Threading.Tasks.Extensions.dll
+    |   |       System.Threading.Tasks.Extensions.xml
+    |   |       System.ValueTuple.dll
+    |   |       System.ValueTuple.xml
+    |   |       
+    |   \---Release
+    +---Converters
+    |       ValueToWidthConverte.cs
+    |       ValueToWidthConverter.cs
+    |       
+    +---DB
+    |       ddl.txt
+    |       info-circle-svgrepo-com.svg
+    |       text-file-outline-variant-svgrepo-com.svg
+    |       
+    +---Models
+    |       RowView.cs
+    |       
+    +---obj
+    |   +---Debug
+    |   |   |   .NETFramework,Version=v4.7.2.AssemblyAttributes.cs
+    |   |   |   App.g.cs
+    |   |   |   App.g.i.cs
+    |   |   |   DesignTimeResolveAssemblyReferences.cache
+    |   |   |   DesignTimeResolveAssemblyReferencesInput.cache
+    |   |   |   GeneratedInternalTypeHelper.g.cs
+    |   |   |   GeneratedInternalTypeHelper.g.i.cs
+    |   |   |   MainWindow.g.i.cs
+    |   |   |   Simplify.CC5C9C80.Up2Date
+    |   |   |   SimplifyQuoter.csproj.AssemblyReference.cache
+    |   |   |   SimplifyQuoter.csproj.CoreCompileInputs.cache
+    |   |   |   SimplifyQuoter.csproj.FileListAbsolute.txt
+    |   |   |   SimplifyQuoter.csproj.GenerateResource.cache
+    |   |   |   SimplifyQuoter.exe
+    |   |   |   SimplifyQuoter.g.resources
+    |   |   |   SimplifyQuoter.pdb
+    |   |   |   SimplifyQuoter.Properties.Resources.resources
+    |   |   |   SimplifyQuoter_Content.g.cs
+    |   |   |   SimplifyQuoter_Content.g.i.cs
+    |   |   |   SimplifyQuoter_MarkupCompile.cache
+    |   |   |   SimplifyQuoter_MarkupCompile.i.cache
+    |   |   |   SimplifyQuoter_MarkupCompile.lref
+    |   |   |   SimplifyQuoter_xm4ym4qc_wpftmp.csproj.AssemblyReference.cache
+    |   |   |   
+    |   |   +---TempPE
+    |   |   |       Properties.Resources.Designer.cs.dll
+    |   |   |       
+    |   |   \---Views
+    |   |           ImportWindow.baml
+    |   |           ImportWindow.g.cs
+    |   |           ImportWindow.g.i.cs
+    |   |           LicenseOverlayControl.baml
+    |   |           LicenseOverlayControl.g.cs
+    |   |           LicenseOverlayControl.g.i.cs
+    |   |           LicenseWindow.g.i.cs
+    |   |           MainWindow.baml
+    |   |           MainWindow.g.cs
+    |   |           MainWindow.g.i.cs
+    |   |           ProcessWindow.baml
+    |   |           ProcessWindow.g.cs
+    |   |           ProcessWindow.g.i.cs
+    |   |           ReviewWindow.baml
+    |   |           ReviewWindow.g.cs
+    |   |           ReviewWindow.g.i.cs
+    |   |           RowSelectionView.g.i.cs
+    |   |           
+    |   \---Release
+    |       |   .NETFramework,Version=v4.7.2.AssemblyAttributes.cs
+    |       |   App.g.cs
+    |       |   GeneratedInternalTypeHelper.g.cs
+    |       |   SimplifyQuoter.csproj.AssemblyReference.cache
+    |       |   SimplifyQuoter_Content.g.cs
+    |       |   SimplifyQuoter_MarkupCompile.cache
+    |       |   SimplifyQuoter_MarkupCompile.lref
+    |       |   SimplifyQuoter_xm4ym4qc_wpftmp.csproj.AssemblyReference.cache
+    |       |   
+    |       \---Views
+    |               ImportWindow.g.cs
+    |               MainWindow.baml
+    |               MainWindow.g.cs
+    |               ProcessWindow.baml
+    |               ProcessWindow.g.cs
+    |               ReviewWindow.baml
+    |               ReviewWindow.g.cs
+    |               RowSelectionView.g.cs
+    |               
+    +---Properties
+    |       AssemblyInfo.cs
+    |       Resources.Designer.cs
+    |       Resources.resx
+    |       Settings.Designer.cs
+    |       Settings.settings
+    |       
+    +---Services
+    |       AiEnrichmentService.cs
+    |       AutomationService.cs
+    |       DatabaseService.cs
+    |       DocumentGenerator.cs
+    |       ExcelService.cs
+    |       ImportTxtService.cs
+    |       LicenseService.cs
+    |       test.cs
+    |       Transformer.cs
+    |       
+    +---Utilities
+    |       RelayCommand.cs
+    |       ViewModelBase.cs
+    |       
+    +---ViewModels
+    |       RowSelectionViewModel.cs
+    |       
+    \---Views
+            ImportWindow.xaml
+            ImportWindow.xaml.cs
+            LicenseOverlayControl.xaml
+            LicenseOverlayControl.xaml.cs
+            MainWindow.xaml
+            MainWindow.xaml.cs
+            ProcessWindow.xaml
+            ProcessWindow.xaml.cs
+            ReviewWindow.xaml
+            ReviewWindow.xaml.cs
+            
