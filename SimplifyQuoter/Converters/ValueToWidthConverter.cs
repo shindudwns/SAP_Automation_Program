@@ -1,4 +1,4 @@
-﻿// Converters/ValueToWidthConverter.cs
+﻿// File: Converters/ValueToWidthConverter.cs
 using System;
 using System.Globalization;
 using System.Windows.Data;
@@ -16,12 +16,13 @@ namespace SimplifyQuoter.Converters
                 !(values[1] is double totalWidth))
                 return 0.0;
 
-            // clamp
             progress = Math.Max(0, Math.Min(100, progress));
             return totalWidth * (progress / 100.0);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-            => throw new NotImplementedException();
+        {
+            throw new NotImplementedException();
+        }
     }
 }

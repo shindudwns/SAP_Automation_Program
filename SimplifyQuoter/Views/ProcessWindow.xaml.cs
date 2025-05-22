@@ -1,12 +1,14 @@
-﻿using System;
+﻿// File: Views/ProcessWindow.xaml.cs
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using SimplifyQuoter.Models;
 using SimplifyQuoter.Services;
-using System.Windows.Controls;
+using SimplifyQuoter.Services.ServiceLayer;
 
 namespace SimplifyQuoter.Views
 {
@@ -14,16 +16,29 @@ namespace SimplifyQuoter.Views
     {
         private readonly Guid _sapFileId;
         private readonly List<RowView> _rows;
-        private readonly AutomationService _autoSvc = new AutomationService();
 
-        // new DB-backed constructor
+        private readonly ServiceLayerClient _slClient;
+        private readonly AutomationService _autoSvc;
+
+        // Cached credentials
+        private string _companyDb;
+        private string _userName;
+        private string _password;
+
         public ProcessWindow(Guid sapFileId, List<RowView> rows)
         {
             InitializeComponent();
             _sapFileId = sapFileId;
             _rows = rows;
 
-            // IMD grid
+            // === Service Layer wiring ===
+            _slClient = new ServiceLayerClient();
+            var itemSvc = new ItemService(_slClient);
+            var quoteSvc = new QuotationService(_slClient);
+
+            _autoSvc = new AutomationService(_sapFileId, itemSvc, quoteSvc);
+
+            // === Populate Item Master Data grid ===
             var imdList = new ObservableCollection<ImdRow>(
                 _rows.Select((rv, idx) => new ImdRow
                 {
@@ -41,7 +56,7 @@ namespace SimplifyQuoter.Views
             );
             ImdGrid.ItemsSource = imdList;
 
-            // SQ grid
+            // === Populate Sales Quotation grid ===
             var sqList = new ObservableCollection<SqRow>(
                 _rows.Select((rv, idx) => new SqRow
                 {
@@ -50,22 +65,29 @@ namespace SimplifyQuoter.Views
                     ItemNo = rv.Cells.Length > 2 ? rv.Cells[2] : string.Empty,
                     Quantity = rv.Cells.Length > 3 ? rv.Cells[3] : string.Empty,
                     FreeText = Transformer.ConvertDurationToFreeText(
-                                 rv.Cells.Length > 10 ? rv.Cells[10] : string.Empty)
+                                   rv.Cells.Length > 10 ? rv.Cells[10] : string.Empty)
                 })
             );
             SqGrid.ItemsSource = sqList;
         }
 
-        // legacy overload if you still need it:
+        // Legacy overload (if needed)
         public ProcessWindow(List<RowView> rows)
-          : this(Guid.Empty, rows) { }
+            : this(Guid.Empty, rows)
+        {
+        }
 
-        private void BtnProcessIMD_Click(object sender, RoutedEventArgs e)
+        private async void BtnProcessIMD_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                _autoSvc.RunItemMasterData(_sapFileId, _rows);
-                MessageBox.Show("IMD done");
+                if (!await EnsureLoggedInAsync())
+                    return;
+
+                await _autoSvc.RunItemMasterDataAsync(_rows);
+                await _slClient.LogoutAsync();
+
+                MessageBox.Show("Item Master Data processed successfully.");
             }
             catch (Exception ex)
             {
@@ -73,12 +95,17 @@ namespace SimplifyQuoter.Views
             }
         }
 
-        private void BtnProcessSQ_Click(object sender, RoutedEventArgs e)
+        private async void BtnProcessSQ_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                _autoSvc.RunSalesQuotation(_sapFileId, _rows);
-                MessageBox.Show("SQ done");
+                if (!await EnsureLoggedInAsync())
+                    return;
+
+                await _autoSvc.RunSalesQuotationAsync(_rows);
+                await _slClient.LogoutAsync();
+
+                MessageBox.Show("Sales Quotations processed successfully.");
             }
             catch (Exception ex)
             {
@@ -87,14 +114,33 @@ namespace SimplifyQuoter.Views
         }
 
         /// <summary>
-        /// Dummy handler so the XAML SelectionChanged="SqGrid_SelectionChanged" compiles.
-        /// You can later wire this up if you need to respond to SQ‐grid selection.
+        /// Prompt for credentials if not already logged in.
+        /// </summary>
+        private async Task<bool> EnsureLoggedInAsync()
+        {
+            if (_slClient.IsLoggedIn)
+                return true;
+
+            var loginWin = new LoginWindow { Owner = this };
+            if (loginWin.ShowDialog() != true)
+                return false;
+
+            _companyDb = loginWin.CompanyDB;
+            _userName = loginWin.UserName;
+            _password = loginWin.Password;
+
+            await _slClient.LoginAsync(_companyDb, _userName, _password);
+            return true;
+        }
+
+        /// <summary>
+        /// No-op handler for SQ grid selection (wired in XAML).
         /// </summary>
         private void SqGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // no‐op for now
         }
 
+        // ----- DTOs for DataGrid binding -----
         public class ImdRow
         {
             public int Sequence { get; set; }

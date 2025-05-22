@@ -1,4 +1,5 @@
-﻿using System;
+﻿// File: Services/DatabaseService.cs
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -7,11 +8,12 @@ using Npgsql;
 namespace SimplifyQuoter.Services
 {
     /// <summary>
-    /// Wraps an open NpgsqlConnection, plus some part-cache helpers.
+    /// Wraps an open NpgsqlConnection, plus helpers for
+    /// part-cache and job/row flag updates.
     /// </summary>
     public class DatabaseService : IDisposable
     {
-        private NpgsqlConnection _conn;
+        private readonly NpgsqlConnection _conn;
 
         public DatabaseService()
         {
@@ -22,10 +24,15 @@ namespace SimplifyQuoter.Services
             _conn.Open();
         }
 
+        /// <summary>
+        /// Expose raw connection if needed.
+        /// </summary>
         public NpgsqlConnection Connection
         {
             get { return _conn; }
         }
+
+        // ————— Existing methods —————
 
         public HashSet<string> GetKnownPartCodes(IEnumerable<string> codes)
         {
@@ -39,14 +46,12 @@ namespace SimplifyQuoter.Services
             using (var cmd = _conn.CreateCommand())
             {
                 cmd.CommandText = @"
-SELECT code
-  FROM part
- WHERE code = ANY(@codes)";
+SELECT code FROM part WHERE code = ANY(@codes)";
                 cmd.Parameters.AddWithValue(
-                  "codes",
-                  NpgsqlTypes.NpgsqlDbType.Array |
-                  NpgsqlTypes.NpgsqlDbType.Text,
-                  arr);
+                    "codes",
+                    NpgsqlTypes.NpgsqlDbType.Array |
+                    NpgsqlTypes.NpgsqlDbType.Text,
+                    arr);
 
                 var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 using (var rdr = cmd.ExecuteReader())
@@ -120,10 +125,6 @@ ON CONFLICT(code) DO UPDATE
             }
         }
 
-        /// <summary>
-        /// Deletes all rows from the part table.
-        /// Returns the number of rows removed.
-        /// </summary>
         public int CleanupParts()
         {
             using (var cmd = _conn.CreateCommand())
@@ -133,6 +134,93 @@ ON CONFLICT(code) DO UPDATE
             }
         }
 
+        // ————— New job/row‐flag methods —————
+
+        /// <summary>
+        /// Inserts a new process_job and returns its ID.
+        /// </summary>
+        public Guid CreateProcessJob(Guid sapFileId, string jobType, int totalRows)
+        {
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+INSERT INTO process_job(sap_file_id, job_type, total_rows)
+VALUES(@fid,@jt,@tot)
+RETURNING id";
+                cmd.Parameters.AddWithValue("fid", sapFileId);
+                cmd.Parameters.AddWithValue("jt", jobType);
+                cmd.Parameters.AddWithValue("tot", totalRows);
+                return (Guid)cmd.ExecuteScalar();
+            }
+        }
+
+        /// <summary>
+        /// Increments processed_rows on the given job.
+        /// </summary>
+        public void IncrementJobProgress(Guid jobId)
+        {
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+UPDATE process_job
+   SET processed_rows = processed_rows + 1
+ WHERE id = @jid";
+                cmd.Parameters.AddWithValue("jid", jobId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Sets completed_at = NOW() on the given job.
+        /// </summary>
+        public void CompleteJob(Guid jobId)
+        {
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+UPDATE process_job
+   SET completed_at = NOW()
+ WHERE id = @jid";
+                cmd.Parameters.AddWithValue("jid", jobId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Marks a sap_row as processed_imd and bumps exec count.
+        /// </summary>
+        public void MarkImdProcessed(Guid rowId)
+        {
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+UPDATE sap_row
+   SET processed_imd  = TRUE,
+       imd_exec_count = imd_exec_count + 1
+ WHERE id = @rid";
+                cmd.Parameters.AddWithValue("rid", rowId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Marks a sap_row as processed_sq and bumps exec count.
+        /// </summary>
+        public void MarkSqProcessed(Guid rowId)
+        {
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+UPDATE sap_row
+   SET processed_sq  = TRUE,
+       sq_exec_count  = sq_exec_count + 1
+ WHERE id = @rid";
+                cmd.Parameters.AddWithValue("rid", rowId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        // ————— IDisposable —————
 
         public void Dispose()
         {
@@ -140,7 +228,6 @@ ON CONFLICT(code) DO UPDATE
             {
                 _conn.Close();
                 _conn.Dispose();
-                _conn = null;
             }
         }
     }

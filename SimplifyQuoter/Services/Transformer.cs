@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using SimplifyQuoter.Models;
+using SimplifyQuoter.Services.ServiceLayer.Dtos;
 
 namespace SimplifyQuoter.Services
 {
@@ -126,6 +129,41 @@ namespace SimplifyQuoter.Services
             }
 
             return grp ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Map a RowView into the minimal ItemDto
+        /// </summary>
+        public static ItemDto ToItemDto(RowView rv)
+        {
+            return new ItemDto
+            {
+                ItemCode = rv.Cells.Length > 2 ? rv.Cells[2]?.Trim() : string.Empty,
+                // for now, use same as name; adjust when you know which column holds the name
+                ItemName = rv.Cells.Length > 2 ? rv.Cells[2]?.Trim() : string.Empty
+            };
+        }
+
+        /// <summary>
+        /// Map a RowView into a single‐line QuotationDto
+        /// </summary>
+        public static QuotationDto ToQuotationDto(RowView rv)
+        {
+            var line = new QuotationLineDto
+            {
+                ItemCode = rv.Cells.Length > 2 ? rv.Cells[2]?.Trim() : string.Empty,
+                Quantity = double.TryParse(rv.Cells.Length > 3 ? rv.Cells[3] : "0", out var q) ? q : 0,
+                FreeText = ConvertDurationToFreeText(
+                              rv.Cells.Length > 10 ? rv.Cells[10] : string.Empty)
+            };
+
+            return new QuotationDto
+            {
+                // adjust this index once you know which column is CardCode
+                CardCode = rv.Cells.Length > 1 ? rv.Cells[1]?.Trim() : string.Empty,
+                DocDate = DateTime.Today,
+                DocumentLines = new List<QuotationLineDto> { line }
+            };
         }
     }
 

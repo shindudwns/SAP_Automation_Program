@@ -137,6 +137,12 @@
     <Compile Include="Services\ExcelService.cs" />
     <Compile Include="Services\ImportTxtService.cs" />
     <Compile Include="Services\LicenseService.cs" />
+    <Compile Include="Services\ServiceLayer\Dtos\ItemDto.cs" />
+    <Compile Include="Services\ServiceLayer\Dtos\QuotationDto.cs" />
+    <Compile Include="Services\ServiceLayer\IServiceLayerClient.cs" />
+    <Compile Include="Services\ServiceLayer\ItemService.cs" />
+    <Compile Include="Services\ServiceLayer\QuotationService.cs" />
+    <Compile Include="Services\ServiceLayer\ServiceLayerClient.cs" />
     <Compile Include="Services\Transformer.cs" />
     <Compile Include="Utilities\RelayCommand.cs" />
     <Compile Include="Utilities\ViewModelBase.cs" />
@@ -146,6 +152,9 @@
     </Compile>
     <Compile Include="Views\LicenseOverlayControl.xaml.cs">
       <DependentUpon>LicenseOverlayControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\LoginWindow.xaml.cs">
+      <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ProcessWindow.xaml.cs">
       <DependentUpon>ProcessWindow.xaml</DependentUpon>
@@ -157,6 +166,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\LicenseOverlayControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\LoginWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\MainWindow.xaml">

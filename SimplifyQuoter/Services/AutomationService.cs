@@ -1,146 +1,97 @@
-﻿using System;
+﻿// File: Services/AutomationService.cs
+using System;
 using System.Collections.Generic;
-using Npgsql;
+using System.Linq;
+using System.Threading.Tasks;
 using SimplifyQuoter.Models;
+using SimplifyQuoter.Services.ServiceLayer;
 
 namespace SimplifyQuoter.Services
 {
+    /// <summary>
+    /// Orchestrates Item & Quotation creation via SL client + feature services,
+    /// and tracks progress in local DB (process_job & sap_row flags).
+    /// </summary>
     public class AutomationService
     {
-        public void Connect()
+        private readonly Guid _sapFileId;
+        private readonly ItemService _itemService;
+        private readonly QuotationService _quoteService;
+
+        public AutomationService(
+            Guid sapFileId,
+            ItemService itemService,
+            QuotationService quoteService)
         {
-            // TODO: DI‐API connect
+            _sapFileId = sapFileId;
+            _itemService = itemService;
+            _quoteService = quoteService;
         }
 
-        public void Disconnect()
+        public async Task RunItemMasterDataAsync(IEnumerable<RowView> rows)
         {
-            // TODO: DI‐API disconnect
-        }
+            // materialize for Count() and stable ordering
+            var list = rows.ToList();
 
-        public void RunItemMasterData(Guid sapFileId, IEnumerable<RowView> rows)
-        {
-            // insert process_job
+            // 1) create process_job
             Guid jobId;
-            int total = 0;
-            foreach (var _ in rows) total++;
             using (var db = new DatabaseService())
-            using (var cmd = db.Connection.CreateCommand())
             {
-                cmd.CommandText = @"
-INSERT INTO process_job(sap_file_id,job_type,total_rows)
-VALUES(@fid,'IMD',@tot) RETURNING id";
-                cmd.Parameters.AddWithValue("fid", sapFileId);
-                cmd.Parameters.AddWithValue("tot", total);
-                jobId = (Guid)cmd.ExecuteScalar();
+                jobId = db.CreateProcessJob(_sapFileId, "IMD", list.Count);
             }
 
-            Connect();
-            foreach (var rv in rows)
+            // 2) loop each row
+            foreach (var rv in list)
             {
-                // TODO: call DI-API to create Item Master Data…
+                // call SL
+                var dto = Transformer.ToItemDto(rv);
+                await _itemService.CreateOrUpdateAsync(dto);
 
+                // mark processed and bump counters
                 using (var db = new DatabaseService())
-                using (var tx = db.Connection.BeginTransaction())
                 {
-                    // mark row processed
-                    using (var cmd = db.Connection.CreateCommand())
-                    {
-                        cmd.Transaction = tx;
-                        cmd.CommandText = @"
-UPDATE sap_row
-   SET processed_imd = TRUE,
-       imd_exec_count = imd_exec_count + 1
- WHERE id = @rid";
-                        cmd.Parameters.AddWithValue("rid", rv.RowId);
-                        cmd.ExecuteNonQuery();
-                    }
-                    // bump job
-                    using (var cmd = db.Connection.CreateCommand())
-                    {
-                        cmd.Transaction = tx;
-                        cmd.CommandText = @"
-UPDATE process_job
-   SET processed_rows = processed_rows + 1
- WHERE id = @jid";
-                        cmd.Parameters.AddWithValue("jid", jobId);
-                        cmd.ExecuteNonQuery();
-                    }
-                    tx.Commit();
+                    db.MarkImdProcessed(rv.RowId);
+                    db.IncrementJobProgress(jobId);
                 }
             }
-            Disconnect();
 
+            // 3) complete job
             using (var db = new DatabaseService())
-            using (var cmd = db.Connection.CreateCommand())
             {
-                cmd.CommandText = @"
-UPDATE process_job
-   SET completed_at = NOW()
- WHERE id = @jid";
-                cmd.Parameters.AddWithValue("jid", jobId);
-                cmd.ExecuteNonQuery();
+                db.CompleteJob(jobId);
             }
         }
 
-        public void RunSalesQuotation(Guid sapFileId, IEnumerable<RowView> rows)
+        public async Task RunSalesQuotationAsync(IEnumerable<RowView> rows)
         {
+            var list = rows.ToList();
+
+            // 1) create process_job
             Guid jobId;
-            int total = 0;
-            foreach (var _ in rows) total++;
             using (var db = new DatabaseService())
-            using (var cmd = db.Connection.CreateCommand())
             {
-                cmd.CommandText = @"
-INSERT INTO process_job(sap_file_id,job_type,total_rows)
-VALUES(@fid,'SQ',@tot) RETURNING id";
-                cmd.Parameters.AddWithValue("fid", sapFileId);
-                cmd.Parameters.AddWithValue("tot", total);
-                jobId = (Guid)cmd.ExecuteScalar();
+                jobId = db.CreateProcessJob(_sapFileId, "SQ", list.Count);
             }
 
-            Connect();
-            foreach (var rv in rows)
+            // 2) loop each row
+            foreach (var rv in list)
             {
-                // TODO: call DI-API to create Sales Quotation…
+                // call SL
+                var dto = Transformer.ToQuotationDto(rv);
+                await _quoteService.CreateAsync(dto);
 
+                // mark processed and bump counters
                 using (var db = new DatabaseService())
-                using (var tx = db.Connection.BeginTransaction())
                 {
-                    using (var cmd = db.Connection.CreateCommand())
-                    {
-                        cmd.Transaction = tx;
-                        cmd.CommandText = @"
-UPDATE sap_row
-   SET processed_sq = TRUE,
-       sq_exec_count = sq_exec_count + 1
- WHERE id = @rid";
-                        cmd.Parameters.AddWithValue("rid", rv.RowId);
-                        cmd.ExecuteNonQuery();
-                    }
-                    using (var cmd = db.Connection.CreateCommand())
-                    {
-                        cmd.Transaction = tx;
-                        cmd.CommandText = @"
-UPDATE process_job
-   SET processed_rows = processed_rows + 1
- WHERE id = @jid";
-                        cmd.Parameters.AddWithValue("jid", jobId);
-                        cmd.ExecuteNonQuery();
-                    }
-                    tx.Commit();
+                    db.MarkSqProcessed(rv.RowId);
+                    db.IncrementJobProgress(jobId);
                 }
             }
-            Disconnect();
 
+            // 3) complete job
             using (var db = new DatabaseService())
-            using (var cmd = db.Connection.CreateCommand())
             {
-                cmd.CommandText = @"
-UPDATE process_job
-   SET completed_at = NOW()
- WHERE id = @jid";
-                cmd.Parameters.AddWithValue("jid", jobId);
-                cmd.ExecuteNonQuery();
+                db.CompleteJob(jobId);
             }
         }
     }
