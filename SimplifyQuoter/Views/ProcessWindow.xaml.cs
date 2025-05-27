@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using SimplifyQuoter.Models;
 using SimplifyQuoter.Services;
 using SimplifyQuoter.Services.ServiceLayer;
+using SimplifyQuoter.Services.ServiceLayer.Dtos;
 
 namespace SimplifyQuoter.Views
 {
@@ -35,28 +36,15 @@ namespace SimplifyQuoter.Views
             _slClient = new ServiceLayerClient();
             var itemSvc = new ItemService(_slClient);
             var quoteSvc = new QuotationService(_slClient);
-
             _autoSvc = new AutomationService(_sapFileId, itemSvc, quoteSvc);
 
             // === Populate Item Master Data grid ===
-            var imdList = new ObservableCollection<ImdRow>(
-                _rows.Select((rv, idx) => new ImdRow
-                {
-                    Sequence = idx + 1,
-                    ItemNo = rv.Cells.Length > 2 ? rv.Cells[2] : string.Empty,
-                    Description = string.Empty,
-                    PartNumber = rv.Cells.Length > 2 ? rv.Cells[2] : string.Empty,
-                    ItemGroup = string.Empty,
-                    Manufacturer = rv.Cells.Length > 5 ? rv.Cells[5] : string.Empty,
-                    PreferredVendor = string.Empty,
-                    PurchasingUoMName = "EACH",
-                    SalesUoMName = "EACH",
-                    UoMName = "EACH"
-                })
+            var imdList = new ObservableCollection<ImdRowViewModel>(
+                _rows.Select((rv, idx) => new ImdRowViewModel(rv, idx + 1))
             );
             ImdGrid.ItemsSource = imdList;
 
-            // === Populate Sales Quotation grid ===
+            // === Populate Sales Quotation grid (unchanged) ===
             var sqList = new ObservableCollection<SqRow>(
                 _rows.Select((rv, idx) => new SqRow
                 {
@@ -121,40 +109,67 @@ namespace SimplifyQuoter.Views
             if (_slClient.IsLoggedIn)
                 return true;
 
+            // Show your custom login dialog
             var loginWin = new LoginWindow { Owner = this };
             if (loginWin.ShowDialog() != true)
                 return false;
 
+            // Pull the values the user entered
             _companyDb = loginWin.CompanyDB;
             _userName = loginWin.UserName;
             _password = loginWin.Password;
 
-            await _slClient.LoginAsync(_companyDb, _userName, _password);
+            // THIS is where you call LoginAsync—wrap it in try/catch:
+            try
+            {
+                await _slClient.LoginAsync(_companyDb, _userName, _password);
+            }
+            catch (Exception ex)
+            {
+                // Show the full error (including SL’s JSON body) in a MessageBox
+                MessageBox.Show(
+                    $"Service Layer login failed:\n{ex.Message}",
+                    "Login Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+                return false;
+            }
+
             return true;
         }
 
-        /// <summary>
-        /// No-op handler for SQ grid selection (wired in XAML).
-        /// </summary>
+
+        /// <summary>No-op handler for SQ grid selection (wired in XAML).</summary>
         private void SqGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
         }
 
-        // ----- DTOs for DataGrid binding -----
-        public class ImdRow
+        // ----- ViewModel for Item Master Data grid -----
+        public class ImdRowViewModel
         {
-            public int Sequence { get; set; }
-            public string ItemNo { get; set; }
-            public string Description { get; set; }
-            public string PartNumber { get; set; }
-            public string ItemGroup { get; set; }
-            public string Manufacturer { get; set; }
-            public string PreferredVendor { get; set; }
-            public string PurchasingUoMName { get; set; }
-            public string SalesUoMName { get; set; }
-            public string UoMName { get; set; }
+            public Guid RowId { get; }
+            public int Sequence { get; }
+            public ItemDto Dto { get; }
+
+            public ImdRowViewModel(RowView rv, int sequence)
+            {
+                RowId = rv.RowId;
+                Sequence = sequence;
+                Dto = Transformer.ToItemDto(rv);
+            }
+
+            public string ItemNo => Dto.ItemCode;
+            public string Description => Dto.ItemName;
+            public string PartNumber => Dto.FrgnName;
+            public string ItemGroup => Dto.ItmsGrpCod;
+            public string PreferredVendor => Dto.CardCode;
+            public string PurchasingUoM => Dto.BuyUnitMsr;
+            public string SalesUoM => Dto.SalUnitMsr;
+            public string InventoryUoM => Dto.InvntryUom;
         }
 
+        // ----- DTOs for SQ grid binding (unchanged) -----
         public class SqRow
         {
             public int Sequence { get; set; }

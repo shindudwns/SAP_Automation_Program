@@ -136,12 +136,22 @@ namespace SimplifyQuoter.Services
         /// </summary>
         public static ItemDto ToItemDto(RowView rv)
         {
+            var part = rv.Cells.Length > 2
+                       ? rv.Cells[2]?.Trim()
+                       : string.Empty;
+
             return new ItemDto
             {
-                ItemCode = rv.Cells.Length > 2 ? rv.Cells[2]?.Trim() : string.Empty,
-                // for now, use same as name; adjust when you know which column holds the name
-                ItemName = rv.Cells.Length > 2 ? rv.Cells[2]?.Trim() : string.Empty
+                ItemCode = part,
+                ItemName = "TEST" /* TODO: call GetDescriptionAsync(part) and await */,
+                FrgnName = "H-"+part,
+                ItmsGrpCod = "Items" /* TODO: call GetItemGroupAsync(part, brand) */,
+                //CardCode = "VL000442",
+                //BuyUnitMsr = "EACH",
+                //SalUnitMsr = "EACH",
+                //InvntryUom = "EACH"
             };
+
         }
 
         /// <summary>

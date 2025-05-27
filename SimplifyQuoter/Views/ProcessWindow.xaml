@@ -43,26 +43,26 @@
                                   Binding="{Binding ItemGroup}"
                                   SortMemberPath="ItemGroup"
                                   Width="Auto"/>
-                            <DataGridTextColumn Header="Manufacturer"
-                                  Binding="{Binding Manufacturer}"
-                                  SortMemberPath="Manufacturer"
-                                  Width="Auto"/>
+
                             <DataGridTextColumn Header="Preferred Vendor"
                                   Binding="{Binding PreferredVendor}"
                                   SortMemberPath="PreferredVendor"
                                   Width="Auto"/>
-                            <DataGridTextColumn Header="Purchasing UoM Name"
-                                  Binding="{Binding PurchasingUoMName}"
-                                  SortMemberPath="PurchasingUoMName"
-                                  Width="Auto"/>
-                            <DataGridTextColumn Header="Sales UoM Name"
-                                  Binding="{Binding SalesUoMName}"
-                                  SortMemberPath="SalesUoMName"
-                                  Width="Auto"/>
-                            <DataGridTextColumn Header="UoM Name"
-                                  Binding="{Binding UoMName}"
-                                  SortMemberPath="UoMName"
-                                  Width="Auto"/>
+
+
+                            <DataGridTextColumn Header="Purchasing UoM"
+                                Binding="{Binding PurchasingUoM}"
+                                SortMemberPath="PurchasingUoM"
+                                Width="Auto"/>
+                                        <DataGridTextColumn Header="Sales UoM"
+                                Binding="{Binding SalesUoM}"
+                                SortMemberPath="SalesUoM"
+                                Width="Auto"/>
+                                        <DataGridTextColumn Header="Inventory UoM"
+                                Binding="{Binding InventoryUoM}"
+                                SortMemberPath="InventoryUoM"
+                                Width="Auto"/>
+
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
