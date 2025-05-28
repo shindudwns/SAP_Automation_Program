@@ -84,13 +84,18 @@ namespace SimplifyQuoter.Views
             {
                 if (!await EnsureLoggedInAsync())
                     return;
+                //var resp = await _slClient.HttpClient.GetAsync("$metadata");
+                //resp.EnsureSuccessStatusCode();
+                //var xml = await resp.Content.ReadAsStringAsync();
+                //Console.WriteLine(xml);
+
                 // <<< Insert this diagnostic check here >>>
-                var resp = await _slClient.HttpClient
-    .GetAsync("BusinessPartners('VL000442')?$select=CardCode,CardName,CardType");
-                resp.EnsureSuccessStatusCode();
-                var json = await resp.Content.ReadAsStringAsync();
-                Debug.WriteLine("BP VL000442 details:\n" + json);
-                // or pop it into a MessageBox so you can eyeball it:
+    //            var resp = await _slClient.HttpClient
+    //.GetAsync("BusinessPartners('VL000442')?$select=CardCode,CardName,CardType");
+    //            resp.EnsureSuccessStatusCode();
+    //            var json = await resp.Content.ReadAsStringAsync();
+    //            Debug.WriteLine("BP VL000442 details:\n" + json);
+    //            or pop it into a MessageBox so you can eyeball it:
 
                 await _autoSvc.RunItemMasterDataAsync(_rows);
                 await _slClient.LogoutAsync();
@@ -187,9 +192,9 @@ namespace SimplifyQuoter.Views
             // TODO: Check if ItemGroup is INT or STRING
             public int ItemGroup => Dto.ItmsGrpCod;
             public string PreferredVendor => Dto.CardCode ?? string.Empty;
-            public string PurchasingUoM => Dto.BuyUnitMsr ?? string.Empty;
-            public string SalesUoM => Dto.SalUnitMsr ?? string.Empty;
-            public string InventoryUoM => Dto.InvntryUoM;
+            public string PurchasingUoM => Dto.PurchasingUoM ?? string.Empty;
+            public string SalesUoM => Dto.SalesUoM ?? string.Empty;
+            public string InventoryUoM => Dto.InventoryUoM ?? string.Empty;
         }
 
         // ----- DTOs for SQ grid binding (unchanged) -----

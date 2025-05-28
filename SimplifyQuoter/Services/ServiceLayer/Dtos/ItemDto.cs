@@ -24,13 +24,13 @@ namespace SimplifyQuoter.Services.ServiceLayer.Dtos
 
 
         [JsonProperty("PurchasingUoM")]
-        public string BuyUnitMsr { get; set; }
+        public string PurchasingUoM { get; set; }
 
         [JsonProperty("SalesUoM")]
-        public string SalUnitMsr { get; set; }
+        public string SalesUoM { get; set; }
 
-        [JsonProperty("InventoryUoM")]
-        public string InvntryUoM { get; set; }
+        [JsonProperty("InventoryUoM", NullValueHandling = NullValueHandling.Ignore)]
+        public string InventoryUoM { get; set; }
     }
 
 }

@@ -157,9 +157,9 @@ namespace SimplifyQuoter.Services
                     ItmsGrpCod = groupCode,
                     CardCode = "VL000442",
                     CardType = "cSupplier",
-                    BuyUnitMsr = "EACH",
-                    SalUnitMsr = "EACH",
-                    InvntryUoM = "EACH"
+                    PurchasingUoM = "EACH",
+                    SalesUoM = "EACH",
+                    InventoryUoM = "EACH",
                 };
             }
         }

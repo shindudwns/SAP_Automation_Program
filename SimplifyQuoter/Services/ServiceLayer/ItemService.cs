@@ -7,7 +7,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SimplifyQuoter.Services.ServiceLayer;
 using SimplifyQuoter.Services.ServiceLayer.Dtos;
 
 namespace SimplifyQuoter.Services.ServiceLayer
@@ -21,63 +20,107 @@ namespace SimplifyQuoter.Services.ServiceLayer
             _client = client;
         }
 
+        /// <summary>
+        /// 1) POST the Item header
+        /// 2) PATCH the Item to add preferred vendor + UoM entries in one shot
+        /// </summary>
         public async Task CreateOrUpdateAsync(ItemDto dto)
         {
-            // 1) Serialize (Pascal-case) and log the outgoing JSON, ignoring nulls
-            var settings = new JsonSerializerSettings
+            // 1) Create the header
+            var headerPayload = new
             {
-                NullValueHandling = NullValueHandling.Ignore
+                ItemCode = dto.ItemCode,
+                ItemName = dto.ItemName,
+                ForeignName = dto.FrgnName,
+                ItemsGroupCode = dto.ItmsGrpCod,
+                PurchaseItem = "tYES",
+                SalesItem = "tYES",
+                InventoryItem = "tYES"
             };
-            var json = JsonConvert.SerializeObject(dto, settings);
-            Debug.WriteLine("📤 SL CreateItem payload:");
-            Debug.WriteLine(json);
+            var jsonHeader = JsonConvert.SerializeObject(
+                headerPayload,
+                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
+            );
+            Debug.WriteLine("📤 SL CreateItem header payload:");
+            Debug.WriteLine(jsonHeader);
 
-            // 2) Dump cookies from ServiceLayerClient
-            if (_client is ServiceLayerClient slClient)
+
+            // make sure our cookies are applied (same snippet you've been using)
+            var sl = _client as ServiceLayerClient;
+            if (sl != null)
             {
-                var baseUri = slClient.HttpClient.BaseAddress;
-                var authorityUri = new Uri(baseUri.GetLeftPart(UriPartial.Authority));
+                var baseUri = sl.HttpClient.BaseAddress;
+                var auth = new Uri(baseUri.GetLeftPart(UriPartial.Authority));
+                var cookies = sl.Cookies.GetCookies(auth);
+                var sess = cookies["B1SESSION"]?.Value;
+                var route = cookies["ROUTEID"]?.Value;
 
-                Debug.WriteLine("📡 SL Cookies at authority root:");
-                foreach (Cookie c in slClient.Cookies.GetCookies(authorityUri))
+                Debug.WriteLine("📡 SL Cookies:");
+                foreach (Cookie c in cookies)
                     Debug.WriteLine($" - {c.Name}={c.Value}");
 
-                Debug.WriteLine("📡 SL Cookies at BaseAddress path:");
-                foreach (Cookie c in slClient.Cookies.GetCookies(baseUri))
-                    Debug.WriteLine($" - {c.Name}={c.Value}");
-
-                // 3) Fallback: manually set the Cookie header if B1SESSION is present
-                var sessionCookie = slClient.Cookies.GetCookies(authorityUri)["B1SESSION"]?.Value;
-                var routeCookie = slClient.Cookies.GetCookies(authorityUri)["ROUTEID"]?.Value;
-                if (!string.IsNullOrEmpty(sessionCookie))
+                if (!string.IsNullOrEmpty(sess))
                 {
-                    slClient.HttpClient.DefaultRequestHeaders.Remove("Cookie");
-                    slClient.HttpClient.DefaultRequestHeaders.Add(
+                    sl.HttpClient.DefaultRequestHeaders.Remove("Cookie");
+                    sl.HttpClient.DefaultRequestHeaders.Add(
                         "Cookie",
-                        $"B1SESSION={sessionCookie}; ROUTEID={routeCookie}"
-                    );
-                    Debug.WriteLine(
-                        "📡 SL Manually set Cookie header: " +
-                        slClient.HttpClient
-                                .DefaultRequestHeaders
-                                .GetValues("Cookie")
-                                .First()
+                        $"B1SESSION={sess}; ROUTEID={route}"
                     );
                 }
             }
 
-            // 4) Send the request
-            using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
+            using (var content = new StringContent(jsonHeader, Encoding.UTF8, "application/json"))
             {
-                var resp = await _client.HttpClient.PostAsync("Items", content);
-
-                // 5) Read & log the response
-                var body = await resp.Content.ReadAsStringAsync();
-                Debug.WriteLine($"📥 SL CreateItem response: {(int)resp.StatusCode} {resp.ReasonPhrase}");
+                var resp = await _client.HttpClient.PostAsync("Items", content).ConfigureAwait(false);
+                var body = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+                Debug.WriteLine($"📥 SL CreateItem header response: {(int)resp.StatusCode} {resp.ReasonPhrase}");
                 Debug.WriteLine(body);
+                resp.EnsureSuccessStatusCode();
+            }
 
+            // 2) PATCH in both child collections in one go
+            // Build one payload that includes both arrays
+            var patchPayload = new
+            {
+                ItemPreferredVendors = string.IsNullOrEmpty(dto.CardCode)
+            ? null
+            : new[] {
+                new {
+                    PreferredVendor = dto.CardCode,   // ← use this field name
+                    DefaultVendor   = "tYES"
+                }
+              },
+
+                ItemUnitOfMeasurementCollection = new[] {
+            new { UoMEntry   = dto.PurchasingUoM, DefaultUoM = "tYES" },
+            new { UoMEntry   = dto.SalesUoM,      DefaultUoM = "tYES" },
+            new { UoMEntry   = dto.InventoryUoM,    DefaultUoM = "tYES" }
+        }
+            };
+
+            var jsonPatch = JsonConvert.SerializeObject(
+                patchPayload,
+                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
+            );
+            Debug.WriteLine("📤 SL PATCH Item children payload:");
+            Debug.WriteLine(jsonPatch);
+
+            var req = new HttpRequestMessage(
+                new HttpMethod("PATCH"),
+                $"Items('{dto.ItemCode}')"
+            )
+            {
+                Content = new StringContent(jsonPatch, Encoding.UTF8, "application/json")
+            };
+
+            using (var resp = await _client.HttpClient.SendAsync(req).ConfigureAwait(false))
+            {
+                var body = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+                Debug.WriteLine($"📥 SL PATCH Item children response: {(int)resp.StatusCode} {resp.ReasonPhrase}");
+                Debug.WriteLine(body);
                 resp.EnsureSuccessStatusCode();
             }
         }
+
     }
 }

@@ -54,15 +54,14 @@
                                 Binding="{Binding PurchasingUoM}"
                                 SortMemberPath="PurchasingUoM"
                                 Width="Auto"/>
-                                        <DataGridTextColumn Header="Sales UoM"
+                            <DataGridTextColumn Header="Sales UoM"
                                 Binding="{Binding SalesUoM}"
                                 SortMemberPath="SalesUoM"
                                 Width="Auto"/>
-                                        <DataGridTextColumn Header="Inventory UoM"
+                            <DataGridTextColumn Header="Inventory UoM"
                                 Binding="{Binding InventoryUoM}"
                                 SortMemberPath="InventoryUoM"
                                 Width="Auto"/>
-
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
