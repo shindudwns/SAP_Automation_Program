@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 
 namespace SimplifyQuoter.Services
 {
-    public class AiEnrichmentService
+    public class AiEnrichmentService : IDisposable
     {
         private readonly DatabaseService _db;
         private readonly SemaphoreSlim _throttle = new SemaphoreSlim(1, 1);
@@ -25,6 +25,48 @@ namespace SimplifyQuoter.Services
             TimeSpan.FromSeconds(1),
             TimeSpan.FromSeconds(2),
         };
+
+        private static readonly Dictionary<string, int> GroupLookup =
+            new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Surplus", 100 },
+            { "Bearings and Power Transmission", 101 },
+            { "Electrical Components", 102 },
+            { "HVAC and Refrigeration", 103 },
+            { "Plumbing and Fluid Handling", 104 },
+            { "Tools and Equipment", 105 },
+            { "Safety and PPE", 106 },
+            { "Material Handling", 107 },
+            { "Fasteners and Hardware", 108 },
+            { "Lubricants and Chemicals", 109 },
+            { "Lighting and Electrical Fixtures", 110 },
+            { "Facility Maintenance", 111 },
+            { "Welding and Soldering", 112 },
+            { "Packaging and Shipping", 113 },
+            { "IT and Office Supplies", 114 },
+            { "Automation and Controls", 115 },
+            { "Pneumatics and Hydraulics", 116 },
+            { "Precision Measuring Tools", 117 },
+            { "BRASS FITTINGS", 118 },
+            { "STEEL FITTINGS", 119 },
+            { "Bolts, Nuts, Washers", 120 },
+            { "ETC", 121 },
+            { "Charge", 122 },
+            { "SERVICE", 123 },
+        };
+        public AiEnrichmentService()
+        {
+            _apiKey = ConfigurationManager.AppSettings["OpenAI:ApiKey"]
+                     ?? throw new InvalidOperationException(
+                         "Missing OpenAI:ApiKey in App.config");
+            _modelName = ConfigurationManager.AppSettings["OpenAI:Model"]
+                         ?? "gpt-3.5-turbo";
+
+            _http = new HttpClient();
+            _http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _apiKey);
+        }
+
 
         public AiEnrichmentService(DatabaseService db)
         {
@@ -267,6 +309,123 @@ namespace SimplifyQuoter.Services
                         p.is_manual);
             }
         }
+
+        /// <summary>
+        /// Generate a ≤20-word summary for the specified part code.
+        /// </summary>
+        public async Task<string> GeneratePartSummaryAsync(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+                return string.Empty;
+
+            // Prompt for concise summary
+            var prompt = $"Provide a very concise (≤20 words) summary of part number \"{code}\" " +
+                         "including its core details (e.g., size, function).";
+
+            return await SendWithRetryAsync(prompt);
+        }
+
+        /// <summary>
+        /// Selects the best item group code given part & brand. Defaults to ETC (121).
+        /// </summary>
+        public async Task<int> DetermineItemGroupCodeAsync(string code, string brand)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+                return GroupLookup["ETC"];
+
+            // Build a JSON-style list of choices
+            var choices = string.Join(", ", GroupLookup.Keys.Select(k => $"\"{k}\""));
+            var prompt = new StringBuilder()
+                .AppendLine($"Given part number \"{code}\" and brand \"{brand}\",")
+                .AppendLine("select exactly one item group from the list below:")
+                .AppendLine($"[{choices}]")
+                .AppendLine("Respond with the group name only; if uncertain, choose \"ETC\".")
+                .ToString();
+
+            var aiResult = await SendWithRetryAsync(prompt);
+            var groupName = aiResult.Trim().Trim('\"');
+
+            if (GroupLookup.TryGetValue(groupName, out var grpCode))
+                return grpCode;
+
+            return GroupLookup["ETC"];
+        }
+
+        /// <summary>
+        /// Sends a user prompt via ChatCompletion with retry/backoff.
+        /// </summary>
+        private async Task<string> SendWithRetryAsync(string userPrompt)
+        {
+            await _throttle.WaitAsync();
+            try
+            {
+                for (int i = 0; i < _backoffs.Length; i++)
+                {
+                    try
+                    {
+                        return await CallChatCompletionAsync(userPrompt);
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        // on 429 retry
+                        if (ex.Message.Contains("429") && i < _backoffs.Length - 1)
+                        {
+                            await Task.Delay(_backoffs[i]);
+                            continue;
+                        }
+                        throw;
+                    }
+                }
+            }
+            finally
+            {
+                _throttle.Release();
+            }
+
+            return string.Empty; // fallback
+        }
+
+        /// <summary>
+        /// One-off ChatCompletion call, returns the assistant’s reply text.
+        /// </summary>
+        private async Task<string> CallChatCompletionAsync(string userContent)
+        {
+            var body = new
+            {
+                model = _modelName,
+                messages = new[] {
+                    new { role = "system", content = "You are an expert parts-classifier." },
+                    new { role = "user",   content = userContent             }
+                }
+            };
+
+            var req = new HttpRequestMessage(
+                HttpMethod.Post,
+                "https://api.openai.com/v1/chat/completions")
+            {
+                Content = new StringContent(
+                    JsonConvert.SerializeObject(body),
+                    Encoding.UTF8,
+                    "application/json")
+            };
+
+            var resp = await _http.SendAsync(req);
+            resp.EnsureSuccessStatusCode();
+
+            var json = await resp.Content.ReadAsStringAsync();
+            dynamic parsed = JsonConvert.DeserializeObject(json);
+            string content = ((string)parsed.choices[0].message.content ?? "")
+                             .Trim();
+
+            return content;
+        }
+
+        public void Dispose()
+        {
+            _http?.Dispose();
+            _throttle?.Dispose();
+        }
+
 
         private class Part
         {

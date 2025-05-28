@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -32,19 +33,30 @@ namespace SimplifyQuoter.Views
             _sapFileId = sapFileId;
             _rows = rows;
 
-            // === Service Layer wiring ===
             _slClient = new ServiceLayerClient();
             var itemSvc = new ItemService(_slClient);
             var quoteSvc = new QuotationService(_slClient);
             _autoSvc = new AutomationService(_sapFileId, itemSvc, quoteSvc);
 
-            // === Populate Item Master Data grid ===
+            // Defer grid‐population until after window is loaded
+            Loaded += ProcessWindow_Loaded;
+        }
+
+        private async void ProcessWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // 1) For each RowView, await the AI‐enriched DTO
+            var dtos = await Task.WhenAll(
+                _rows.Select(rv => Transformer.ToItemDtoAsync(rv)));
+
+            // 2) Build ViewModels with the real ItemDto
             var imdList = new ObservableCollection<ImdRowViewModel>(
-                _rows.Select((rv, idx) => new ImdRowViewModel(rv, idx + 1))
+                dtos.Select((dto, idx) =>
+                    new ImdRowViewModel(_rows[idx].RowId, idx + 1, dto))
             );
+
             ImdGrid.ItemsSource = imdList;
 
-            // === Populate Sales Quotation grid (unchanged) ===
+            // Sales‐quote grid stays synchronous
             var sqList = new ObservableCollection<SqRow>(
                 _rows.Select((rv, idx) => new SqRow
                 {
@@ -53,11 +65,12 @@ namespace SimplifyQuoter.Views
                     ItemNo = rv.Cells.Length > 2 ? rv.Cells[2] : string.Empty,
                     Quantity = rv.Cells.Length > 3 ? rv.Cells[3] : string.Empty,
                     FreeText = Transformer.ConvertDurationToFreeText(
-                                   rv.Cells.Length > 10 ? rv.Cells[10] : string.Empty)
+                                  rv.Cells.Length > 10 ? rv.Cells[10] : string.Empty)
                 })
             );
             SqGrid.ItemsSource = sqList;
         }
+
 
         // Legacy overload (if needed)
         public ProcessWindow(List<RowView> rows)
@@ -71,6 +84,13 @@ namespace SimplifyQuoter.Views
             {
                 if (!await EnsureLoggedInAsync())
                     return;
+                // <<< Insert this diagnostic check here >>>
+                var resp = await _slClient.HttpClient
+    .GetAsync("BusinessPartners('VL000442')?$select=CardCode,CardName,CardType");
+                resp.EnsureSuccessStatusCode();
+                var json = await resp.Content.ReadAsStringAsync();
+                Debug.WriteLine("BP VL000442 details:\n" + json);
+                // or pop it into a MessageBox so you can eyeball it:
 
                 await _autoSvc.RunItemMasterDataAsync(_rows);
                 await _slClient.LogoutAsync();
@@ -152,12 +172,13 @@ namespace SimplifyQuoter.Views
             public int Sequence { get; }
             public ItemDto Dto { get; }
 
-            public ImdRowViewModel(RowView rv, int sequence)
+            public ImdRowViewModel(Guid rowId, int seq, ItemDto dto)
             {
-                RowId = rv.RowId;
-                Sequence = sequence;
-                Dto = Transformer.ToItemDto(rv);
+                RowId = rowId;
+                Sequence = seq;
+                Dto = dto;
             }
+
 
             public string ItemNo => Dto.ItemCode;
             public string Description => Dto.ItemName;

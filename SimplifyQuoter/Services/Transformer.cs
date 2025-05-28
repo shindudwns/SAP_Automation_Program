@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SimplifyQuoter.Models;
 using SimplifyQuoter.Services.ServiceLayer.Dtos;
+using SimplifyQuoter.Services;
 
 namespace SimplifyQuoter.Services
 {
@@ -134,25 +135,36 @@ namespace SimplifyQuoter.Services
         /// <summary>
         /// Map a RowView into the minimal ItemDto
         /// </summary>
-        public static ItemDto ToItemDto(RowView rv)
+        public static async Task<ItemDto> ToItemDtoAsync(RowView rv)
         {
-            var part = rv.Cells.Length > 2
-                       ? rv.Cells[2]?.Trim()
-                       : string.Empty;
+            var part = rv.Cells.Length > 2 ? rv.Cells[2]?.Trim() : string.Empty;
+            var brand = rv.Cells.Length > 1 ? rv.Cells[1]?.Trim() : string.Empty;
 
-            return new ItemDto
+            using (var ai = new AiEnrichmentService())
             {
-                ItemCode = part,
-                ItemName = "TEST22222" /* TODO: call GetDescriptionAsync(part) and await */,
-                FrgnName = "H-"+part,
-                ItmsGrpCod = 100 /* TODO: call GetItemGroupAsync(part, brand) */,
-                //CardCode = "VL000442",
-                //BuyUnitMsr = "EACH",
-                //SalUnitMsr = "EACH",
-                //InvntryUom = "EACH"
-            };
+                // 1) Get a concise summary
+                var name = await ai.GeneratePartSummaryAsync(part);
 
+                // 2) Determine the SL group code
+                var groupCode = await ai.DetermineItemGroupCodeAsync(part, brand);
+
+                // 3) Return the fully‐enriched DTO
+                return new ItemDto
+                {
+                    ItemCode = part,
+                    ItemName = name,
+                    FrgnName = "H-" + part,
+                    ItmsGrpCod = groupCode,
+                    CardCode = "VL000442",
+                    CardType = "cSupplier",
+                    BuyUnitMsr = "EACH",
+                    SalUnitMsr = "EACH",
+                    InvntryUoM = "EACH"
+                };
+            }
         }
+
+
 
         /// <summary>
         /// Map a RowView into a single‐line QuotationDto

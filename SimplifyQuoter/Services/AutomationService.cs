@@ -44,7 +44,7 @@ namespace SimplifyQuoter.Services
             foreach (var rv in list)
             {
                 // call SL
-                var dto = Transformer.ToItemDto(rv);
+                var dto = await Transformer.ToItemDtoAsync(rv);
                 await _itemService.CreateOrUpdateAsync(dto);
 
                 // mark processed and bump counters

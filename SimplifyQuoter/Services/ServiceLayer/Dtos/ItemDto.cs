@@ -16,9 +16,12 @@ namespace SimplifyQuoter.Services.ServiceLayer.Dtos
 
         public string FirmCode { get; set; }
 
-        // If you don’t have a preferred vendor, we’ll omit this field below
         [JsonProperty("CardCode", NullValueHandling = NullValueHandling.Ignore)]
         public string CardCode { get; set; }
+
+        [JsonProperty("CardType", NullValueHandling = NullValueHandling.Ignore)]
+        public string CardType { get; set; }
+
 
         [JsonProperty("PurchasingUoM")]
         public string BuyUnitMsr { get; set; }
