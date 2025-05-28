@@ -2,6 +2,7 @@
 using System;
 using System.Configuration;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -11,11 +12,13 @@ using Newtonsoft.Json;
 
 namespace SimplifyQuoter.Services.ServiceLayer
 {
-    /// <summary>
-    /// Implements Login/Logout per SAP SL docs:
-    /// POST /b1s/v1/Login → gets B1SESSION & ROUTEID;
-    /// POST /b1s/v1/Logout → ends session.
-    /// </summary>
+    // DTO to deserialize the login JSON
+    class LoginResponseDto
+    {
+        [JsonProperty("SessionId")]
+        public string SessionId { get; set; }
+    }
+
     public class ServiceLayerClient : IServiceLayerClient
     {
         private CookieContainer _cookies = new CookieContainer();
@@ -23,6 +26,7 @@ namespace SimplifyQuoter.Services.ServiceLayer
 
         public bool IsLoggedIn { get; private set; }
         public HttpClient HttpClient => _http;
+        public CookieContainer Cookies => _cookies;
 
         public ServiceLayerClient()
         {
@@ -30,7 +34,6 @@ namespace SimplifyQuoter.Services.ServiceLayer
                           ?? throw new InvalidOperationException(
                               "Configure <add key=\"ServiceLayer:Url\" /> in App.config");
 
-            // Allow any SSL cert (for self-signed)—remove this in production!
             var handler = new HttpClientHandler
             {
                 CookieContainer = _cookies,
@@ -44,8 +47,9 @@ namespace SimplifyQuoter.Services.ServiceLayer
             {
                 BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/b1s/v1/")
             };
-            _http.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/json"));
+
+            // Always disable Expect-Continue
+            _http.DefaultRequestHeaders.ExpectContinue = false;
         }
 
         public async Task LoginAsync(string companyDb, string user, string pass)
@@ -58,39 +62,55 @@ namespace SimplifyQuoter.Services.ServiceLayer
             };
             var json = JsonConvert.SerializeObject(payload);
 
+            HttpResponseMessage resp;
             using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
             {
-                HttpResponseMessage resp;
                 try
                 {
                     resp = await _http.PostAsync("Login", content);
                 }
                 catch (Exception ex)
                 {
-                    // Network-level failure
                     Debug.WriteLine($"[SL Login] HTTP error: {ex}");
                     throw new InvalidOperationException(
                         $"SL Login HTTP error: {ex.Message}", ex);
                 }
-
-                // Always capture and log the response body
-                var body = await resp.Content.ReadAsStringAsync();
-
-                Debug.WriteLine("=== SL Login Response ===");
-                Debug.WriteLine($"URL:    {_http.BaseAddress}Login");
-                Debug.WriteLine($"Status: {(int)resp.StatusCode} {resp.ReasonPhrase}");
-                Debug.WriteLine("Body:");
-                Debug.WriteLine(body);
-                Debug.WriteLine("=========================");
-
-                if (!resp.IsSuccessStatusCode)
-                {
-                    throw new InvalidOperationException(
-                        $"SL Login failed {(int)resp.StatusCode} {resp.ReasonPhrase}");
-                }
-
-                IsLoggedIn = true;
             }
+
+            var body = await resp.Content.ReadAsStringAsync();
+            Debug.WriteLine("=== SL Login Response ===");
+            Debug.WriteLine($"URL:    {_http.BaseAddress}Login");
+            Debug.WriteLine($"Status: {(int)resp.StatusCode} {resp.ReasonPhrase}");
+            Debug.WriteLine("Body:");
+            Debug.WriteLine(body);
+
+            if (!resp.IsSuccessStatusCode)
+                throw new InvalidOperationException(
+                    $"SL Login failed {(int)resp.StatusCode} {resp.ReasonPhrase}");
+
+            // 1) Parse the JSON to get the SessionId
+            var loginDto = JsonConvert.DeserializeObject<LoginResponseDto>(body);
+
+            // 2) Manually add the B1SESSION cookie
+            var authorityUri = new Uri(_http.BaseAddress.GetLeftPart(UriPartial.Authority));
+            _cookies.Add(authorityUri,
+                         new Cookie("B1SESSION", loginDto.SessionId));
+
+            Debug.WriteLine($"[SL Login] Manually added B1SESSION={loginDto.SessionId}");
+
+            // 3) Optionally log whatever ROUTEID the container did already pick up
+            var routeCookie = _cookies.GetCookies(authorityUri)["ROUTEID"]?.Value;
+            Debug.WriteLine($"[SL Login] ROUTEID from container: {routeCookie}");
+
+            // 4) (Optional) stomp it into the header so you’re 100% sure
+            _http.DefaultRequestHeaders.Remove("Cookie");
+            _http.DefaultRequestHeaders.Add("Cookie",
+                $"B1SESSION={loginDto.SessionId}; ROUTEID={routeCookie}");
+
+            Debug.WriteLine($"[SL Login] Final Cookie header: " +
+                            _http.DefaultRequestHeaders.GetValues("Cookie").Single());
+
+            IsLoggedIn = true;
         }
 
         public async Task LogoutAsync()
@@ -109,18 +129,10 @@ namespace SimplifyQuoter.Services.ServiceLayer
                     $"SL Logout HTTP error: {ex.Message}", ex);
             }
 
-            // Log response for debugging
-            var body = await resp.Content.ReadAsStringAsync();
-            Debug.WriteLine("=== SL Logout Response ===");
-            Debug.WriteLine($"URL:    {_http.BaseAddress}Logout");
-            Debug.WriteLine($"Status: {(int)resp.StatusCode} {resp.ReasonPhrase}");
-            Debug.WriteLine("Body:");
-            Debug.WriteLine(body);
-            Debug.WriteLine("==========================");
-
+            // Clear out everything
             resp.EnsureSuccessStatusCode();
             IsLoggedIn = false;
-            _cookies = new CookieContainer(); // clear session
+            _cookies = new CookieContainer();
         }
     }
 }

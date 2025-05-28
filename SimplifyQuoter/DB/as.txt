@@ -1,0 +1,51 @@
+You are a professional software system architect. Your task is to design a complete, production-ready architecture for the following system:
+
+**System Name / Description:**  
+Vugle is an AI-integrated application designed to provide personalized financial assistance and healthcare benefit support to active duty U.S. military personnel and veterans. By leveraging AI technology, Vugle educates veterans on their entitlements, simplifies the benefits application process, and expedites claim submissions, ensuring veterans receive the financial and health benefits they deserve.
+
+**Requirements:**  
+- Functional requirements (1. VA.gov OAuth Login & APIs 2. DD214 pdf parsing (ocr) 3. AI Analysis on user's input about their medical condition to determine which disability claim type is most suitable to them. )  
+- Check this link to learn more about this project. https://junhyungpark.com/hanwha
+---
+
+Please produce a response structured into these sections:
+
+1. **High-Level Overview**  
+   - One-paragraph summary  
+   - Key design goals
+
+2. **Component Diagram & Responsibilities**  
+   - List each major service/component  
+   - Describe its responsibility and interactions
+
+3. **Data Model & Storage**  
+   - Core entities and their relationships  
+   - Chosen storage technologies and justification
+
+4. **APIs & Data Flows**  
+   - Public/internal APIs with endpoints, inputs/outputs  
+   - Sequence of data flow for a primary user journey
+
+5. **Edge Cases & Failure Modes**  
+   - Identify all critical edge cases (e.g. partial writes, network failures, stale cache)  
+   - Describe how each is detected and mitigated
+
+6. **Scalability & Reliability**  
+   - Strategies for horizontal/vertical scaling  
+   - Caching, load balancing, auto-scaling, failover plans
+
+7. **Security & Compliance**  
+   - Authentication/authorization approach  
+   - Data encryption, secret management, audit logging
+
+8. **Monitoring & Observability**  
+   - Key metrics, logging, tracing strategy  
+   - Alerting thresholds
+
+9. **Trade-offs & Alternatives**  
+   - Briefly note any design trade-offs considered  
+   - Alternative technologies or patterns
+
+---
+
+Be concise and use bullet points or clear numbered lists. Wherever possible, call out concrete examples or diagrams (ASCII art is fine). Ensure every component is justified, and no edge case is overlooked.
