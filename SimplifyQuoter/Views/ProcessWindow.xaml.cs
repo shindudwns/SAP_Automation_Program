@@ -162,11 +162,13 @@ namespace SimplifyQuoter.Views
             public string ItemNo => Dto.ItemCode;
             public string Description => Dto.ItemName;
             public string PartNumber => Dto.FrgnName;
-            public string ItemGroup => Dto.ItmsGrpCod;
-            public string PreferredVendor => Dto.CardCode;
-            public string PurchasingUoM => Dto.BuyUnitMsr;
-            public string SalesUoM => Dto.SalUnitMsr;
-            public string InventoryUoM => Dto.InvntryUom;
+
+            // TODO: Check if ItemGroup is INT or STRING
+            public int ItemGroup => Dto.ItmsGrpCod;
+            public string PreferredVendor => Dto.CardCode ?? string.Empty;
+            public string PurchasingUoM => Dto.BuyUnitMsr ?? string.Empty;
+            public string SalesUoM => Dto.SalUnitMsr ?? string.Empty;
+            public string InventoryUoM => Dto.InvntryUoM;
         }
 
         // ----- DTOs for SQ grid binding (unchanged) -----

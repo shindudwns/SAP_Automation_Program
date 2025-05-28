@@ -23,8 +23,12 @@ namespace SimplifyQuoter.Services.ServiceLayer
 
         public async Task CreateOrUpdateAsync(ItemDto dto)
         {
-            // 1) Serialize and log the outgoing JSON
-            var json = JsonConvert.SerializeObject(dto);
+            // 1) Serialize (Pascal-case) and log the outgoing JSON, ignoring nulls
+            var settings = new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            };
+            var json = JsonConvert.SerializeObject(dto, settings);
             Debug.WriteLine("📤 SL CreateItem payload:");
             Debug.WriteLine(json);
 

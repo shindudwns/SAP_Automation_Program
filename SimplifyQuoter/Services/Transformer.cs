@@ -143,9 +143,9 @@ namespace SimplifyQuoter.Services
             return new ItemDto
             {
                 ItemCode = part,
-                ItemName = "TEST" /* TODO: call GetDescriptionAsync(part) and await */,
+                ItemName = "TEST22222" /* TODO: call GetDescriptionAsync(part) and await */,
                 FrgnName = "H-"+part,
-                ItmsGrpCod = "Items" /* TODO: call GetItemGroupAsync(part, brand) */,
+                ItmsGrpCod = 100 /* TODO: call GetItemGroupAsync(part, brand) */,
                 //CardCode = "VL000442",
                 //BuyUnitMsr = "EACH",
                 //SalUnitMsr = "EACH",
