@@ -16,21 +16,21 @@ namespace SimplifyQuoter.Services.ServiceLayer.Dtos
 
         public string FirmCode { get; set; }
 
-        [JsonProperty("CardCode", NullValueHandling = NullValueHandling.Ignore)]
-        public string CardCode { get; set; }
+        [JsonProperty("BPCode", NullValueHandling = NullValueHandling.Ignore)]
+        public string BPCode { get; set; }
 
         [JsonProperty("CardType", NullValueHandling = NullValueHandling.Ignore)]
         public string CardType { get; set; }
 
 
-        [JsonProperty("PurchasingUoM")]
-        public string PurchasingUoM { get; set; }
+        [JsonProperty("PurchaseUnit")]
+        public string PurchaseUnit { get; set; }
 
-        [JsonProperty("SalesUoM")]
-        public string SalesUoM { get; set; }
+        [JsonProperty("SalesUnit")]
+        public string SalesUnit { get; set; }
 
-        [JsonProperty("InventoryUoM", NullValueHandling = NullValueHandling.Ignore)]
-        public string InventoryUoM { get; set; }
+        [JsonProperty("InventoryUOM")]
+        public string InventoryUOM { get; set; }
     }
 
 }

@@ -155,11 +155,11 @@ namespace SimplifyQuoter.Services
                     ItemName = name,
                     FrgnName = "H-" + part,
                     ItmsGrpCod = groupCode,
-                    CardCode = "VL000442",
+                    BPCode = "VL000442",
                     CardType = "cSupplier",
-                    PurchasingUoM = "EACH",
-                    SalesUoM = "EACH",
-                    InventoryUoM = "EACH",
+                    PurchaseUnit = "EACH",
+                    SalesUnit = "EACH",
+                    InventoryUOM = "EACH",
                 };
             }
         }

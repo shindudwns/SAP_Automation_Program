@@ -27,7 +27,7 @@ namespace SimplifyQuoter.Services.ServiceLayer
         public async Task CreateOrUpdateAsync(ItemDto dto)
         {
             // 1) Create the header
-            var headerPayload = new
+            var payload = new
             {
                 ItemCode = dto.ItemCode,
                 ItemName = dto.ItemName,
@@ -35,14 +35,28 @@ namespace SimplifyQuoter.Services.ServiceLayer
                 ItemsGroupCode = dto.ItmsGrpCod,
                 PurchaseItem = "tYES",
                 SalesItem = "tYES",
-                InventoryItem = "tYES"
+                InventoryItem = "tYES",
+                // — your UoM settings —
+                PurchaseUnit = dto.PurchaseUnit,
+                SalesUnit = dto.SalesUnit,
+                InventoryUOM = dto.InventoryUOM,
+                // — your preferred vendor —
+                ItemPreferredVendors = new[]
+                {
+                    new
+                    {
+                      BPCode = dto.BPCode,      // <-- use this name
+                      //CardType = dto.CardType       // <-- optional, SL will ignore if null
+                    }
+                }
+
             };
-            var jsonHeader = JsonConvert.SerializeObject(
-                headerPayload,
+            var json = JsonConvert.SerializeObject(
+                payload,
                 new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
             );
             Debug.WriteLine("📤 SL CreateItem header payload:");
-            Debug.WriteLine(jsonHeader);
+            Debug.WriteLine(json);
 
 
             // make sure our cookies are applied (same snippet you've been using)
@@ -69,57 +83,18 @@ namespace SimplifyQuoter.Services.ServiceLayer
                 }
             }
 
-            using (var content = new StringContent(jsonHeader, Encoding.UTF8, "application/json"))
+            using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
             {
-                var resp = await _client.HttpClient.PostAsync("Items", content).ConfigureAwait(false);
+                var resp = await _client.HttpClient
+                                         .PostAsync("Items", content)
+                                         .ConfigureAwait(false);
                 var body = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
-                Debug.WriteLine($"📥 SL CreateItem header response: {(int)resp.StatusCode} {resp.ReasonPhrase}");
+                Debug.WriteLine($"📥 SL CreateItem response: {(int)resp.StatusCode} {resp.ReasonPhrase}");
                 Debug.WriteLine(body);
                 resp.EnsureSuccessStatusCode();
             }
 
-            // 2) PATCH in both child collections in one go
-            // Build one payload that includes both arrays
-            var patchPayload = new
-            {
-                ItemPreferredVendors = string.IsNullOrEmpty(dto.CardCode)
-            ? null
-            : new[] {
-                new {
-                    PreferredVendor = dto.CardCode,   // ← use this field name
-                    DefaultVendor   = "tYES"
-                }
-              },
 
-                ItemUnitOfMeasurementCollection = new[] {
-            new { UoMEntry   = dto.PurchasingUoM, DefaultUoM = "tYES" },
-            new { UoMEntry   = dto.SalesUoM,      DefaultUoM = "tYES" },
-            new { UoMEntry   = dto.InventoryUoM,    DefaultUoM = "tYES" }
-        }
-            };
-
-            var jsonPatch = JsonConvert.SerializeObject(
-                patchPayload,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
-            );
-            Debug.WriteLine("📤 SL PATCH Item children payload:");
-            Debug.WriteLine(jsonPatch);
-
-            var req = new HttpRequestMessage(
-                new HttpMethod("PATCH"),
-                $"Items('{dto.ItemCode}')"
-            )
-            {
-                Content = new StringContent(jsonPatch, Encoding.UTF8, "application/json")
-            };
-
-            using (var resp = await _client.HttpClient.SendAsync(req).ConfigureAwait(false))
-            {
-                var body = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
-                Debug.WriteLine($"📥 SL PATCH Item children response: {(int)resp.StatusCode} {resp.ReasonPhrase}");
-                Debug.WriteLine(body);
-                resp.EnsureSuccessStatusCode();
-            }
         }
 
     }
