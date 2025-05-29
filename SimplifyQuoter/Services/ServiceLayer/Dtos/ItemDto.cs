@@ -33,6 +33,13 @@ namespace SimplifyQuoter.Services.ServiceLayer.Dtos
 
         [JsonProperty("InventoryUOM")]
         public string InventoryUOM { get; set; }
+
+        [JsonProperty("U_PurchasingPrice")]
+        public double U_PurchasingPrice { get; set; }
+
+        [JsonProperty("U_SalesPrice")]
+        public double U_SalesPrice { get; set; }
+
     }
 
 }

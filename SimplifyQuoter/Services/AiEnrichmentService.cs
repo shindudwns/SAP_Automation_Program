@@ -319,8 +319,12 @@ namespace SimplifyQuoter.Services
                 return string.Empty;
 
             // Prompt for concise summary
-            var prompt = $"Provide a very concise (≤20 words) summary of part number \"{code}\" " +
-                         "including its core details (e.g., size, function).";
+            var prompt = $@"
+                Generate a concise product name and its key specifications for the part number ""{code}"".  
+                • Only output the product's usage & specs, such as weight, length, volume, separated by commas.  
+                • Do not add any name of product, surrounding sentences, adjectives or explanations.  
+                • Use ALL CAPITAL LETTERS.
+                • EXAMPLE: SLICER PLUS CUTTING WHEEL 6"" X .045"" X 7/8"".";
 
             return await SendWithRetryAsync(prompt);
         }

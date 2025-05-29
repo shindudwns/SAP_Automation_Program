@@ -196,6 +196,8 @@ namespace SimplifyQuoter.Views
             public string PurchaseUnit => Dto.PurchaseUnit ?? string.Empty;
             public string SalesUnit => Dto.SalesUnit ?? string.Empty;
             public string InventoryUOM => Dto.InventoryUOM ?? string.Empty;
+            public double U_PurchasingPrice => Dto.U_PurchasingPrice;
+            public double U_SalesPrice => Dto.U_SalesPrice;
         }
 
         // ----- DTOs for SQ grid binding (unchanged) -----

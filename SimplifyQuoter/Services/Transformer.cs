@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using SimplifyQuoter.Models;
 using SimplifyQuoter.Services.ServiceLayer.Dtos;
 using SimplifyQuoter.Services;
+using Newtonsoft.Json.Linq;
+using System.Globalization;
 
 namespace SimplifyQuoter.Services
 {
@@ -139,11 +141,37 @@ namespace SimplifyQuoter.Services
         {
             var part = rv.Cells.Length > 2 ? rv.Cells[2]?.Trim() : string.Empty;
             var brand = rv.Cells.Length > 1 ? rv.Cells[1]?.Trim() : string.Empty;
+            var price = rv.Cells.Length > 9 ? rv.Cells[9]?.Trim() : null;
+            var weight = rv.Cells.Length > 11 ? rv.Cells[11]?.Trim() : null;
+
+            Debug.WriteLine($"🔍 Raw purchase‐price cell: '{price}'");
+
+            // 2. Clean out any currency symbols or commas
+            if (!string.IsNullOrEmpty(price))
+                price = price.Replace("$", "").Replace(",", "");
+
+            // 3. Parse with invariant culture
+            double purchasePrice = 0;
+            if (!string.IsNullOrEmpty(price)
+                && double.TryParse(price,
+                                   NumberStyles.Any,
+                                   CultureInfo.InvariantCulture,
+                                   out var parsed))
+            {
+                purchasePrice = parsed;
+            }
+            else
+            {
+                Debug.WriteLine("⚠️ Failed to parse purchase price, defaulting to 0");
+            }
+
+            // 4. Compute sales at +20%
+            double salesPrice = Math.Round(purchasePrice / 0.8, 4);
 
             using (var ai = new AiEnrichmentService())
             {
                 // 1) Get a concise summary
-                var name = await ai.GeneratePartSummaryAsync(part);
+                var description = await ai.GeneratePartSummaryAsync(part);
 
                 // 2) Determine the SL group code
                 var groupCode = await ai.DetermineItemGroupCodeAsync(part, brand);
@@ -151,9 +179,9 @@ namespace SimplifyQuoter.Services
                 // 3) Return the fully‐enriched DTO
                 return new ItemDto
                 {
-                    ItemCode = part,
-                    ItemName = name,
-                    FrgnName = "H-" + part,
+                    ItemCode = "H-" + part,
+                    ItemName = brand + ", " + part + ", " + description + ", " + weight +"KG",
+                    FrgnName = part,
                     ItmsGrpCod = groupCode,
                     BPCode = "VL000442",
                     Mainsupplier = "VL000442",
@@ -161,6 +189,8 @@ namespace SimplifyQuoter.Services
                     PurchaseUnit = "EACH",
                     SalesUnit = "EACH",
                     InventoryUOM = "EACH",
+                    U_PurchasingPrice = purchasePrice,
+                    U_SalesPrice = salesPrice 
                 };
             }
         }

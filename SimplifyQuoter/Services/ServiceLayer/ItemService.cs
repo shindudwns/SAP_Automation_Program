@@ -49,7 +49,32 @@ namespace SimplifyQuoter.Services.ServiceLayer
                       BPCode = dto.BPCode,      // <-- use this name
                       //CardType = dto.CardType       // <-- optional, SL will ignore if null
                     }
+                },
+
+
+                // prices
+                U_PurchasingPrice = dto.U_PurchasingPrice,
+                U_SalesPrice = dto.U_SalesPrice,
+                ItemPrices = new[]
+                {
+                    new
+                    {
+                        PriceList     = 11,
+                        Price         = dto.U_PurchasingPrice,  // from col J
+                        BasePriceList = 11,
+                        Factor        = 1.0,
+                        UoMPrices     = new object[0]
+                    },
+                    new
+                    {
+                        PriceList     = 12,
+                        Price         = dto.U_SalesPrice,       // +20% margin
+                        BasePriceList = 12,
+                        Factor        = 1.0,
+                        UoMPrices     = new object[0]
+                    }
                 }
+    
 
             };
             var json = JsonConvert.SerializeObject(
