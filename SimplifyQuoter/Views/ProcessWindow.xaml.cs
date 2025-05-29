@@ -192,6 +192,7 @@ namespace SimplifyQuoter.Views
             // TODO: Check if ItemGroup is INT or STRING
             public int ItemGroup => Dto.ItmsGrpCod;
             public string PreferredVendor => Dto.BPCode ?? string.Empty;
+            public string Mainsupplier => Dto.Mainsupplier ?? string.Empty;
             public string PurchaseUnit => Dto.PurchaseUnit ?? string.Empty;
             public string SalesUnit => Dto.SalesUnit ?? string.Empty;
             public string InventoryUOM => Dto.InventoryUOM ?? string.Empty;

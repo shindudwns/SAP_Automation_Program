@@ -41,6 +41,7 @@ namespace SimplifyQuoter.Services.ServiceLayer
                 SalesUnit = dto.SalesUnit,
                 InventoryUOM = dto.InventoryUOM,
                 // — your preferred vendor —
+                Mainsupplier = dto.Mainsupplier,
                 ItemPreferredVendors = new[]
                 {
                     new

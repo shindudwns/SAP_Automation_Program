@@ -22,6 +22,8 @@ namespace SimplifyQuoter.Services.ServiceLayer.Dtos
         [JsonProperty("CardType", NullValueHandling = NullValueHandling.Ignore)]
         public string CardType { get; set; }
 
+        [JsonProperty("Mainsupplier", NullValueHandling = NullValueHandling.Ignore)]
+        public string Mainsupplier { get; set; }
 
         [JsonProperty("PurchaseUnit")]
         public string PurchaseUnit { get; set; }

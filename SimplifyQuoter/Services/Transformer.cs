@@ -156,6 +156,7 @@ namespace SimplifyQuoter.Services
                     FrgnName = "H-" + part,
                     ItmsGrpCod = groupCode,
                     BPCode = "VL000442",
+                    Mainsupplier = "VL000442",
                     CardType = "cSupplier",
                     PurchaseUnit = "EACH",
                     SalesUnit = "EACH",
