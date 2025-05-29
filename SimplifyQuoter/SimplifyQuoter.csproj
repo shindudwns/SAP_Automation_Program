@@ -128,50 +128,50 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Converters\ValueToWidthConverter.cs" />
-    <Compile Include="Models\RowView.cs" />
-    <Compile Include="Services\AiEnrichmentService.cs" />
-    <Compile Include="Services\AutomationService.cs" />
-    <Compile Include="Services\DatabaseService.cs" />
-    <Compile Include="Services\DocumentGenerator.cs" />
-    <Compile Include="Services\ExcelService.cs" />
-    <Compile Include="Services\ImportTxtService.cs" />
-    <Compile Include="Services\LicenseService.cs" />
-    <Compile Include="Services\ServiceLayer\Dtos\ItemDto.cs" />
-    <Compile Include="Services\ServiceLayer\Dtos\QuotationDto.cs" />
-    <Compile Include="Services\ServiceLayer\IServiceLayerClient.cs" />
-    <Compile Include="Services\ServiceLayer\ItemService.cs" />
-    <Compile Include="Services\ServiceLayer\QuotationService.cs" />
-    <Compile Include="Services\ServiceLayer\ServiceLayerClient.cs" />
-    <Compile Include="Services\Transformer.cs" />
-    <Compile Include="Utilities\RelayCommand.cs" />
-    <Compile Include="Utilities\ViewModelBase.cs" />
-    <Compile Include="ViewModels\RowSelectionViewModel.cs" />
-    <Compile Include="Views\ImportWindow.xaml.cs">
+    <Compile Include="UI\Converters\ValueToWidthConverter.cs" />
+    <Compile Include="Domain\Models\RowView.cs" />
+    <Compile Include="Application\Services\AiEnrichmentService.cs" />
+    <Compile Include="Application\Services\AutomationService.cs" />
+    <Compile Include="Application\Services\DatabaseService.cs" />
+    <Compile Include="Application\Services\DocumentGenerator.cs" />
+    <Compile Include="Application\Services\ExcelService.cs" />
+    <Compile Include="Application\Services\ImportTxtService.cs" />
+    <Compile Include="Application\Services\LicenseService.cs" />
+    <Compile Include="Infrastructure\ServiceLayer\Dtos\ItemDto.cs" />
+    <Compile Include="Infrastructure\ServiceLayer\Dtos\QuotationDto.cs" />
+    <Compile Include="Infrastructure\ServiceLayer\Clients\IServiceLayerClient.cs" />
+    <Compile Include="Infrastructure\ServiceLayer\Services\ItemService.cs" />
+    <Compile Include="Infrastructure\ServiceLayer\Services\QuotationService.cs" />
+    <Compile Include="Infrastructure\ServiceLayer\Clients\ServiceLayerClient.cs" />
+    <Compile Include="Application\Services\Transformer.cs" />
+    <Compile Include="Common\Utilities\RelayCommand.cs" />
+    <Compile Include="Common\Utilities\ViewModelBase.cs" />
+    <Compile Include="UI\ViewModels\RowSelectionViewModel.cs" />
+    <Compile Include="UI\Views\ImportWindow.xaml.cs">
       <DependentUpon>ImportWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\LicenseOverlayControl.xaml.cs">
+    <Compile Include="UI\Views\LicenseOverlayControl.xaml.cs">
       <DependentUpon>LicenseOverlayControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\LoginWindow.xaml.cs">
+    <Compile Include="UI\Views\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\ProcessWindow.xaml.cs">
+    <Compile Include="UI\Views\ProcessWindow.xaml.cs">
       <DependentUpon>ProcessWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\ReviewWindow.xaml.cs">
+    <Compile Include="UI\Views\ReviewWindow.xaml.cs">
       <DependentUpon>ReviewWindow.xaml</DependentUpon>
     </Compile>
-    <Page Include="Views\ImportWindow.xaml">
+    <Page Include="UI\Views\ImportWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\LicenseOverlayControl.xaml">
+    <Page Include="UI\Views\LicenseOverlayControl.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\LoginWindow.xaml">
+    <Page Include="UI\Views\LoginWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\MainWindow.xaml">
+    <Page Include="UI\Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -179,14 +179,14 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Views\MainWindow.xaml.cs">
+    <Compile Include="UI\Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Views\ProcessWindow.xaml">
+    <Page Include="UI\Views\ProcessWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\ReviewWindow.xaml">
+    <Page Include="UI\Views\ReviewWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
@@ -225,8 +225,8 @@
     <Resource Include="Assets\inside_icon.png" />
     <Resource Include="Assets\process_icon.png" />
     <Resource Include="Assets\trash_can.png" />
-    <Content Include="DB\text-file-outline-variant-svgrepo-com.svg" />
-    <Resource Include="DB\ddl.txt" />
+    <Content Include="Infrastructure\DB\text-file-outline-variant-svgrepo-com.svg" />
+    <Resource Include="Infrastructure\DB\ddl.txt" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
