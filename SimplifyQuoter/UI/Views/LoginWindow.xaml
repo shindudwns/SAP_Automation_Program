@@ -1,4 +1,4 @@
-<!-- File: Views/LoginWindow.xaml -->
+﻿<!-- File: Views/LoginWindow.xaml -->
 <Window x:Class="SimplifyQuoter.Views.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,56 +6,102 @@
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen">
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="200"/>
-        </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Row="0" Grid.Column="0"
-                   VerticalAlignment="Center"
-                   Margin="0,0,8,0">CompanyDB:</TextBlock>
-        <TextBox x:Name="txtCompanyDb"
-                 Grid.Row="0" Grid.Column="1"
-                 MinWidth="150"
-                 Margin="0,4"/>
+    <!-- Top‐level padding around everything -->
+    <StackPanel Margin="20">
 
-        <TextBlock Grid.Row="1" Grid.Column="0"
-                   VerticalAlignment="Center"
-                   Margin="0,0,8,0">Username:</TextBlock>
-        <TextBox x:Name="txtUserName"
-                 Grid.Row="1" Grid.Column="1"
-                 Margin="0,4"/>
+        <!-- 1) Page Title -->
+        <TextBlock Text="Login"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Margin="0,0,0,20" />
 
-        <TextBlock Grid.Row="2" Grid.Column="0"
-                   VerticalAlignment="Center"
-                   Margin="0,0,8,0">Password:</TextBlock>
-        <PasswordBox x:Name="txtPassword"
-                     Grid.Row="2" Grid.Column="1"
-                     Margin="0,4"/>
+        <!-- 2) The four input fields in a 2‐column Grid -->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- CompanyDB -->
+                <RowDefinition Height="Auto"/>
+                <!-- User Name -->
+                <RowDefinition Height="Auto"/>
+                <!-- Password -->
+                <RowDefinition Height="Auto"/>
+                <!-- License Code -->
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="200" />
+            </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="3" Grid.ColumnSpan="2"
-            Orientation="Horizontal"
-            HorizontalAlignment="Right"
-            Margin="0,12,0,0">
-            <Button x:Name="BtnCancel"
-            Content="Cancel"
-            Width="75"
-            Margin="0,0,8,0"
-            IsCancel="True"
-            Click="BtnCancel_Click"/>
+            <!-- CompanyDB -->
+            <TextBlock Text="CompanyDB:"
+                       Grid.Row="0" Grid.Column="0"
+                       VerticalAlignment="Center"
+                       Margin="0,0,8,8" />
+            <TextBox x:Name="txtCompanyDb"
+                     Grid.Row="0" Grid.Column="1"
+                     Margin="0,0,0,8" />
+
+            <!-- User Name -->
+            <TextBlock Text="User Name:"
+                       Grid.Row="1" Grid.Column="0"
+                       VerticalAlignment="Center"
+                       Margin="0,0,8,8" />
+            <TextBox x:Name="txtUserName"
+                     Grid.Row="1" Grid.Column="1"
+                     Margin="0,0,0,8" />
+
+            <!-- Password -->
+            <TextBlock Text="Password:"
+                       Grid.Row="2" Grid.Column="0"
+                       VerticalAlignment="Center"
+                       Margin="0,0,8,8" />
+            <PasswordBox x:Name="txtPassword"
+                         Grid.Row="2" Grid.Column="1"
+                         Margin="0,0,0,8" />
+
+            <!-- License Code -->
+            <TextBlock Text="License Code:"
+                       Grid.Row="3" Grid.Column="0"
+                       VerticalAlignment="Center"
+                       Margin="0,0,8,0" />
+            <TextBox x:Name="txtLicenseCode"
+                     Grid.Row="3" Grid.Column="1" />
+        </Grid>
+
+        <!-- 3) License Agreement Expander -->
+        <Expander Header="License agreement"
+                  Margin="0,16,0,0"
+                  IsExpanded="False">
+            <Border BorderBrush="Gray"
+                    BorderThickness="1"
+                    Padding="8"
+                    Background="WhiteSmoke">
+                <ScrollViewer Height="100">
+                    <TextBlock TextWrapping="Wrap">
+                        <!-- Place your actual license text here -->
+                        Please read the following license agreement carefully. By checking “I agree,” you acknowledge that you have read and agree to all terms and conditions outlined in this agreement. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...
+                    </TextBlock>
+                </ScrollViewer>
+            </Border>
+        </Expander>
+
+        <!-- 4) “I agree” checkbox + Login button -->
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,16,0,0">
+            <CheckBox x:Name="chkAgree"
+                      Content="I agree"
+                      VerticalAlignment="Center" />
+
             <Button x:Name="BtnLogin"
-            Content="Login"
-            Width="75"
-            IsDefault="True"
-            Click="BtnLogin_Click"/>
+                    Content="Login"
+                    Width="80"
+                    Margin="16,0,0,0"
+                    IsDefault="True"
+                    Click="BtnLogin_Click"
+                    IsEnabled="{Binding ElementName=chkAgree, Path=IsChecked}" />
         </StackPanel>
 
-    </Grid>
+    </StackPanel>
 </Window>

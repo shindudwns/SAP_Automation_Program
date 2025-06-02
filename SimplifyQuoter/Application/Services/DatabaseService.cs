@@ -32,6 +32,91 @@ namespace SimplifyQuoter.Services
             get { return _conn; }
         }
 
+        /// <summary>
+        /// Checks if the given license code exists in the "license" table,
+        /// is marked active, and is currently within its valid date range.
+        /// </summary>
+        public bool IsLicenseCodeValid(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+                return false;
+
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+SELECT 1
+  FROM license
+ WHERE code = @code
+   AND is_active = TRUE
+   AND (valid_from <= NOW())
+   AND (
+         valid_until IS NULL 
+         OR valid_until >= NOW()
+       )
+ LIMIT 1;
+";
+                cmd.Parameters.AddWithValue("code", code.Trim());
+                var result = cmd.ExecuteScalar();
+                return (result != null);
+            }
+        }
+
+        /// <summary>
+        /// Inserts a new row into "acceptance_log", using the given licenseCode.
+        /// It first retrieves the matching company_name from the license table,
+        /// then writes:
+        ///   ip_address, accepted_at (NOW()), agreement_version, device_info,
+        ///   license_code, license_accept, company_name
+        /// </summary>
+        public void LogAcceptance(
+            string licenseCode,
+            bool licenseAccept,
+            string agreementVersion,
+            string deviceInfo,
+            string ipAddress)
+        {
+            // 1) Look up company_name from the license table
+            string companyName = string.Empty;
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+SELECT company_name
+  FROM license
+ WHERE code = @code;
+";
+                cmd.Parameters.AddWithValue("code", licenseCode.Trim());
+                var o = cmd.ExecuteScalar();
+                if (o != null && o != DBNull.Value)
+                    companyName = (string)o;
+            }
+
+            // 2) Insert into acceptance_log
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+INSERT INTO acceptance_log (
+    ip_address,
+    accepted_at,
+    agreement_version,
+    device_info,
+    license_code,
+    license_accept,
+    company_name
+) VALUES (
+    @ip, NOW(), @ver, @device, @code, @accept, @company
+);
+";
+                cmd.Parameters.AddWithValue("ip", (object)ipAddress ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("ver", agreementVersion ?? string.Empty);
+                cmd.Parameters.AddWithValue("device", (object)deviceInfo ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("code", licenseCode.Trim());
+                cmd.Parameters.AddWithValue("accept", licenseAccept);
+                cmd.Parameters.AddWithValue("company", companyName ?? string.Empty);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
         // ————— Existing methods —————
 
         public HashSet<string> GetKnownPartCodes(IEnumerable<string> codes)
