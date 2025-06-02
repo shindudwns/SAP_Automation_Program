@@ -5,103 +5,167 @@
         Title="Login"
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F5">
+    <Grid>
+        <!-- Centered white panel (“card”) -->
+        <Border Background="White"
+                CornerRadius="4"
+                Padding="0"
+                Width="664"
+                Height="422"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                SnapsToDevicePixels="True">
+            <!-- Optional drop shadow: uncomment if desired
+            <Border.Effect>
+                <DropShadowEffect Color="Black"
+                                  Direction="270"
+                                  ShadowDepth="5"
+                                  Opacity="0.3"
+                                  BlurRadius="8"/>
+            </Border.Effect>
+            -->
 
-    <!-- Top‐level padding around everything -->
-    <StackPanel Margin="20">
+            <!-- Canvas layout for absolute positioning: -->
+            <Canvas>
+                <!-- 1) Title at the top -->
+                <TextBlock
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Foreground="#333"
+                           Canvas.Left="50"
+                           Canvas.Top="35" Height="40" Width="216" HorizontalAlignment="Left" VerticalAlignment="Top"><Run Text="Welcome"/><Run Language="ko-kr" Text=", SAP"/><LineBreak/><Run Language="ko-kr"/></TextBlock>
 
-        <!-- 1) Page Title -->
-        <TextBlock Text="Login"
-                   FontSize="24"
-                   FontWeight="Bold"
-                   Margin="0,0,0,20" />
+                <!-- 2) CompanyDB Label and TextBox -->
+                <TextBlock Text="CompanyDB"
+                           FontWeight="SemiBold"
+                           Foreground="#555"
+                           Canvas.Left="217"
+                           Canvas.Top="79"/>
+                <ComboBox x:Name="txtCompanyDb"
+                          Width="250"
+                          Height="28"
+                          Padding="4"
+                          BorderBrush="#CCC"
+                          BorderThickness="1"
+                          Background="White"
+                          IsEditable="True" 
+                    Canvas.Left="215"
+                          Canvas.Top="100">
+                    <ComboBoxItem Content="SM_NEW_PROD"/>
+                    <ComboBoxItem Content="SM_AMERICA_TEST"/>
+                </ComboBox>
 
-        <!-- 2) The four input fields in a 2‐column Grid -->
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <!-- CompanyDB -->
-                <RowDefinition Height="Auto"/>
-                <!-- User Name -->
-                <RowDefinition Height="Auto"/>
-                <!-- Password -->
-                <RowDefinition Height="Auto"/>
-                <!-- License Code -->
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="200" />
-            </Grid.ColumnDefinitions>
+                <!-- 3) User Name Label and TextBox -->
+                <TextBlock Text="User Name"
+                           FontWeight="SemiBold"
+                           Foreground="#555"
+                           Canvas.Left="215"
+                           Canvas.Top="140" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                <TextBox x:Name="txtUserName"
+                         Height="28"
+                         Width="250"
+                         Padding="4"
+                         BorderBrush="#CCC"
+                         BorderThickness="1"
+                         Background="White"
+                         Canvas.Left="215"
+                         Canvas.Top="161" HorizontalAlignment="Center" VerticalAlignment="Top"/>
 
-            <!-- CompanyDB -->
-            <TextBlock Text="CompanyDB:"
-                       Grid.Row="0" Grid.Column="0"
-                       VerticalAlignment="Center"
-                       Margin="0,0,8,8" />
-            <TextBox x:Name="txtCompanyDb"
-                     Grid.Row="0" Grid.Column="1"
-                     Margin="0,0,0,8" />
+                <!-- 4) Password Label and PasswordBox -->
+                <TextBlock Text="Password"
+                           FontWeight="SemiBold"
+                           Foreground="#555"
+                           Canvas.Left="215"
+                           Canvas.Top="204" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                <PasswordBox x:Name="txtPassword"
+                             Height="28"
+                             Width="250"
+                             Padding="4"
+                             BorderBrush="#CCC"
+                             BorderThickness="1"
+                             Background="White"
+                             Canvas.Left="215"
+                             Canvas.Top="225" HorizontalAlignment="Left" VerticalAlignment="Center"/>
 
-            <!-- User Name -->
-            <TextBlock Text="User Name:"
-                       Grid.Row="1" Grid.Column="0"
-                       VerticalAlignment="Center"
-                       Margin="0,0,8,8" />
-            <TextBox x:Name="txtUserName"
-                     Grid.Row="1" Grid.Column="1"
-                     Margin="0,0,0,8" />
+                <!-- 5) License Code Label and TextBox -->
+                <TextBlock Text="License Code"
+                           FontWeight="SemiBold"
+                           Foreground="#555"
+                           Canvas.Left="215"
+                           Canvas.Top="274" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                <TextBox x:Name="txtLicenseCode"
+                         Height="28"
+                         Width="250"
+                         Padding="4"
+                         BorderBrush="#CCC"
+                         BorderThickness="1"
+                         Background="White"
+                         Canvas.Left="215"
+                         Canvas.Top="295" HorizontalAlignment="Left" VerticalAlignment="Center"/>
 
-            <!-- Password -->
-            <TextBlock Text="Password:"
-                       Grid.Row="2" Grid.Column="0"
-                       VerticalAlignment="Center"
-                       Margin="0,0,8,8" />
-            <PasswordBox x:Name="txtPassword"
-                         Grid.Row="2" Grid.Column="1"
-                         Margin="0,0,0,8" />
+                <!-- 6) Expander for License Agreement -->
+                <Expander Header="License agreement"
+                          FontWeight="Normal"
+                          Foreground="#333"
+                          Background="Transparent"
+                          Canvas.Left="215"
+                          Canvas.Top="340"
+                          Width="165"
+                          IsExpanded="False" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <Border BorderBrush="Gray"
+                            BorderThickness="1"
+                            Padding="8"
+                            Margin="0,4,0,0"
+                            Background="#FAFAFA">
+                        <ScrollViewer Height="100" Width="230">
+                            <TextBlock TextWrapping="Wrap"
+                                       Foreground="#444">
+                                <!-- Put your full license text here -->
+                                Please read the following license agreement carefully. By checking “I agree,” you acknowledge that you have read and agree to all terms and conditions outlined in this agreement. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...
+                            </TextBlock>
+                        </ScrollViewer>
+                    </Border>
+                </Expander>
 
-            <!-- License Code -->
-            <TextBlock Text="License Code:"
-                       Grid.Row="3" Grid.Column="0"
-                       VerticalAlignment="Center"
-                       Margin="0,0,8,0" />
-            <TextBox x:Name="txtLicenseCode"
-                     Grid.Row="3" Grid.Column="1" />
-        </Grid>
+                <!-- 7) Login Button (styled black/blue) -->
+                <Button x:Name="BtnLogin"
+                        Content="Login"
+                        Height="28"
+                        Width="80"
+                        Canvas.Left="385"
+                        Canvas.Top="340"
+                        Padding="4,0"
+                        IsDefault="True"
+                        Click="BtnLogin_Click"
+                        IsEnabled="{Binding ElementName=chkAgree, Path=IsChecked}" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <!-- Default = black (disabled) -->
+                            <Setter Property="Background" Value="Black"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="BorderBrush" Value="Black"/>
+                            <Setter Property="BorderThickness" Value="1"/>
+                            <Style.Triggers>
+                                <!-- When enabled, switch to blue -->
+                                <Trigger Property="IsEnabled" Value="True">
+                                    <Setter Property="Background" Value="#0078D7"/>
+                                    <Setter Property="BorderBrush" Value="#0078D7"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
 
-        <!-- 3) License Agreement Expander -->
-        <Expander Header="License agreement"
-                  Margin="0,16,0,0"
-                  IsExpanded="False">
-            <Border BorderBrush="Gray"
-                    BorderThickness="1"
-                    Padding="8"
-                    Background="WhiteSmoke">
-                <ScrollViewer Height="100">
-                    <TextBlock TextWrapping="Wrap">
-                        <!-- Place your actual license text here -->
-                        Please read the following license agreement carefully. By checking “I agree,” you acknowledge that you have read and agree to all terms and conditions outlined in this agreement. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...
-                    </TextBlock>
-                </ScrollViewer>
-            </Border>
-        </Expander>
-
-        <!-- 4) “I agree” checkbox + Login button -->
-        <StackPanel Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="0,16,0,0">
-            <CheckBox x:Name="chkAgree"
-                      Content="I agree"
-                      VerticalAlignment="Center" />
-
-            <Button x:Name="BtnLogin"
-                    Content="Login"
-                    Width="80"
-                    Margin="16,0,0,0"
-                    IsDefault="True"
-                    Click="BtnLogin_Click"
-                    IsEnabled="{Binding ElementName=chkAgree, Path=IsChecked}" />
-        </StackPanel>
-
-    </StackPanel>
+                <!-- 8) “I agree” Checkbox -->
+                <CheckBox x:Name="chkAgree"
+                          Content="I agree"
+                          Foreground="#333"
+                          Canvas.Left="397"
+                          Canvas.Top="373"/>
+            </Canvas>
+        </Border>
+    </Grid>
 </Window>
