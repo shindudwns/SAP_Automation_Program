@@ -38,7 +38,7 @@
                            Canvas.Top="35" Height="40" Width="216" HorizontalAlignment="Left" VerticalAlignment="Top"><Run Text="Welcome"/><Run Language="ko-kr" Text=", SAP"/><LineBreak/><Run Language="ko-kr"/></TextBlock>
 
                 <!-- 2) CompanyDB Label and TextBox -->
-                <TextBlock Text="CompanyDB"
+                <TextBlock Text="Server"
                            FontWeight="SemiBold"
                            Foreground="#555"
                            Canvas.Left="217"
@@ -58,7 +58,7 @@
                 </ComboBox>
 
                 <!-- 3) User Name Label and TextBox -->
-                <TextBlock Text="User Name"
+                <TextBlock Text="User ID"
                            FontWeight="SemiBold"
                            Foreground="#555"
                            Canvas.Left="215"
