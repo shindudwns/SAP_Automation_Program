@@ -153,6 +153,7 @@
     <Compile Include="UI\Views\LicenseOverlayControl.xaml.cs">
       <DependentUpon>LicenseOverlayControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\Views\LicenseWindow.xaml.cs" />
     <Compile Include="UI\Views\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
@@ -166,6 +167,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Views\LicenseOverlayControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Views\LicenseWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Views\LoginWindow.xaml">

@@ -13,12 +13,6 @@ namespace SimplifyQuoter.Views
     {
         public ServiceLayerClient SlClient { get; private set; }
 
-        // The XAML must define these named controls:
-        //   <TextBox x:Name="txtCompanyDb" …/>
-        //   <TextBox x:Name="txtUserName" …/>
-        //   <PasswordBox x:Name="txtPassword" …/>
-        //   <TextBox x:Name="txtLicenseCode" …/>
-
         public string CompanyDB => txtCompanyDb.Text.Trim();
         public string UserName => txtUserName.Text.Trim();
         public string Password => txtPassword.Password;
@@ -30,9 +24,20 @@ namespace SimplifyQuoter.Views
             SlClient = new ServiceLayerClient();
         }
 
+        private void BtnViewLicense_Click(object sender, RoutedEventArgs e)
+        {
+            // Create and show LicenseWindow modally
+            var licenseWindow = new LicenseWindow
+            {
+                Owner = this
+            };
+            licenseWindow.ShowDialog();
+            // When user closes it, execution returns here.
+        }
+
         private async void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            // 1) First, check license code in the database:
+            // 1) Check that LicenseCode is non‐empty
             if (string.IsNullOrWhiteSpace(LicenseCode))
             {
                 MessageBox.Show(
@@ -44,6 +49,7 @@ namespace SimplifyQuoter.Views
                 return;
             }
 
+            // 2) Validate the license code in the database
             bool isValidCode;
             using (var db = new DatabaseService())
             {
@@ -61,22 +67,17 @@ namespace SimplifyQuoter.Views
                 return;
             }
 
-            // 2) License is valid → proceed with Service Layer login
+            // 3) Attempt Service Layer login
             try
             {
                 await SlClient.LoginAsync(CompanyDB, UserName, Password);
 
-                // 3) On successful login, write acceptance_log row
+                // 4) On successful login, write to acceptance_log
                 using (var db = new DatabaseService())
                 {
-                    // Retrieve local IP address (or you can hard-code 127.0.0.1 if preferred)
                     string localIp = GetLocalIPAddress();
-
-                    // Get machine name as a proxy for device info
                     string deviceInfo = Environment.MachineName;
-
-                    // Example version – you can change or pull this from config
-                    string agreementVersion = "1.0";
+                    string agreementVersion = "1.0"; // Or pull from config
 
                     db.LogAcceptance(
                         licenseCode: LicenseCode,
@@ -87,7 +88,7 @@ namespace SimplifyQuoter.Views
                     );
                 }
 
-                // 4) Close dialog with success
+                // 5) Close the login dialog with success
                 DialogResult = true;
             }
             catch (Exception ex)
@@ -102,14 +103,6 @@ namespace SimplifyQuoter.Views
             }
         }
 
-        private void BtnCancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;  // Closes dialog and ShowDialog() returns false
-        }
-
-        /// <summary>
-        /// Get the first non‐loopback IPv4 address of this machine.
-        /// </summary>
         private static string GetLocalIPAddress()
         {
             try

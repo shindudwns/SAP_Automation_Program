@@ -31,13 +31,19 @@
             <Canvas>
                 <!-- 1) Title at the top -->
                 <TextBlock
-                           FontSize="22"
-                           FontWeight="Bold"
-                           Foreground="#333"
-                           Canvas.Left="50"
-                           Canvas.Top="35" Height="40" Width="216" HorizontalAlignment="Left" VerticalAlignment="Top"><Run Text="Welcome"/><Run Language="ko-kr" Text=", SAP"/><LineBreak/><Run Language="ko-kr"/></TextBlock>
+                    FontSize="22"
+                    FontWeight="Bold"
+                    Foreground="#333"
+                    Canvas.Left="50"
+                    Canvas.Top="35"
+                    Height="40"
+                    Width="216"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top">
+                    <Run Text="Welcome"/><Run Language="ko-kr" Text=", SAP"/><LineBreak/><Run Language="ko-kr"/>
+                </TextBlock>
 
-                <!-- 2) CompanyDB Label and TextBox -->
+                <!-- 2) CompanyDB Label and ComboBox -->
                 <TextBlock Text="Server"
                            FontWeight="SemiBold"
                            Foreground="#555"
@@ -50,8 +56,8 @@
                           BorderBrush="#CCC"
                           BorderThickness="1"
                           Background="White"
-                          IsEditable="True" 
-                    Canvas.Left="215"
+                          IsEditable="True"
+                          Canvas.Left="215"
                           Canvas.Top="100">
                     <ComboBoxItem Content="SM_NEW_PROD"/>
                     <ComboBoxItem Content="SM_AMERICA_TEST"/>
@@ -62,7 +68,9 @@
                            FontWeight="SemiBold"
                            Foreground="#555"
                            Canvas.Left="215"
-                           Canvas.Top="140" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                           Canvas.Top="140"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Top"/>
                 <TextBox x:Name="txtUserName"
                          Height="28"
                          Width="250"
@@ -71,14 +79,18 @@
                          BorderThickness="1"
                          Background="White"
                          Canvas.Left="215"
-                         Canvas.Top="161" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                         Canvas.Top="161"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Top"/>
 
                 <!-- 4) Password Label and PasswordBox -->
                 <TextBlock Text="Password"
                            FontWeight="SemiBold"
                            Foreground="#555"
                            Canvas.Left="215"
-                           Canvas.Top="204" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                           Canvas.Top="204"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Top"/>
                 <PasswordBox x:Name="txtPassword"
                              Height="28"
                              Width="250"
@@ -87,14 +99,18 @@
                              BorderThickness="1"
                              Background="White"
                              Canvas.Left="215"
-                             Canvas.Top="225" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                             Canvas.Top="225"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Center"/>
 
                 <!-- 5) License Code Label and TextBox -->
                 <TextBlock Text="License Code"
                            FontWeight="SemiBold"
                            Foreground="#555"
                            Canvas.Left="215"
-                           Canvas.Top="274" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                           Canvas.Top="274"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Top"/>
                 <TextBox x:Name="txtLicenseCode"
                          Height="28"
                          Width="250"
@@ -103,31 +119,23 @@
                          BorderThickness="1"
                          Background="White"
                          Canvas.Left="215"
-                         Canvas.Top="295" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                         Canvas.Top="295"
+                         HorizontalAlignment="Left"
+                         VerticalAlignment="Center"/>
 
-                <!-- 6) Expander for License Agreement -->
-                <Expander Header="License agreement"
-                          FontWeight="Normal"
-                          Foreground="#333"
-                          Background="Transparent"
-                          Canvas.Left="215"
-                          Canvas.Top="340"
-                          Width="165"
-                          IsExpanded="False" HorizontalAlignment="Left" VerticalAlignment="Center">
-                    <Border BorderBrush="Gray"
-                            BorderThickness="1"
-                            Padding="8"
-                            Margin="0,4,0,0"
-                            Background="#FAFAFA">
-                        <ScrollViewer Height="100" Width="230">
-                            <TextBlock TextWrapping="Wrap"
-                                       Foreground="#444">
-                                <!-- Put your full license text here -->
-                                Please read the following license agreement carefully. By checking “I agree,” you acknowledge that you have read and agree to all terms and conditions outlined in this agreement. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...
-                            </TextBlock>
-                        </ScrollViewer>
-                    </Border>
-                </Expander>
+                <!-- 6) Button to open License Agreement window -->
+                <Button x:Name="BtnViewLicense"
+                        Content="License agreement"
+                        FontWeight="Normal"
+                        Foreground="#333"
+                        Background="Transparent"
+                        BorderBrush="Transparent"
+                        Canvas.Left="215"
+                        Canvas.Top="340"
+                        Width="165"
+                        Height="28"
+                        Click="BtnViewLicense_Click"
+                        Cursor="Hand" />
 
                 <!-- 7) Login Button (styled black/blue) -->
                 <Button x:Name="BtnLogin"
@@ -139,7 +147,9 @@
                         Padding="4,0"
                         IsDefault="True"
                         Click="BtnLogin_Click"
-                        IsEnabled="{Binding ElementName=chkAgree, Path=IsChecked}" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        IsEnabled="{Binding ElementName=chkAgree, Path=IsChecked}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center">
                     <Button.Style>
                         <Style TargetType="Button">
                             <!-- Default = black (disabled) -->
@@ -148,7 +158,7 @@
                             <Setter Property="BorderBrush" Value="Black"/>
                             <Setter Property="BorderThickness" Value="1"/>
                             <Style.Triggers>
-                                <!-- When enabled, switch to blue -->
+                                <!-- When IsEnabled = true, switch to blue -->
                                 <Trigger Property="IsEnabled" Value="True">
                                     <Setter Property="Background" Value="#0078D7"/>
                                     <Setter Property="BorderBrush" Value="#0078D7"/>
