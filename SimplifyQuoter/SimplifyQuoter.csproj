@@ -153,7 +153,9 @@
     <Compile Include="UI\Views\LicenseOverlayControl.xaml.cs">
       <DependentUpon>LicenseOverlayControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\Views\LicenseWindow.xaml.cs" />
+    <Compile Include="UI\Views\LicenseWindow.xaml.cs">
+      <DependentUpon>LicenseWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\Views\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
