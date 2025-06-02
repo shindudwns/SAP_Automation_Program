@@ -129,7 +129,7 @@
                         FontWeight="Normal"
                         Foreground="#333"
                         Background="Transparent"
-                        BorderBrush="Transparent"
+                        BorderBrush="#CCC"
                         Canvas.Left="215"
                         Canvas.Top="340"
                         Width="165"
