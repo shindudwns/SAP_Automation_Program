@@ -3,7 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:SimplifyQuoter.Views"
         Title="Simplify Quoter"
-        Height="371" Width="658">
+        Height="371" Width="658"
+                Loaded="MainWindow_Loaded">
+
     <Window.Resources>
         <Style x:Key="IconButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -52,7 +54,5 @@
             </Button>
         </Canvas>
 
-        <!-- license pull-down overlay -->
-        <views:LicenseOverlayControl x:Name="LicenseOverlay"/>
     </Grid>
 </Window>

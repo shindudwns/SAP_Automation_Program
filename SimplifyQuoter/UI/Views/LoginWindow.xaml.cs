@@ -1,27 +1,46 @@
 ﻿// File: Views/LoginWindow.xaml.cs
 using System.Windows;
+using SimplifyQuoter.Services.ServiceLayer;
 
 namespace SimplifyQuoter.Views
 {
     public partial class LoginWindow : Window
     {
-        public string CompanyDB => TxtCompanyDb.Text.Trim();
-        public string UserName => TxtUsername.Text.Trim();
-        public string Password => PwdPassword.Password;
+        public ServiceLayerClient SlClient { get; private set; }
+
+        public string CompanyDB => txtCompanyDb.Text.Trim();
+        public string UserName => txtUserName.Text.Trim();
+        public string Password => txtPassword.Password;
 
         public LoginWindow()
         {
             InitializeComponent();
+            SlClient = new ServiceLayerClient();
         }
 
-        private void Ok_Click(object sender, RoutedEventArgs e)
+        private async void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(CompanyDB) || string.IsNullOrWhiteSpace(UserName))
+            try
             {
-                MessageBox.Show("Please enter both CompanyDB and Username.");
-                return;
+                await SlClient.LoginAsync(CompanyDB, UserName, Password);
+                // If we get here, login succeeded:
+                DialogResult = true;    // <— This makes ShowDialog() return true
             }
-            DialogResult = true;
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(
+                    $"Service Layer login failed:\n{ex.Message}",
+                    "Login Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+                // Leave DialogResult unset so ShowDialog() yields false/nullable
+            }
+        }
+
+        private void BtnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;      // <— This makes ShowDialog() return false
         }
     }
 }
