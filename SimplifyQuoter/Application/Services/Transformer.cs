@@ -137,8 +137,12 @@ namespace SimplifyQuoter.Services
         /// <summary>
         /// Map a RowView into the minimal ItemDto
         /// </summary>
-        public static async Task<ItemDto> ToItemDtoAsync(RowView rv)
+        public static async Task<ItemDto> ToItemDtoAsync(
+            RowView rv,
+            double marginPercent,
+            string uom)
         {
+            // 1) Extract part code, brand, raw purchase‐price, weight
             var part = rv.Cells.Length > 2 ? rv.Cells[2]?.Trim() : string.Empty;
             var brand = rv.Cells.Length > 1 ? rv.Cells[1]?.Trim() : string.Empty;
             var price = rv.Cells.Length > 9 ? rv.Cells[9]?.Trim() : null;
@@ -146,17 +150,16 @@ namespace SimplifyQuoter.Services
 
             Debug.WriteLine($"🔍 Raw purchase‐price cell: '{price}'");
 
-            // 2. Clean out any currency symbols or commas
+            // 2) Clean any currency symbols or commas
             if (!string.IsNullOrEmpty(price))
                 price = price.Replace("$", "").Replace(",", "");
 
-            // 3. Parse with invariant culture
+            // 3) Parse with InvariantCulture
             double purchasePrice = 0;
             if (!string.IsNullOrEmpty(price)
-                && double.TryParse(price,
-                                   NumberStyles.Any,
+                && double.TryParse(price, NumberStyles.Any,
                                    CultureInfo.InvariantCulture,
-                                   out var parsed))
+                                   out double parsed))
             {
                 purchasePrice = parsed;
             }
@@ -165,32 +168,55 @@ namespace SimplifyQuoter.Services
                 Debug.WriteLine("⚠️ Failed to parse purchase price, defaulting to 0");
             }
 
-            // 4. Compute sales at +20%
-            double salesPrice = Math.Round(purchasePrice / 0.8, 4);
+            // 4) Compute sales price using user’s margin%
+            //    marginPercent is like 20.0 for “20%”.  We want:
+            //       U_SalesPrice = purchasePrice / (1 - marginPercent/100)
+            double salesPrice;
+            if (marginPercent >= 100)
+            {
+                // guard against division by zero or negative
+                salesPrice = purchasePrice;
+            }
+            else
+            {
+                double markupFactor = 1.0 - (marginPercent / 100.0);
+                if (markupFactor <= 0)
+                    salesPrice = purchasePrice;
+                else
+                    salesPrice = Math.Round(purchasePrice / markupFactor, 4);
+            }
 
+            // 5) Call AI‐enrichment as before
             using (var ai = new AiEnrichmentService())
             {
-                // 1) Get a concise summary
+                // 5.1) Get concise summary
                 var description = await ai.GeneratePartSummaryAsync(part);
 
-                // 2) Determine the SL group code
+                // 5.2) Determine SL group code
                 var groupCode = await ai.DetermineItemGroupCodeAsync(part, brand);
 
-                // 3) Return the fully‐enriched DTO
+                // 6) Build and return the ItemDto, 
+                //      setting PurchaseUnit/SalesUnit/InventoryUOM = user’s UoM
                 return new ItemDto
                 {
                     ItemCode = "H-" + part,
-                    ItemName = brand + ", " + part + ", " + description + ", " + weight +"KG",
+                    ItemName = brand + ", " + part + ", " + description + ", " + weight + "KG",
                     FrgnName = part,
                     ItmsGrpCod = groupCode,
+
+                    // hard‐coded supplier info stays the same:
                     BPCode = "VL000442",
                     Mainsupplier = "VL000442",
                     CardType = "cSupplier",
-                    PurchaseUnit = "EACH",
-                    SalesUnit = "EACH",
-                    InventoryUOM = "EACH",
+
+                    // ↓ Set these three to the user’s UoM text:
+                    PurchaseUnit = uom,
+                    SalesUnit = uom,
+                    InventoryUOM = uom,
+
+                    // 7) Set purchasing price and the computed sales price:
                     U_PurchasingPrice = purchasePrice,
-                    U_SalesPrice = salesPrice 
+                    U_SalesPrice = salesPrice
                 };
             }
         }

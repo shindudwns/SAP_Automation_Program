@@ -40,11 +40,16 @@ namespace SimplifyQuoter.Services
                 jobId = db.CreateProcessJob(_sapFileId, "IMD", list.Count);
             }
 
+            // Retrieve user’s margin and UoM from the shared state
+            var state = AutomationWizardState.Current;
+            double marginPct = state.MarginPercent;
+            string uom = state.UoM;
+
             // 2) loop each row
             foreach (var rv in list)
             {
-                // call SL
-                var dto = await Transformer.ToItemDtoAsync(rv);
+                // call Transformer with the extra parameters
+                var dto = await Transformer.ToItemDtoAsync(rv, marginPct, uom);
                 await _itemService.CreateOrUpdateAsync(dto);
 
                 // mark processed and bump counters
@@ -76,7 +81,7 @@ namespace SimplifyQuoter.Services
             // 2) loop each row
             foreach (var rv in list)
             {
-                // call SL
+                // QuotationDto logic is unchanged
                 var dto = Transformer.ToQuotationDto(rv);
                 await _quoteService.CreateAsync(dto);
 

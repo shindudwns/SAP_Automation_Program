@@ -1,5 +1,4 @@
-﻿<!-- File: Views/SelectItemsPage.xaml -->
-<UserControl x:Class="SimplifyQuoter.Views.SelectItemsPage"
+﻿<UserControl x:Class="SimplifyQuoter.Views.SelectItemsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Height="Auto"
@@ -140,5 +139,19 @@
                       HeadersVisibility="Column"
                       GridLinesVisibility="All"/>
         </GroupBox>
+
+        <!-- ========================= -->
+        <!-- New “Next” Button -->
+        <!-- ========================= -->
+        <Button x:Name="BtnNext"
+            Content="Next"
+            Grid.Row="2"
+            Grid.Column="0"
+            HorizontalAlignment="Right"
+            Margin="0,12,0,0"
+            Padding="4,2"
+            Width="80"
+            Height="30"
+            Click="BtnNext_Click"/>
     </Grid>
 </UserControl>

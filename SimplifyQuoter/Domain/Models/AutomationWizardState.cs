@@ -40,5 +40,11 @@ namespace SimplifyQuoter.Models
 
         /// <summary>GUID for this SAP automation run (optional).</summary>
         public Guid SapFileId { get; set; }
+
+        // store the user’s Margin % (as a plain double, e.g. 20.0 → 20%)
+        public double MarginPercent { get; set; } = 20.0;
+
+        // store the user’s chosen UoM (e.g. “EACH” or “PK” or custom)
+        public string UoM { get; set; } = "EACH";
     }
 }

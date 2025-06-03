@@ -1,16 +1,17 @@
-﻿// File: Views/SelectItemsPage.xaml.cs
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
 using SimplifyQuoter.Models;
+using System.Windows.Navigation;      // ← Needed for NavigationService
+using SimplifyQuoter.Views;           // ← Needed to reference ReviewConfirmPage
 
 namespace SimplifyQuoter.Views
 {
     /// <summary>
     /// Step 2: SelectItemsPage lets the user pick rows (by range or by clicking).
-    /// Updates WizardState.Current.SelectedRows and raises ProceedToReview.
+    /// Updates WizardState.Current.SelectedRows and then navigates to ReviewConfirmPage.
     /// </summary>
     public partial class SelectItemsPage : UserControl
     {
@@ -31,10 +32,9 @@ namespace SimplifyQuoter.Views
 
             // Build columns for DataGridAllRows
             BuildGridColumns(DataGridAllRows, state.AllRows);
-
             DataGridAllRows.ItemsSource = state.AllRows;
 
-            // Build columns for DataGridSelected (just RowIndex + PartNumber)
+            // Build columns for DataGridSelected
             DataGridSelected.Columns.Clear();
             DataGridSelected.Columns.Add(new DataGridTextColumn
             {
@@ -48,7 +48,6 @@ namespace SimplifyQuoter.Views
                 Binding = new System.Windows.Data.Binding("Cells[2]"),
                 Width = new DataGridLength(1, DataGridLengthUnitType.Star)
             });
-
             DataGridSelected.ItemsSource = state.SelectedRows;
         }
 
@@ -154,6 +153,7 @@ namespace SimplifyQuoter.Views
         private void BtnNext_Click(object sender, RoutedEventArgs e)
         {
             var state = AutomationWizardState.Current;
+
             if (state.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Please select at least one row (via range or by clicking).",
@@ -162,6 +162,47 @@ namespace SimplifyQuoter.Views
                                 MessageBoxImage.Warning);
                 return;
             }
+
+            // ====== ↓ COPY USER INPUTS INTO THE SHARED STATE ↓ ======
+            // 1) Parse Margin % from txt box:
+            if (double.TryParse(TxtMargin.Text.Trim(), out double marginVal))
+            {
+                state.MarginPercent = marginVal;
+            }
+            else
+            {
+                // If parsing fails, default back to 0 or previous:
+                state.MarginPercent = 0.0;
+            }
+
+            // 2) Grab UoM text from the combo box:
+            state.UoM = CmbUoM.Text?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(state.UoM))
+            {
+                // If the user didn’t select anything, default to “EACH”
+                state.UoM = "EACH";
+            }
+            // =======================================================
+
+            // Now navigate to ReviewConfirmPage.xaml:
+            var nav = NavigationService.GetNavigationService(this);
+            if (nav != null)
+            {
+                // If this UserControl is hosted in a Frame/NavigationWindow:
+                nav.Navigate(new ReviewConfirmPage());
+                return;
+            }
+
+            // Fallback: if NavigationService is null (e.g. you swap pages manually):
+            var wizard = Window.GetWindow(this) as WizardWindow;
+            if (wizard != null)
+            {
+                wizard.ShowStep(3);
+                // ← Assumes that step index 3 is ReviewConfirmPage. 
+                //     Adjust the step number according to your WizardWindow implementation.
+            }
+
+            // Optionally, you can still raise ProceedToReview if something else listens to it:
             ProceedToReview?.Invoke(this, EventArgs.Empty);
         }
     }

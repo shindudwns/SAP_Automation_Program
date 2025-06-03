@@ -28,12 +28,21 @@ namespace SimplifyQuoter.Views
         {
             var state = AutomationWizardState.Current;
 
+            // Grab user’s margin% and UoM from shared state
+            double marginPct = state.MarginPercent;
+            string uom = state.UoM;
+
+            // We will build an array of ItemDto, one per selected row
             var dtos = new ItemDto[state.SelectedRows.Count];
+
             for (int i = 0; i < state.SelectedRows.Count; i++)
             {
-                dtos[i] = await Transformer.ToItemDtoAsync(state.SelectedRows[i]);
+                var rv = state.SelectedRows[i];
+                // Call the new overload passing (RowView, marginPct, uom)
+                dtos[i] = await Transformer.ToItemDtoAsync(rv, marginPct, uom);
             }
 
+            // Build the columns in the ReviewImdGrid
             ReviewImdGrid.Columns.Clear();
             ReviewImdGrid.Columns.Add(new DataGridTextColumn
             {
@@ -102,12 +111,13 @@ namespace SimplifyQuoter.Views
                 Width = DataGridLength.Auto
             });
 
+            // Convert array of dtos into an ObservableCollection<ImdRowViewModel>
             var viewModels = new ObservableCollection<ImdRowViewModel>();
             for (int i = 0; i < dtos.Length; i++)
             {
                 viewModels.Add(new ImdRowViewModel(
                     state.SelectedRows[i].RowId,
-                    i + 1,
+                    i + 1,       // sequence number
                     dtos[i]
                 ));
             }
@@ -125,6 +135,7 @@ namespace SimplifyQuoter.Views
             ProceedToProcess?.Invoke(this, EventArgs.Empty);
         }
 
+        // ViewModel class for presenting in the DataGrid
         public class ImdRowViewModel
         {
             public Guid RowId { get; }
