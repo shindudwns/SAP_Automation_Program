@@ -3,52 +3,115 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Height="Auto"
-             Width="Auto">
+             Width="Auto"
+             Background="White">
+
+	<!--
+      We create a 2-column Grid:
+       • Left column (Width="3*") = server/user info + progress bar
+       • Right column (Width="2*") = the new “Console” panel
+      Then we stack everything in 3 rows:
+       • Row 0: Server/User text
+       • Row 1: ProgressBar (with overlayed percentage)
+       • Row 2: The “Console” (right side) and empty placeholder (left side)
+    -->
 	<Grid Margin="20">
 		<Grid.ColumnDefinitions>
+			<!-- Left side is 3 parts -->
+			<ColumnDefinition Width="3*"/>
+			<!-- Right side is 2 parts -->
 			<ColumnDefinition Width="2*"/>
-			<ColumnDefinition Width="*" />
 		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<!-- Row 0: Server/User info -->
+			<RowDefinition Height="Auto"/>
+			<!-- Row 1: ProgressBar + percentage overlay -->
+			<RowDefinition Height="Auto"/>
+			<!-- Row 2: Console panel on the right; left can remain empty or host additional content later -->
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
 
-		<!-- Left: Progress + Server/User Info -->
-		<StackPanel Grid.Column="0" Margin="0,0,10,0">
-			<!-- Server/User -->
-			<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-				<TextBlock Text="Server:" FontWeight="Bold"/>
-				<TextBlock Text="{Binding ServerName}" Margin="5,0,20,0"/>
-				<TextBlock Text="User:" FontWeight="Bold"/>
-				<TextBlock Text="{Binding UserName}" Margin="5,0,0,0"/>
-			</StackPanel>
-
-			<!-- Items: count + progress bar -->
-			<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-				<TextBlock Text="Items:" VerticalAlignment="Center"/>
-				<TextBlock Text="{Binding ProcessedCount}" Margin="5,0" VerticalAlignment="Center"/>
-				<TextBlock Text="/" VerticalAlignment="Center"/>
-				<TextBlock Text="{Binding TotalCount}" Margin="5,0,0,0" VerticalAlignment="Center"/>
-			</StackPanel>
-
-			<ProgressBar x:Name="ImdProgressBar"
-                   Height="20"
-                   Minimum="0"
-                   Maximum="{Binding TotalCount}"
-                   Value="{Binding ProcessedCount}"
-                   Margin="0,10,0,0"/>
-
-			<TextBlock Text="{Binding PercentText}" Margin="0,5,0,0"/>
+		<!-- ============================== -->
+		<!-- Row 0: Server & User Info     -->
+		<!-- ============================== -->
+		<StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                    Orientation="Horizontal"
+                    Margin="0,0,0,10">
+			<TextBlock Text="Server: "
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"/>
+			<TextBlock Text="{Binding ServerName}"
+                       VerticalAlignment="Center"
+                       Margin="4,0,0,0"/>
+			<TextBlock Text="   User: "
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"
+                       Margin="20,0,0,0"/>
+			<TextBlock Text="{Binding UserName}"
+                       VerticalAlignment="Center"
+                       Margin="4,0,0,0"/>
 		</StackPanel>
 
-		<!-- Right: Live console (use ListBox so we can ScrollIntoView) -->
-		<Border Grid.Column="1"
-            BorderBrush="#CCC"
-            BorderThickness="1"
-            CornerRadius="4">
-			<ScrollViewer VerticalScrollBarVisibility="Auto">
-				<ListBox x:Name="ConsoleList"
-                 ItemsSource="{Binding ConsoleMessages}"
-                 FontFamily="Consolas"
-                 FontSize="12"/>
-			</ScrollViewer>
+		<!-- ================================= -->
+		<!-- Row 1: ProgressBar + Percentage   -->
+		<!-- ================================= -->
+		<Grid Grid.Row="1"
+              Grid.Column="0"
+              Margin="0,0,10,10">
+			<!-- Background ProgressBar, bound to ProcessedCount and TotalCount -->
+			<ProgressBar x:Name="ProgressBarControl"
+                         Minimum="0"
+                         Maximum="{Binding TotalCount}"
+                         Value="{Binding ProcessedCount}"
+                         Height="24"
+                         VerticalAlignment="Center" />
+
+			<!-- Overlay a centered white “XX%” text atop the bar -->
+			<TextBlock Text="{Binding PercentText}"
+                       FontWeight="Bold"
+                       Foreground="White"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center" />
+		</Grid>
+
+		<!-- ===================================== -->
+		<!-- Row 2, Column 1 (Right): “Console”   -->
+		<!-- ===================================== -->
+		<Border Grid.Row="2"
+                Grid.Column="1"
+                Background="#F5F5F5"
+                CornerRadius="4"
+                Padding="8"
+                SnapsToDevicePixels="True"
+                BorderBrush="#DDDDDD"
+                BorderThickness="1">
+			<DockPanel>
+				<!-- Console Header -->
+				<TextBlock Text="Console"
+                           FontWeight="SemiBold"
+                           FontSize="14"
+                           DockPanel.Dock="Top"
+                           Margin="0,0,0,8"/>
+
+				<!-- Scrollable list of console messages -->
+				<ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+					<ItemsControl ItemsSource="{Binding ConsoleMessages}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<!-- Each console line is a TextBlock using Consolas font -->
+								<TextBlock Text="{Binding}"
+                                           FontFamily="Consolas"
+                                           FontSize="12"
+                                           Foreground="#333333"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,2"/>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</ScrollViewer>
+			</DockPanel>
 		</Border>
+
 	</Grid>
 </UserControl>

@@ -1,5 +1,6 @@
 ﻿// File: Views/ProcessPage.xaml.cs
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -59,7 +60,7 @@ namespace SimplifyQuoter.Views
         public string UserName { get; private set; }
 
         /// <summary>
-        /// An ObservableCollection bound to a ListBox to show live console messages.
+        /// An ObservableCollection bound to an ItemsControl to show live console messages.
         /// </summary>
         public ObservableCollection<string> ConsoleMessages { get; }
             = new ObservableCollection<string>();
@@ -92,6 +93,7 @@ namespace SimplifyQuoter.Views
         /// When this UserControl is loaded, we pick either the merged DTOs
         /// (if user clicked “Replace Excel”) or fall back to building from SelectedRows.
         /// Then we iterate over each ItemDto, call Service Layer, update a ProgressBar & console, and finish.
+        /// Finally, we show a summary of which items succeeded and which failed.
         /// </summary>
         private async void ProcessPage_Loaded(object sender, RoutedEventArgs e)
         {
@@ -108,7 +110,7 @@ namespace SimplifyQuoter.Views
                 // No merged ItemMaster – rebuild from SelectedRows + user’s margin/UoM:
                 double marginPct = state.MarginPercent;
                 string uom = state.UoM;
-                itemDtos = new System.Collections.Generic.List<ItemDto>(state.SelectedRows.Count);
+                itemDtos = new List<ItemDto>(state.SelectedRows.Count);
 
                 foreach (var rv in state.SelectedRows)
                 {
@@ -120,7 +122,7 @@ namespace SimplifyQuoter.Views
             if (quotationDtos == null)
             {
                 // No merged Quotation – rebuild from SelectedRows:
-                quotationDtos = new System.Collections.Generic.List<QuotationDto>(state.SelectedRows.Count);
+                quotationDtos = new List<QuotationDto>(state.SelectedRows.Count);
                 foreach (var rv in state.SelectedRows)
                 {
                     var qdto = Transformer.ToQuotationDto(rv);
@@ -131,6 +133,10 @@ namespace SimplifyQuoter.Views
             // 2) Now that we have definitive lists, set TotalCount & reset ProcessedCount:
             TotalCount = itemDtos.Count;
             ProcessedCount = 0;
+
+            // Prepare two lists to track successes and failures:
+            var succeededItems = new List<string>();
+            var failedItems = new List<string>();
 
             //
             // ─── Process “Item Master” DTOs ───────────────────────────────────────────────────
@@ -147,20 +153,19 @@ namespace SimplifyQuoter.Views
                     // Awaiting this call; if it throws, we catch below:
                     await itemService.CreateOrUpdateAsync(dto);
                     AppendConsole($"[{Timestamp}] ✔ Success: Item {logPart}");
+                    succeededItems.Add(logPart);
                 }
                 catch (Exception ex)
                 {
                     AppendConsole($"[{Timestamp}] ✘ Error: {ex.Message}");
+                    failedItems.Add(logPart);
                 }
 
                 ProcessedCount++;
             }
 
-            //
-            // ─── (Optional) If you also need to send Quotation DTOs ────────────────────────────
-            //     If your flow does not include quotations, you can remove or comment out this block entirely.
-            //
             /*
+            // ─── OPTIONAL QUOTATION BLOCK (commented out) ────────────────────────────────────────
             var quoteService = new QuotationService(_slClient);
             for (int i = 0; i < quotationDtos.Count; i++)
             {
@@ -177,20 +182,44 @@ namespace SimplifyQuoter.Views
                     AppendConsole($"[{Timestamp}] ✘ Quotation Error: {ex.Message}");
                 }
 
-                // Note: We do NOT bump ProcessedCount again here, 
+                // Note: We do NOT bump ProcessedCount again here,
                 // because ProcessedCount specifically reflects the ItemMaster loop.
             }
             */
 
             AppendConsole($"[{Timestamp}] All {ProcessedCount}/{TotalCount} rows processed.");
 
-            // 5) Finally, notify the user that we’re done
-            MessageBox.Show(
-                $"Item Master Data finished: {ProcessedCount}/{TotalCount} rows processed.",
-                "Completed",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information
-            );
+            // ─── Instead of a MessageBox, append a summary inside the console area ─────────────
+            AppendConsole(""); // blank line for spacing
+
+            if (succeededItems.Count > 0)
+            {
+                AppendConsole($"[{Timestamp}] {succeededItems.Count} succeeded:");
+                foreach (var part in succeededItems)
+                {
+                    AppendConsole($"   • {part}");
+                }
+            }
+            else
+            {
+                AppendConsole($"[{Timestamp}] No items succeeded.");
+            }
+
+            if (failedItems.Count > 0)
+            {
+                AppendConsole($"[{Timestamp}] {failedItems.Count} failed:");
+                foreach (var part in failedItems)
+                {
+                    AppendConsole($"   • {part}");
+                }
+            }
+            else
+            {
+                AppendConsole($"[{Timestamp}] No items failed.");
+            }
+
+            // (Optionally keep a blank line at the end)
+            AppendConsole("");
         }
 
 
@@ -200,15 +229,14 @@ namespace SimplifyQuoter.Views
         private string Timestamp => DateTime.Now.ToString("HH:mm:ss");
 
         /// <summary>
-        /// Add a new message to the console list (and scroll the ListBox into view).
-        /// Assumes the XAML has a ListBox named "ConsoleList" bound to ConsoleMessages.
+        /// Add a new message to the console list.
+        /// We no longer manually scroll any ListBox – the ScrollViewer in XAML handles scrolling.
         /// </summary>
         private void AppendConsole(string message)
         {
             ConsoleMessages.Add(message);
-
-            if (ConsoleList.Items.Count > 0)
-                ConsoleList.ScrollIntoView(ConsoleList.Items[ConsoleList.Items.Count - 1]);
+            // The new XAML has a ScrollViewer around an ItemsControl bound to ConsoleMessages,
+            // so explicit ScrollIntoView(…) is no longer needed.
         }
 
         // ============= INotifyPropertyChanged Implementation =============
