@@ -14,8 +14,8 @@ using SimplifyQuoter.Services.ServiceLayer.Dtos;
 namespace SimplifyQuoter.Views
 {
     /// <summary>
-    /// Step 4: ProcessPage loops over each selected row, calls Service Layer,
-    /// updates a ProgressBar + live console, and shows final completion.
+    /// Step 4: ProcessPage loops over each (possibly replaced) ItemDto,
+    /// calls Service Layer, updates a ProgressBar & live console, and shows final completion.
     /// </summary>
     public partial class ProcessPage : UserControl, INotifyPropertyChanged
     {
@@ -36,7 +36,7 @@ namespace SimplifyQuoter.Views
         }
 
         /// <summary>
-        /// Total number of rows to process (set in constructor).
+        /// Total number of rows to process (set in Loaded).
         /// </summary>
         public int TotalCount { get; private set; }
 
@@ -73,7 +73,6 @@ namespace SimplifyQuoter.Views
 
             // Grab SL client and username from our shared wizard state:
             var state = AutomationWizardState.Current;
-
             _slClient = state.SlClient;
             UserName = state.UserName ?? string.Empty;
 
@@ -82,17 +81,17 @@ namespace SimplifyQuoter.Views
             else
                 ServerName = "(unknown)";
 
-            // TotalCount is simply how many rows were selected in Step 2:
-            TotalCount = state.SelectedRows.Count;
+            // We'll set TotalCount in the Loaded handler (once we know which DTOs to process).
+            TotalCount = 0;
             ProcessedCount = 0;
 
             Loaded += ProcessPage_Loaded;
         }
 
         /// <summary>
-        /// When this UserControl is loaded, we iterate through each selected row
-        /// and call the Service Layer to create/update the item.  Progress and
-        /// console messages are updated live.
+        /// When this UserControl is loaded, we pick either the merged DTOs
+        /// (if user clicked “Replace Excel”) or fall back to building from SelectedRows.
+        /// Then we iterate over each ItemDto, call Service Layer, update a ProgressBar & console, and finish.
         /// </summary>
         private async void ProcessPage_Loaded(object sender, RoutedEventArgs e)
         {
@@ -100,43 +99,90 @@ namespace SimplifyQuoter.Views
 
             var state = AutomationWizardState.Current;
 
-            // 1) Grab margin% and UoM that the user entered in Step 2:
-            double marginPct = state.MarginPercent;    // e.g. 20.0
-            string uom = state.UoM;              // e.g. "EACH" or "PK"
+            // 1) Get the “merged” lists if they exist; otherwise rebuild from SelectedRows:
+            var itemDtos = state.MergedItemMasterDtos;
+            var quotationDtos = state.MergedQuotationDtos;
 
-            int idx = 0;
-            foreach (var rv in state.SelectedRows)
+            if (itemDtos == null)
             {
-                idx++;
-                // Part number or identifier for logging:
-                var part = (rv.Cells.Length > 2)
-                    ? rv.Cells[2]?.Trim()
-                    : "<no-part>";
+                // No merged ItemMaster – rebuild from SelectedRows + user’s margin/UoM:
+                double marginPct = state.MarginPercent;
+                string uom = state.UoM;
+                itemDtos = new System.Collections.Generic.List<ItemDto>(state.SelectedRows.Count);
 
-                AppendConsole($"[{Timestamp}] Processing ({idx}/{TotalCount}): {part}");
+                foreach (var rv in state.SelectedRows)
+                {
+                    var dto = await Transformer.ToItemDtoAsync(rv, marginPct, uom);
+                    itemDtos.Add(dto);
+                }
+            }
+
+            if (quotationDtos == null)
+            {
+                // No merged Quotation – rebuild from SelectedRows:
+                quotationDtos = new System.Collections.Generic.List<QuotationDto>(state.SelectedRows.Count);
+                foreach (var rv in state.SelectedRows)
+                {
+                    var qdto = Transformer.ToQuotationDto(rv);
+                    quotationDtos.Add(qdto);
+                }
+            }
+
+            // 2) Now that we have definitive lists, set TotalCount & reset ProcessedCount:
+            TotalCount = itemDtos.Count;
+            ProcessedCount = 0;
+
+            //
+            // ─── Process “Item Master” DTOs ───────────────────────────────────────────────────
+            //
+            var itemService = new ItemService(_slClient);
+            for (int i = 0; i < itemDtos.Count; i++)
+            {
+                var dto = itemDtos[i];
+                string logPart = dto.FrgnName; // or dto.ItemCode
+                AppendConsole($"[{Timestamp}] Processing ({i + 1}/{TotalCount}): {logPart}");
 
                 try
                 {
-                    // 2) Build the ItemDto using marginPct & uom
-                    var dto = await Transformer.ToItemDtoAsync(rv, marginPct, uom);
-
-                    // 3) Send to Service Layer (create/update)
-                    await new ItemService(_slClient).CreateOrUpdateAsync(dto);
-
-                    // 4) Mark as processed
-                    ProcessedCount++;
-                    AppendConsole($"[{Timestamp}] ✔ Success: {part}");
+                    // Awaiting this call; if it throws, we catch below:
+                    await itemService.CreateOrUpdateAsync(dto);
+                    AppendConsole($"[{Timestamp}] ✔ Success: Item {logPart}");
                 }
                 catch (Exception ex)
                 {
-                    ProcessedCount++;
                     AppendConsole($"[{Timestamp}] ✘ Error: {ex.Message}");
                 }
+
+                ProcessedCount++;
+            }
+
+            //
+            // ─── (Optional) If you also need to send Quotation DTOs ────────────────────────────
+            //     If your flow does not include quotations, you can remove this block entirely.
+            //
+            var quoteService = new QuotationService(_slClient);
+            for (int i = 0; i < quotationDtos.Count; i++)
+            {
+                var qdto = quotationDtos[i];
+                AppendConsole($"[{Timestamp}] Processing Quotation ({i + 1}/{quotationDtos.Count}): {qdto.CardCode}");
+
+                try
+                {
+                    await quoteService.CreateAsync(qdto);
+                    AppendConsole($"[{Timestamp}] ✔ Quotation Success: {qdto.CardCode}");
+                }
+                catch (Exception ex)
+                {
+                    AppendConsole($"[{Timestamp}] ✘ Quotation Error: {ex.Message}");
+                }
+
+                // Note: We do NOT bump ProcessedCount again here, 
+                // because ProcessedCount specifically reflects the ItemMaster loop.
             }
 
             AppendConsole($"[{Timestamp}] All {ProcessedCount}/{TotalCount} rows processed.");
 
-            // 5) Notify user with a final MessageBox
+            // 5) Finally, notify the user that we’re done
             MessageBox.Show(
                 $"Item Master Data finished: {ProcessedCount}/{TotalCount} rows processed.",
                 "Completed",
@@ -158,7 +204,6 @@ namespace SimplifyQuoter.Views
         {
             ConsoleMessages.Add(message);
 
-            // Automatic scroll into view of the last item:
             if (ConsoleList.Items.Count > 0)
                 ConsoleList.ScrollIntoView(ConsoleList.Items[ConsoleList.Items.Count - 1]);
         }

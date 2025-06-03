@@ -79,21 +79,26 @@
             StrokeThickness="2"/>
 
             <!-- Step 3 Circle (light) -->
-            <Ellipse x:Name="StepCircle3"
-               Grid.Column="4"
-               Width="24" Height="24"
-               Fill="#DDD"
-               Cursor="Hand"
-               MouseLeftButtonUp="StepCircle3_Click" Margin="36,2,36,0" VerticalAlignment="Top"/>
-            <TextBlock x:Name="StepLabel3"
+			<Ellipse x:Name="StepCircle3"
                  Grid.Column="4"
-                 Text="Review &amp; Confirm"
-                 FontSize="12"
-                 Foreground="#888"
-                 Margin="0,34,0,-6"
-                 HorizontalAlignment="Center"/>
+                 Width="24" Height="24"
+                 Fill="#DDD"
+                 Cursor="Hand"
+                 MouseLeftButtonUp="StepCircle3_Click"
+                 Margin="36,2,36,0"
+                 VerticalAlignment="Top"/>
 
-            <!-- Connector 3→4 -->
+			<TextBlock x:Name="StepLabel3"
+				Grid.Column="4"
+				Text="Review &amp; Confirm"
+				FontSize="12"
+				Foreground="#888"
+				Margin="0,34,0,-6"
+				HorizontalAlignment="Center"
+				MouseLeftButtonUp="StepCircle3_Click"/>
+
+
+			<!-- Connector 3→4 -->
             <Line x:Name="Connector34"
             Grid.Column="5"
             X1="0" Y1="12" X2="150" Y2="12"
@@ -118,7 +123,8 @@
         <!-- ========================================= -->
         <!-- Row 2: PAGE HOST (where each UserControl is loaded) -->
         <!-- ========================================= -->
-        <ContentControl x:Name="PageHost"
-                    Grid.Row="2" Margin="0,72,0,0" Grid.RowSpan="2"/>
+		<ContentControl x:Name="PageHost"
+                Grid.Row="3"
+                Margin="0"/>
     </Grid>
 </Window>

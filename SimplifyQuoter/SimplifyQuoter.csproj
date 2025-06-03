@@ -250,6 +250,8 @@
     <Resource Include="Assets\inside_icon.png" />
     <Resource Include="Assets\process_icon.png" />
     <Resource Include="Assets\trash_can.png" />
+    <Resource Include="Assets\download_icon.png" />
+    <Resource Include="Assets\search_icon.png" />
     <Content Include="Infrastructure\DB\text-file-outline-variant-svgrepo-com.svg" />
     <Resource Include="Infrastructure\DB\ddl.txt" />
   </ItemGroup>

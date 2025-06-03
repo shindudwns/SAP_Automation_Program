@@ -1,6 +1,6 @@
 ﻿// File: Models/AutomationWizardState.cs
 using SimplifyQuoter.Services.ServiceLayer;
-using SimplifyQuoter.Models;
+using SimplifyQuoter.Services.ServiceLayer.Dtos;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -46,5 +46,20 @@ namespace SimplifyQuoter.Models
 
         // store the user’s chosen UoM (e.g. “EACH” or “PK” or custom)
         public string UoM { get; set; } = "EACH";
+
+   
+        /// <summary>
+        /// After “Replace Excel” is clicked, ReviewConfirmPage populates this
+        /// with exactly the ItemDto list built from the edited spreadsheet.
+        /// ProcessPage will read from here when doing the final SAP insert.
+        /// </summary>
+        public List<ItemDto> MergedItemMasterDtos { get; set; }
+
+        /// <summary>
+        /// After “Replace Excel” is clicked, ReviewConfirmPage populates this
+        /// with exactly the QuotationDto list built from the edited spreadsheet.
+        /// ProcessPage will read from here when doing the final SAP insert.
+        /// </summary>
+        public List<QuotationDto> MergedQuotationDtos { get; set; }
     }
 }

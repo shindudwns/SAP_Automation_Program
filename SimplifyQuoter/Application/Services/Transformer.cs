@@ -244,6 +244,88 @@ namespace SimplifyQuoter.Services
                 DocumentLines = new List<QuotationLineDto> { line }
             };
         }
+
+        /// <summary>
+        /// Builds an ItemDto exactly from the cells of a “preview” worksheet.
+        /// This assumes the spreadsheet columns are in the same order you use
+        /// when you wrote out the preview in WriteItemMasterPreviewAsync.
+        /// </summary>
+        public static ItemDto ToItemDtoFromEditedRow(RowView rv, string uom)
+        {
+            // 1) Item No. → column 1
+            string itemNo = (rv.Cells.Length > 1) ? rv.Cells[1]?.Trim() : string.Empty;
+
+            // 2) Description → column 2
+            string description = (rv.Cells.Length > 2) ? rv.Cells[2]?.Trim() : string.Empty;
+
+            // 3) Part Number → column 3
+            string partNumber = (rv.Cells.Length > 3) ? rv.Cells[3]?.Trim() : string.Empty;
+
+            // 4) Item Group → column 4
+            int itemGroup = 0;
+            if (rv.Cells.Length > 4 && int.TryParse(rv.Cells[4]?.Trim(), out var ig))
+            {
+                itemGroup = ig;
+            }
+
+            // 5) Preferred Vendor → column 5
+            string vendor = (rv.Cells.Length > 5) ? rv.Cells[5]?.Trim() : string.Empty;
+
+            // 6) Purchasing UoM → column 6. If blank, fallback to uom.
+            string purchaseUoM = (rv.Cells.Length > 6 && !string.IsNullOrWhiteSpace(rv.Cells[6]))
+                                    ? rv.Cells[6].Trim()
+                                    : uom;
+
+            // 7) Sales UoM → column 7. If blank, fallback to uom.
+            string salesUoM = (rv.Cells.Length > 7 && !string.IsNullOrWhiteSpace(rv.Cells[7]))
+                                 ? rv.Cells[7].Trim()
+                                 : uom;
+
+            // 8) Inventory UOM → column 8. If blank, fallback to uom.
+            string inventoryUoM = (rv.Cells.Length > 8 && !string.IsNullOrWhiteSpace(rv.Cells[8]))
+                                      ? rv.Cells[8].Trim()
+                                      : uom;
+
+            // 9) Purchasing Price → column 9, strip commas if present
+            double purchasingPrice = 0;
+            if (rv.Cells.Length > 9 && !string.IsNullOrWhiteSpace(rv.Cells[9]))
+            {
+                var raw = rv.Cells[9].Trim().Replace(",", "");
+                double.TryParse(raw,
+                                NumberStyles.AllowDecimalPoint | NumberStyles.AllowThousands,
+                                CultureInfo.InvariantCulture,
+                                out purchasingPrice);
+            }
+
+            // 10) Sales Price → column 10, strip commas if present
+            double salesPrice = 0;
+            if (rv.Cells.Length > 10 && !string.IsNullOrWhiteSpace(rv.Cells[10]))
+            {
+                var raw = rv.Cells[10].Trim().Replace(",", "");
+                double.TryParse(raw,
+                                NumberStyles.AllowDecimalPoint | NumberStyles.AllowThousands,
+                                CultureInfo.InvariantCulture,
+                                out salesPrice);
+            }
+
+            // 11) Build and return the ItemDto
+            return new ItemDto
+            {
+                ItemCode = itemNo,
+                ItemName = description,
+                FrgnName = partNumber,
+                ItmsGrpCod = itemGroup,
+                BPCode = vendor,
+                PurchaseUnit = purchaseUoM,
+                SalesUnit = salesUoM,
+                InventoryUOM = inventoryUoM,
+                U_PurchasingPrice = purchasingPrice,
+                U_SalesPrice = salesPrice
+            };
+        }
+
+
+
     }
 
     /// <summary>
