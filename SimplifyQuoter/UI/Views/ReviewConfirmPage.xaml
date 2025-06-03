@@ -8,57 +8,52 @@
 
 	<Grid Margin="20">
 		<Grid.RowDefinitions>
-			<!-- Row 0: Instructions -->
+			<!-- Row 0: Instruction text -->
 			<RowDefinition Height="Auto"/>
-
-			<!-- Row 1: Toolbar (Search, Download, Replace) -->
+			<!-- Row 1: Toolbar (icons + Replace + Confirm) -->
 			<RowDefinition Height="Auto"/>
-
 			<!-- Row 2: TabControl headers -->
 			<RowDefinition Height="Auto"/>
-
 			<!-- Row 3: Tab content (two DataGrids) -->
 			<RowDefinition Height="*"/>
-
-			<!-- Row 4: Back + Confirm & Process -->
-			<RowDefinition Height="Auto"/>
+			<!-- Row 4: Spacer (optional) -->
+			<RowDefinition Height="12"/>
 		</Grid.RowDefinitions>
 
-
-		<!-- ====================== -->
-		<!-- Row 0: Instructions  -->
-		<!-- ====================== -->
+		<!-- =========================== -->
+		<!-- Row 0: Instruction Text    -->
+		<!-- =========================== -->
 		<TextBlock Grid.Row="0"
                    Text="Review the data below. When ready, click Confirm &amp; Process."
                    FontSize="14"
                    FontWeight="SemiBold"
                    Margin="0,0,0,12"/>
 
+		<!-- =========================== -->
+		<!-- Row 1: Toolbar (icons + buttons) -->
+		<!-- =========================== -->
+		<DockPanel Grid.Row="1"
+                   LastChildFill="False"
+                   Margin="0,0,0,12"
+                   VerticalAlignment="Center">
 
-		<!-- ====================== -->
-		<!-- Row 1: Toolbar Icons  -->
-		<!-- ====================== -->
-		<StackPanel Grid.Row="1"
-                    Orientation="Horizontal"
-                    VerticalAlignment="Center"
-                    Margin="0,0,0,12">
-			<!-- We no longer use "Spacing" on StackPanel; instead, give each child a Right‐Margin of 8. -->
-
-			<!-- Search Icon   -->
-			<Button x:Name="BtnSearch"
-                    Width="32"
+			<!-- Confirm & Process button, docked to the right -->
+			<Button x:Name="BtnConfirm"
+                    DockPanel.Dock="Right"
+                    Content="Confirm &amp; Process"
+                    Width="140"
                     Height="32"
-                    ToolTip="Search"
-                    Click="BtnSearch_Click"
-                    Background="Transparent"
-                    BorderBrush="Transparent"
-                    Margin="0,0,8,0">
-				<Image Source="/Assets/search_icon.png"
-                       Stretch="Uniform"/>
-			</Button>
+                    Background="#28a745"
+                    Foreground="White"
+                    FontWeight="SemiBold"
+                    Click="BtnConfirm_Click"
+                    Margin="8,0,0,0"/>
 
-			<!-- Download Icon -->
+			<!-- Replace Excel button (docked to the left) -->
+
+			<!-- Download Icon (docked to the left) -->
 			<Button x:Name="BtnDownload"
+                    DockPanel.Dock="Left"
                     Width="32"
                     Height="32"
                     ToolTip="Download Excel"
@@ -70,44 +65,53 @@
                        Stretch="Uniform"/>
 			</Button>
 
-			<!-- Replace Excel Button -->
+			<!-- Search Icon (docked to the left) -->
+			<Button x:Name="BtnSearch"
+                    DockPanel.Dock="Left"
+                    Width="32"
+                    Height="32"
+                    ToolTip="Search"
+                    Click="BtnSearch_Click"
+                    Background="Transparent"
+                    BorderBrush="Transparent"
+                    Margin="0,0,8,0">
+				<Image Source="/Assets/search_icon.png"
+                       Stretch="Uniform"/>
+			</Button>
 			<Button x:Name="BtnReplaceExcel"
                     Content="Replace Excel"
-                    Height="32"
                     Padding="12,0"
                     Click="BtnReplaceExcel_Click"
-                    Margin="0,0,8,0"/>
-		</StackPanel>
+                    Width="97"/>
+		</DockPanel>
 
-
-		<!-- ============================ -->
-		<!-- Row 2: TabControl (headers) -->
-		<!-- ============================ -->
+		<!-- =========================== -->
+		<!-- Row 2: TabControl Headers   -->
+		<!-- =========================== -->
 		<TabControl x:Name="PreviewTabs"
                     Grid.Row="2"
                     SelectedIndex="0"
                     Margin="0,0,0,12"
+                    Background="Transparent"
+                    BorderThickness="0"
                     SelectionChanged="PreviewTabs_SelectionChanged">
-
-			<!-- Tab 1: Item Master Preview -->
 			<TabItem x:Name="TabItem_MasterPreview"
-                     Header="Item Master Preview">
-				<!-- Content is provided in Row 3 -->
-			</TabItem>
-
-			<!-- Tab 2: Quotation Preview -->
+                     Header="Item Master Preview"
+                     FontSize="12"
+                     FontWeight="SemiBold"
+                     Padding="8,4"/>
 			<TabItem x:Name="TabItem_QuotePreview"
-                     Header="Quotation Preview (0)">
-				<!-- Content is provided in Row 3 -->
-			</TabItem>
+                     Header="Quotation Preview (0)"
+                     FontSize="12"
+                     FontWeight="SemiBold"
+                     Padding="8,4"/>
 		</TabControl>
 
-
-		<!-- ======================================= -->
-		<!-- Row 3: Two DataGrids, one per TabItem   -->
-		<!-- Only the visible one is Show/Hidden.    -->
-		<!-- ======================================= -->
+		<!-- =========================== -->
+		<!-- Row 3: Two DataGrids (ItemMaster & Quotation) -->
+		<!-- =========================== -->
 		<Grid Grid.Row="3">
+
 			<!-- ItemMasterDataGrid is visible by default -->
 			<DataGrid x:Name="ItemMasterDataGrid"
                       AutoGenerateColumns="False"
@@ -115,35 +119,63 @@
                       IsReadOnly="True"
                       HeadersVisibility="Column"
                       GridLinesVisibility="All"
-                      Visibility="Visible" />
+                      RowBackground="#FFFFFF"
+                      AlternatingRowBackground="#F9F9F9"
+                      HorizontalGridLinesBrush="#DDDDDD"
+                      VerticalGridLinesBrush="#DDDDDD"
+                      FontSize="12"
+                      ColumnHeaderHeight="30"
+                      RowHeight="28"
+                      Visibility="Visible">
+				<DataGrid.Resources>
+					<!-- Style the column headers directly instead of using DP-as-Key -->
+					<Style TargetType="DataGridColumnHeader">
+						<Setter Property="Background" Value="#F0F0F0"/>
+						<Setter Property="HorizontalContentAlignment" Value="Left"/>
+						<Setter Property="VerticalContentAlignment" Value="Center"/>
+						<Setter Property="FontWeight" Value="SemiBold"/>
+					</Style>
+					<!-- Very thin bottom border on each cell for a cleaner look -->
+					<Style TargetType="DataGridCell">
+						<Setter Property="BorderBrush" Value="#DDDDDD"/>
+						<Setter Property="BorderThickness" Value="0,0,0,1"/>
+						<Setter Property="Padding" Value="4,2"/>
+					</Style>
+				</DataGrid.Resources>
+			</DataGrid>
 
-			<!-- QuotationDataGrid is collapsed initially -->
+			<!-- QuotationDataGrid is hidden initially -->
 			<DataGrid x:Name="QuotationDataGrid"
                       AutoGenerateColumns="False"
                       CanUserResizeColumns="True"
                       IsReadOnly="True"
                       HeadersVisibility="Column"
                       GridLinesVisibility="All"
-                      Visibility="Collapsed" />
+                      RowBackground="#FFFFFF"
+                      AlternatingRowBackground="#F9F9F9"
+                      HorizontalGridLinesBrush="#DDDDDD"
+                      VerticalGridLinesBrush="#DDDDDD"
+                      FontSize="12"
+                      ColumnHeaderHeight="30"
+                      RowHeight="28"
+                      Visibility="Collapsed">
+				<DataGrid.Resources>
+					<!-- Match the same header style for quotation grid -->
+					<Style TargetType="DataGridColumnHeader">
+						<Setter Property="Background" Value="#F0F0F0"/>
+						<Setter Property="HorizontalContentAlignment" Value="Left"/>
+						<Setter Property="VerticalContentAlignment" Value="Center"/>
+						<Setter Property="FontWeight" Value="SemiBold"/>
+					</Style>
+					<Style TargetType="DataGridCell">
+						<Setter Property="BorderBrush" Value="#DDDDDD"/>
+						<Setter Property="BorderThickness" Value="0,0,0,1"/>
+						<Setter Property="Padding" Value="4,2"/>
+					</Style>
+				</DataGrid.Resources>
+			</DataGrid>
 		</Grid>
 
-
-		<!-- ================================ -->
-		<!-- Row 4: Back + Confirm & Process  -->
-		<!-- ================================ -->
-		<StackPanel Grid.Row="4"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="0,12,0,0">
-			<Button Content="Back"
-                    Width="100"
-                    Click="BtnBack_Click"
-                    Margin="0,0,12,0"/>
-			<Button Content="Confirm &amp; Process"
-                    Width="150"
-                    Background="#28a745"
-                    Foreground="White"
-                    Click="BtnConfirm_Click"/>
-		</StackPanel>
+		<!-- Row 4 is just a small spacer (you can leave it blank) -->
 	</Grid>
 </UserControl>
