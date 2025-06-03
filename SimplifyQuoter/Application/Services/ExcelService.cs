@@ -1,4 +1,5 @@
-﻿using System;
+﻿// File: Services/ExcelService.cs
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
@@ -70,9 +71,8 @@ VALUES(
 RETURNING id";
                         cmd.Parameters.AddWithValue("fid", fileId);
                         cmd.Parameters.AddWithValue("idx", rv.RowIndex);
-                        cmd.Parameters.AddWithValue("cells", NpgsqlTypes.NpgsqlDbType.Jsonb, JsonConvert.SerializeObject(rv.Cells));
+                        cmd.Parameters.AddWithValue("cells", NpgsqlDbType.Jsonb, JsonConvert.SerializeObject(rv.Cells));
 
-                        //cmd.Parameters.AddWithValue("cells", JsonConvert.SerializeObject(rv.Cells));
                         bool ready = rv.Cells.Length > 14 &&
                                      string.Equals(rv.Cells[14]?.Trim(),
                                                    "READY",
@@ -134,7 +134,6 @@ VALUES(
 RETURNING id";
                         cmd.Parameters.AddWithValue("fid", fileId);
                         cmd.Parameters.AddWithValue("idx", rv.RowIndex);
-                        //cmd.Parameters.AddWithValue("cells", JsonConvert.SerializeObject(rv.Cells));
                         cmd.Parameters.AddWithValue(
                             "cells",
                             NpgsqlDbType.Jsonb,
@@ -146,6 +145,7 @@ RETURNING id";
                                                    "READY",
                                                    StringComparison.OrdinalIgnoreCase);
                         cmd.Parameters.AddWithValue("ready", ready);
+
                         // default to column C as part_code:
                         cmd.Parameters.AddWithValue("pc",
                             rv.Cells.Length > 2 ? rv.Cells[2] : string.Empty);
@@ -157,6 +157,20 @@ RETURNING id";
                 tx.Commit();
             }
 
+            return Tuple.Create(fileId, rows);
+        }
+
+        /// <summary>
+        /// New method: load SAP Excel from a given file path (no database inserts).
+        /// Returns a new GUID (to stand in for sap_file.id) and the list of RowView.
+        /// </summary>
+        public Tuple<Guid, ObservableCollection<RowView>> LoadSapSheet(string path)
+        {
+            if (!File.Exists(path))
+                throw new FileNotFoundException("Excel file not found.", path);
+
+            var rows = ReadWorksheetIntoRows(path);
+            var fileId = Guid.NewGuid(); // placeholder, since no DB persistence
             return Tuple.Create(fileId, rows);
         }
 
@@ -203,6 +217,5 @@ RETURNING id";
             }
             return rows;
         }
-
     }
 }

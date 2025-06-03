@@ -1,0 +1,94 @@
+﻿<!-- File: Views/UploadPage.xaml -->
+<UserControl x:Class="SimplifyQuoter.Views.UploadPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Height="Auto"
+             Width="Auto"
+             Background="White">
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- Spacer above card -->
+            <RowDefinition Height="40"/>
+            <!-- Upload card -->
+            <RowDefinition Height="Auto"/>
+            <!-- Spacer below card, then link -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+
+        <!-- ========== Centered Upload Card ========== -->
+        <Border Grid.Row="1"
+            Width="600"
+            Height="300"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            CornerRadius="8"
+            Background="white"
+            BorderBrush="white"
+            BorderThickness="2"
+            SnapsToDevicePixels="True">
+            <!-- Dashed outline via StrokeDashArray requires Path or Rectangle: use Rectangle for simplicity -->
+            <Grid>
+                <Rectangle Stroke="#CCC"
+                   StrokeThickness="2"
+                   RadiusX="8"
+                   RadiusY="8"
+                   StrokeDashArray="6,4"
+                   Fill="Transparent"/>
+
+                <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Width="450">
+                    <!-- Upload icon: simple arrow ↑ -->
+                    <Path Data="M0,10 L10,0 L20,10 M10,0 L10,20"
+                Stroke="#888"
+                StrokeThickness="2"
+                Stretch="Uniform"
+                Width="40"
+                Height="40"
+                HorizontalAlignment="Center"
+                Margin="0,0,0,10"/>
+
+                    <!-- Primary instruction text -->
+                    <TextBlock Text="Drag or drop your Excel file here or click to browse"
+                     FontSize="18"
+                     Foreground="#444"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap"
+                     Margin="0,0,0,15"/>
+
+                    <!-- “Browse files” button -->
+                    <Button Content="Browse files"
+                  Click="BtnBrowse_Click"
+                  Width="160"
+                  Height="36"
+                  HorizontalAlignment="Center"
+                  Background="#EEE"
+                  Foreground="#333"
+                  BorderBrush="#CCC"
+                  FontSize="14"
+                  Padding="4"/>
+
+                    <!-- Subtitle: format and size -->
+                    <TextBlock Text="CSV or XLSX"
+                     FontSize="12"
+                     Foreground="#666"
+                     TextAlignment="Center"
+                     Margin="0,10,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ========== Download sample link below ========== -->
+        <TextBlock Grid.Row="2"
+               HorizontalAlignment="Center"
+               Margin="0,21,0,29"
+               FontSize="12" Grid.RowSpan="2">
+      <Hyperlink Click="DownloadSample_Click"
+                 Foreground="#0066CC"
+                 TextDecorations="None">
+        Download sample file
+      </Hyperlink>
+        </TextBlock>
+    </Grid>
+</UserControl>

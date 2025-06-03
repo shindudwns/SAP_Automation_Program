@@ -128,6 +128,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Domain\Models\AutomationWizardState.cs" />
     <Compile Include="UI\Converters\ValueToWidthConverter.cs" />
     <Compile Include="Domain\Models\RowView.cs" />
     <Compile Include="Application\Services\AiEnrichmentService.cs" />
@@ -159,11 +160,20 @@
     <Compile Include="UI\Views\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\Views\ProcessWindow.xaml.cs">
-      <DependentUpon>ProcessWindow.xaml</DependentUpon>
+    <Compile Include="UI\Views\ProcessPage.xaml.cs">
+      <DependentUpon>ProcessPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\Views\ReviewWindow.xaml.cs">
-      <DependentUpon>ReviewWindow.xaml</DependentUpon>
+    <Compile Include="UI\Views\ReviewConfirmPage.xaml.cs">
+      <DependentUpon>ReviewConfirmPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Views\SelectItemsPage.xaml.cs">
+      <DependentUpon>SelectItemsPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Views\UploadPage.xaml.cs">
+      <DependentUpon>UploadPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Views\WizardWindow.xaml.cs">
+      <DependentUpon>WizardWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="UI\Views\ImportWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -189,11 +199,19 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="UI\Views\ProcessWindow.xaml">
+    <Page Include="UI\Views\ProcessPage.xaml">
       <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
-    <Page Include="UI\Views\ReviewWindow.xaml">
+    <Page Include="UI\Views\ReviewConfirmPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Views\SelectItemsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Views\UploadPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Views\WizardWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

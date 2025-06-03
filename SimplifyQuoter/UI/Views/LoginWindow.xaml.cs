@@ -32,12 +32,11 @@ namespace SimplifyQuoter.Views
                 Owner = this
             };
             licenseWindow.ShowDialog();
-            // When user closes it, execution returns here.
         }
 
         private async void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            // 1) Check that LicenseCode is non‐empty
+            // 1) Ensure LicenseCode is entered
             if (string.IsNullOrWhiteSpace(LicenseCode))
             {
                 MessageBox.Show(
@@ -49,7 +48,7 @@ namespace SimplifyQuoter.Views
                 return;
             }
 
-            // 2) Validate the license code in the database
+            // 2) Check license in database
             bool isValidCode;
             using (var db = new DatabaseService())
             {
@@ -72,12 +71,12 @@ namespace SimplifyQuoter.Views
             {
                 await SlClient.LoginAsync(CompanyDB, UserName, Password);
 
-                // 4) On successful login, write to acceptance_log
+                // 4) Log acceptance
                 using (var db = new DatabaseService())
                 {
                     string localIp = GetLocalIPAddress();
                     string deviceInfo = Environment.MachineName;
-                    string agreementVersion = "1.0"; // Or pull from config
+                    string agreementVersion = "1.0"; // Or read from config
 
                     db.LogAcceptance(
                         licenseCode: LicenseCode,
@@ -88,8 +87,8 @@ namespace SimplifyQuoter.Views
                     );
                 }
 
-                // 5) Close the login dialog with success
-                DialogResult = true;
+                // 5) Indicate success, close dialog
+                DialogResult = true;   // <— This makes ShowDialog() return “true”
             }
             catch (Exception ex)
             {
@@ -99,7 +98,7 @@ namespace SimplifyQuoter.Views
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );
-                // Do NOT set DialogResult, so ShowDialog() returns false
+                // Don’t set DialogResult, so ShowDialog() returns false
             }
         }
 
