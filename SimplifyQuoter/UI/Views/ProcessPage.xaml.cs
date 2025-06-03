@@ -158,8 +158,9 @@ namespace SimplifyQuoter.Views
 
             //
             // ─── (Optional) If you also need to send Quotation DTOs ────────────────────────────
-            //     If your flow does not include quotations, you can remove this block entirely.
+            //     If your flow does not include quotations, you can remove or comment out this block entirely.
             //
+            /*
             var quoteService = new QuotationService(_slClient);
             for (int i = 0; i < quotationDtos.Count; i++)
             {
@@ -179,6 +180,7 @@ namespace SimplifyQuoter.Views
                 // Note: We do NOT bump ProcessedCount again here, 
                 // because ProcessedCount specifically reflects the ItemMaster loop.
             }
+            */
 
             AppendConsole($"[{Timestamp}] All {ProcessedCount}/{TotalCount} rows processed.");
 
@@ -190,6 +192,7 @@ namespace SimplifyQuoter.Views
                 MessageBoxImage.Information
             );
         }
+
 
         /// <summary>
         /// Returns the current time as "HH:mm:ss" for console logging.
