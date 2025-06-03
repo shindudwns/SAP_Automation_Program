@@ -1,5 +1,4 @@
-﻿// File: Views/WizardWindow.xaml.cs
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using SimplifyQuoter.Models;
@@ -112,8 +111,18 @@ namespace SimplifyQuoter.Views
 
         private void StepCircle3_Click(object sender, MouseButtonEventArgs e)
         {
-            if (StepCircle3.IsEnabled)
+            // Only attempt to proceed if “Selected Items” has at least one row.
+            if (!StepCircle3.IsEnabled)
+                return;
+
+            // Ask SelectItemsPage to validate & transfer its inputs into the shared state.
+            // If TryProceedToReview() returns true, we know it was valid → move to step 3.
+            bool ok = _selectItemsPage.TryProceedToReview();
+            if (ok)
+            {
                 ShowStep(3);
+            }
+            // If it wasn’t ok, TryProceedToReview already showed a MessageBox, so do nothing more.
         }
 
         private void StepCircle4_Click(object sender, MouseButtonEventArgs e)

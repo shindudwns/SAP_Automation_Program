@@ -4,8 +4,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
 using SimplifyQuoter.Models;
-using System.Windows.Navigation;      // ← Needed for NavigationService
-using SimplifyQuoter.Views;           // ← Needed to reference ReviewConfirmPage
+using System.Windows.Navigation;      
+using SimplifyQuoter.Views;         
 
 namespace SimplifyQuoter.Views
 {
@@ -204,6 +204,47 @@ namespace SimplifyQuoter.Views
 
             // Optionally, you can still raise ProceedToReview if something else listens to it:
             ProceedToReview?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Public wrapper so that WizardWindow can “simulate” clicking Next.
+        /// Returns true if navigation-to-review was allowed (i.e. at least one row was selected).
+        /// </summary>
+        public bool TryProceedToReview()
+        {
+            // Copy of BtnNext_Click’s validation & state‐copy logic, 
+            // except we do NOT re‐invoke NavigationService here.
+            var state = AutomationWizardState.Current;
+
+            if (state.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Please select at least one row (via range or by clicking).",
+                                "Selection Required",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
+                return false;
+            }
+
+            // 1) Parse Margin % from txt box:
+            if (double.TryParse(TxtMargin.Text.Trim(), out double marginVal))
+            {
+                state.MarginPercent = marginVal;
+            }
+            else
+            {
+                state.MarginPercent = 0.0;
+            }
+
+            // 2) Grab UoM text from the combo box:
+            state.UoM = CmbUoM.Text?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(state.UoM))
+            {
+                state.UoM = "EACH";
+            }
+
+            // Raise the same event that BtnNext_Click would have:
+            ProceedToReview?.Invoke(this, EventArgs.Empty);
+            return true;
         }
     }
 }
