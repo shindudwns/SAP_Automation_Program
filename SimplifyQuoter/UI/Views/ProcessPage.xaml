@@ -4,51 +4,51 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Height="Auto"
              Width="Auto">
-    <Grid Margin="20">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*"/>
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+	<Grid Margin="20">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="2*"/>
+			<ColumnDefinition Width="*" />
+		</Grid.ColumnDefinitions>
 
-        <!-- Left: Progress + Server/User Info -->
-        <StackPanel Grid.Column="0" Margin="0,0,10,0">
-            <!-- Server/User -->
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                <TextBlock Text="Server:" FontWeight="Bold"/>
-                <TextBlock Text="{Binding ServerName}" Margin="5,0,20,0"/>
-                <TextBlock Text="User:" FontWeight="Bold"/>
-                <TextBlock Text="{Binding UserName}" Margin="5,0,0,0"/>
-            </StackPanel>
+		<!-- Left: Progress + Server/User Info -->
+		<StackPanel Grid.Column="0" Margin="0,0,10,0">
+			<!-- Server/User -->
+			<StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+				<TextBlock Text="Server:" FontWeight="Bold"/>
+				<TextBlock Text="{Binding ServerName}" Margin="5,0,20,0"/>
+				<TextBlock Text="User:" FontWeight="Bold"/>
+				<TextBlock Text="{Binding UserName}" Margin="5,0,0,0"/>
+			</StackPanel>
 
-            <!-- Items: count + progress bar -->
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="Items:" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding ProcessedCount}" Margin="5,0" VerticalAlignment="Center"/>
-                <TextBlock Text="/" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding TotalCount}" Margin="5,0,0,0" VerticalAlignment="Center"/>
-            </StackPanel>
+			<!-- Items: count + progress bar -->
+			<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+				<TextBlock Text="Items:" VerticalAlignment="Center"/>
+				<TextBlock Text="{Binding ProcessedCount}" Margin="5,0" VerticalAlignment="Center"/>
+				<TextBlock Text="/" VerticalAlignment="Center"/>
+				<TextBlock Text="{Binding TotalCount}" Margin="5,0,0,0" VerticalAlignment="Center"/>
+			</StackPanel>
 
-            <ProgressBar x:Name="ImdProgressBar"
+			<ProgressBar x:Name="ImdProgressBar"
                    Height="20"
                    Minimum="0"
                    Maximum="{Binding TotalCount}"
                    Value="{Binding ProcessedCount}"
                    Margin="0,10,0,0"/>
 
-            <TextBlock Text="{Binding PercentText}" Margin="0,5,0,0"/>
-        </StackPanel>
+			<TextBlock Text="{Binding PercentText}" Margin="0,5,0,0"/>
+		</StackPanel>
 
-        <!-- Right: Live console (use ListBox so we can ScrollIntoView) -->
-        <Border Grid.Column="1"
+		<!-- Right: Live console (use ListBox so we can ScrollIntoView) -->
+		<Border Grid.Column="1"
             BorderBrush="#CCC"
             BorderThickness="1"
             CornerRadius="4">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ListBox x:Name="ConsoleList"
+			<ScrollViewer VerticalScrollBarVisibility="Auto">
+				<ListBox x:Name="ConsoleList"
                  ItemsSource="{Binding ConsoleMessages}"
                  FontFamily="Consolas"
                  FontSize="12"/>
-            </ScrollViewer>
-        </Border>
-    </Grid>
+			</ScrollViewer>
+		</Border>
+	</Grid>
 </UserControl>
