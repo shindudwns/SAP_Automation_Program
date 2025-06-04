@@ -80,8 +80,12 @@ namespace SimplifyQuoter.Views
             InitializeComponent();
             DataContext = this;
 
-            // Whenever a new FailedItemViewModel is added, hook its PropertyChanged so we know when
-            // IsSelectedToUpdate toggles.  That way, the "Patch Selected" button can enable/disable itself.
+            //
+            // ─── Listen for new items being added into FailedItems ─────────────────────────
+            //
+            // As soon as we add a new FailedItemViewModel to the collection (in the "already exists" branch),
+            // we hook up its PropertyChanged so we can detect when its IsSelectedToUpdate toggles.
+            //
             FailedItems.CollectionChanged += FailedItems_CollectionChanged;
 
             var state = AutomationWizardState.Current;
@@ -93,7 +97,7 @@ namespace SimplifyQuoter.Views
             else
                 ServerName = "(unknown)";
 
-            // We’ll set TotalCount when the control actually loads and we know how many ItemDto’s there are.
+            // We will set TotalCount in ProcessPage_Loaded once we know how many items are in the list
             TotalCount = 0;
             ProcessedCount = 0;
 
@@ -116,7 +120,7 @@ namespace SimplifyQuoter.Views
             var itemDtos = state.MergedItemMasterDtos;
             if (itemDtos == null)
             {
-                // No ReplaceExcel override, rebuild from SelectedRows:
+                // No “Replace Excel” override, rebuild from SelectedRows:
                 double marginPct = state.MarginPercent;
                 string uom = state.UoM;
                 itemDtos = new List<ItemDto>(state.SelectedRows.Count);
@@ -127,13 +131,13 @@ namespace SimplifyQuoter.Views
                 }
             }
 
-            // 2) Initialize counters and tracking lists
+            // 2) Initialize counters
             TotalCount = itemDtos.Count;
             ProcessedCount = 0;
 
             var succeededItems = new List<string>();
             var outrightFailed = new List<string>();
-            // “outrightFailed” = those that got a 400/500 for reasons other than “already exists”
+            // “outrightFailed” = items that failed for reasons other than “already exists”
 
             // 3) Attempt to CREATE each item
             var itemService = new ItemService(_slClient);
@@ -144,15 +148,16 @@ namespace SimplifyQuoter.Views
 
                 try
                 {
-                    // Try to POST a brand‐new item
+                    // 3.a) Try to POST a brand-new item
                     await itemService.CreateOrUpdateAsync(dto);
                     AppendConsole($"[{Timestamp}] ✔ Created: {logPart}");
                     succeededItems.Add(logPart);
                 }
                 catch (HttpRequestException httpEx)
                 {
-                    // If it’s “already exists,” queue for patching:
-                    if (httpEx.Message.IndexOf("already exists", StringComparison.OrdinalIgnoreCase) >= 0)
+                    // 3.b) If it’s “already exists,” queue for patching:
+                    if (!string.IsNullOrEmpty(httpEx.Message) &&
+                        httpEx.Message.IndexOf("already exists", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         try
                         {
@@ -176,14 +181,14 @@ namespace SimplifyQuoter.Views
                     }
                     else
                     {
-                        // Some other HTTP‐level failure
+                        // 3.c) Some other HTTP-level failure
                         AppendConsole($"[{Timestamp}] ✘ Error for '{logPart}': {httpEx.Message}");
                         outrightFailed.Add(logPart);
                     }
                 }
                 catch (Exception ex)
                 {
-                    // Unexpected failure
+                    // 3.d) Unexpected failure
                     AppendConsole($"[{Timestamp}] ✘ Unexpected error for '{logPart}': {ex.Message}");
                     outrightFailed.Add(logPart);
                 }
@@ -214,7 +219,7 @@ namespace SimplifyQuoter.Views
             }
             else
             {
-                AppendConsole($"[{Timestamp}] No outright failures (other than “already exists”).");
+                AppendConsole($"[{Timestamp}] No outright failures (other than \"already exists\").");
             }
 
             if (FailedItems.Count > 0)
@@ -237,7 +242,7 @@ namespace SimplifyQuoter.Views
             BtnSelectAll.IsEnabled = FailedItems.Count > 0;
             BtnDeselectAll.IsEnabled = FailedItems.Count > 0;
 
-            // “Patch Selected” remains disabled by default—you must check at least one row manually
+            // “Patch Selected” remains disabled until the user actually checks at least one checkbox.
             BtnPatchSelected.IsEnabled = false;
         }
 
@@ -264,7 +269,7 @@ namespace SimplifyQuoter.Views
         }
 
         /// <summary>
-        /// When any FailedItemViewModel is added to the collection, subscribe to its PropertyChanged
+        /// When any new FailedItemViewModel is added to the collection, subscribe to its PropertyChanged
         /// so that we can detect when IsSelectedToUpdate toggles.
         /// </summary>
         private void FailedItems_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -338,8 +343,8 @@ namespace SimplifyQuoter.Views
             AppendConsole($"[{Timestamp}] PATCH operation complete. {patchCount} item(s) updated.");
             RefreshPatchButtonState();
 
-            // 6) Finally, after patching, we also insert (or update) the job_log row:
-            //    We record total_cells, success_count, failure_count, and patch_count here.
+            // 6) Finally, after patching, insert/update the job_log row:
+            //    record total_cells, success_count, failure_count, and patch_count here.
             var state = AutomationWizardState.Current;
             int totalCells = TotalCount;                      // original number of items
             int successCount = (TotalCount - FailedItems.Count) + patchCount;
@@ -366,12 +371,12 @@ namespace SimplifyQuoter.Views
         }
 
         /// <summary>
-        /// Returns “HH:mm:ss”‐formatted timestamp for console logging.
+        /// Returns “HH:mm:ss”-formatted timestamp for console logging.
         /// </summary>
         private string Timestamp => DateTime.Now.ToString("HH:mm:ss");
 
         /// <summary>
-        /// Adds a new line to the console area; the ItemsControl/ScrollViewer in XAML auto‐scrolls.
+        /// Adds a new line to the console area; the ItemsControl/ScrollViewer in XAML auto-scrolls.
         /// </summary>
         private void AppendConsole(string message)
         {
@@ -388,7 +393,7 @@ namespace SimplifyQuoter.Views
     }
 
     /// <summary>
-    /// VM for each “already existed” item.  Shows old vs. new prices and a checkbox.
+    /// VM for each “already existed” item. Shows old vs. new prices and a checkbox.
     /// </summary>
     public class FailedItemViewModel : INotifyPropertyChanged
     {
@@ -429,7 +434,11 @@ namespace SimplifyQuoter.Views
             }
         }
 
-        public FailedItemViewModel(string itemCode, double oldPurch, double oldSales, double newPurch, double newSales)
+        public FailedItemViewModel(string itemCode,
+                                   double oldPurch,
+                                   double oldSales,
+                                   double newPurch,
+                                   double newSales)
         {
             ItemCode = itemCode;
             OldPurchasingPrice = oldPurch;

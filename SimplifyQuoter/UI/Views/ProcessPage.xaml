@@ -2,13 +2,9 @@
 <UserControl x:Class="SimplifyQuoter.Views.ProcessPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Height="Auto"
-             Width="Auto"
-             Background="White">
+             Background="White"
+             Height="Auto" Width="Auto">
 
-    <!-- ──────────────────────────────────────────────────────────────────────── -->
-    <!-- 1) Shared resources (e.g. centering Checkbox, removing default selection) -->
-    <!-- ──────────────────────────────────────────────────────────────────────── -->
     <UserControl.Resources>
         <!-- Center a CheckBox inside its DataGridCell -->
         <Style x:Key="CenteredCheckBoxStyle" TargetType="CheckBox">
@@ -19,15 +15,12 @@
 
         <!-- A RowStyle that forces every DataGridRow to stay un-highlighted -->
         <Style x:Key="NoHighlightDataGridRowStyle" TargetType="DataGridRow">
-            <!-- Even in normal state, make background white and no border -->
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Foreground" Value="Black"/>
-
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <!-- When selected, keep the background transparent/white and text black -->
                     <Setter Property="Background" Value="White"/>
                     <Setter Property="Foreground" Value="Black"/>
                 </Trigger>
@@ -36,16 +29,13 @@
 
         <!-- A CellStyle that forces every DataGridCell to stay un-highlighted -->
         <Style x:Key="NoHighlightDataGridCellStyle" TargetType="DataGridCell">
-            <!-- Default: transparent background, thin vertical border -->
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="#DDDDDD"/>
             <Setter Property="BorderThickness" Value="0,0,1,0"/>
             <Setter Property="Padding" Value="4,2"/>
             <Setter Property="Foreground" Value="Black"/>
-
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <!-- When selected, force transparency and black text -->
                     <Setter Property="Background" Value="Transparent"/>
                     <Setter Property="Foreground" Value="Black"/>
                 </Trigger>
@@ -55,52 +45,26 @@
 
 
     <Grid Margin="20">
-        <!-- Two columns: Left = 3* (failed items), Right = 2* (console) -->
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*"/>
             <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
-
-        <!-- Three rows: 
-             Row0 = Server/User info 
-             Row1 = ProgressBar + overlay 
-             Row2 = Main content (left = failed items, right = console) -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-
-        <!-- ────────────────────────────────────────────────────────────────── -->
-        <!-- Row 0 (spans both columns): “Server:” and “User:” text blocks  -->
-        <!-- ────────────────────────────────────────────────────────────────── -->
+        <!-- Row 0: Server/User info (spans both columns) -->
         <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                     Orientation="Horizontal" Margin="0,0,0,10">
-            <TextBlock Text="Server: "
-                       FontWeight="Bold"
-                       VerticalAlignment="Center"
-                       FontFamily="Segoe UI"/>
-            <TextBlock Text="{Binding ServerName}"
-                       VerticalAlignment="Center"
-                       Margin="4,0,0,0"
-                       FontFamily="Segoe UI"/>
-
-            <TextBlock Text="   User: "
-                       FontWeight="Bold"
-                       VerticalAlignment="Center"
-                       Margin="20,0,0,0"
-                       FontFamily="Segoe UI"/>
-            <TextBlock Text="{Binding UserName}"
-                       VerticalAlignment="Center"
-                       Margin="4,0,0,0"
-                       FontFamily="Segoe UI"/>
+            <TextBlock Text="Server: " FontWeight="Bold" FontFamily="Segoe UI"/>
+            <TextBlock Text="{Binding ServerName}" Margin="4,0,0,0" FontFamily="Segoe UI"/>
+            <TextBlock Text="   User: " FontWeight="Bold" Margin="20,0,0,0" FontFamily="Segoe UI"/>
+            <TextBlock Text="{Binding UserName}" Margin="4,0,0,0" FontFamily="Segoe UI"/>
         </StackPanel>
 
-
-        <!-- ────────────────────────────────────────────────────────────────── -->
-        <!-- Row 1 (spans both columns): ProgressBar + “XX%” overlay        -->
-        <!-- ────────────────────────────────────────────────────────────────── -->
+        <!-- Row 1: ProgressBar + “XX%” overlay (spans both columns) -->
         <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,10">
             <ProgressBar x:Name="ProgressBarControl"
                          Minimum="0"
@@ -118,10 +82,7 @@
                        FontFamily="Segoe UI"/>
         </Grid>
 
-
-        <!-- ────────────────────────────────────────────────────────────────── -->
-        <!-- Row 2, Column 0: Left Pane = Failed Items + toolbar            -->
-        <!-- ────────────────────────────────────────────────────────────────── -->
+        <!-- Row 2, Column 0: Left Pane = Failed Items + toolbar -->
         <Border Grid.Row="2" Grid.Column="0"
                 Background="White"
                 CornerRadius="6"
@@ -132,12 +93,10 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <!-- Toolbar row -->
                     <RowDefinition Height="*"/>
-                    <!-- DataGrid row -->
                 </Grid.RowDefinitions>
 
-                <!-- ===== Toolbar Buttons: Select All / Deselect All / Patch Selected ===== -->
+                <!-- Toolbar: Select All / Deselect All / Patch Selected -->
                 <StackPanel Grid.Row="0"
                             Orientation="Horizontal"
                             HorizontalAlignment="Right"
@@ -180,7 +139,7 @@
                             Click="BtnPatchSelected_Click"/>
                 </StackPanel>
 
-                <!-- ===== Failed Items DataGrid ===== -->
+                <!-- Failed Items DataGrid -->
                 <DataGrid x:Name="FailedItemsDataGrid"
                           Grid.Row="1"
                           AutoGenerateColumns="False"
@@ -201,22 +160,22 @@
                           RowStyle="{StaticResource NoHighlightDataGridRowStyle}"
                           CellStyle="{StaticResource NoHighlightDataGridCellStyle}">
 
-                    <!-- ===== Column Definitions ===== -->
+                    <!-- Columns -->
                     <DataGrid.Columns>
                         <!-- 1) “Update?” CheckBox column, centered -->
                         <DataGridCheckBoxColumn Header="Update?"
-                                                Binding="{Binding IsSelectedToUpdate, Mode=TwoWay}"
+                                                Binding="{Binding IsSelectedToUpdate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 Width="Auto"
                                                 ElementStyle="{StaticResource CenteredCheckBoxStyle}"
                                                 EditingElementStyle="{StaticResource CenteredCheckBoxStyle}"/>
 
-                        <!-- 2) Item Code (read-only text) -->
+                        <!-- 2) Item Code (read-only) -->
                         <DataGridTextColumn Header="Item Code"
                                             Binding="{Binding ItemCode}"
                                             IsReadOnly="True"
                                             Width="2*"/>
 
-                        <!-- 3) Old Purchase Price (light gray background) -->
+                        <!-- 3) Old Purchasing Price -->
                         <DataGridTextColumn Header="Old Purchasing"
                                             Binding="{Binding OldPurchasingPrice}"
                                             IsReadOnly="True"
@@ -231,8 +190,7 @@
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
 
-
-                        <!-- 5) New Purchase Price (light green background) -->
+                        <!-- 4) New Purchasing Price -->
                         <DataGridTextColumn Header="New Purchasing"
                                             Binding="{Binding NewPurchasingPrice}"
                                             IsReadOnly="True"
@@ -248,7 +206,7 @@
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
 
-                        <!-- 4) Old Sales Price (light gray background) -->
+                        <!-- 5) Old Sales Price -->
                         <DataGridTextColumn Header="Old Sales"
                                             Binding="{Binding OldSalesPrice}"
                                             IsReadOnly="True"
@@ -263,7 +221,7 @@
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
 
-                        <!-- 6) New Sales Price (light green background) -->
+                        <!-- 6) New Sales Price -->
                         <DataGridTextColumn Header="New Sales"
                                             Binding="{Binding NewSalesPrice}"
                                             IsReadOnly="True"
@@ -280,9 +238,8 @@
                         </DataGridTextColumn>
                     </DataGrid.Columns>
 
-                    <!-- ===== In-place overrides for header & cell styles (thin vertical lines only) ===== -->
+                    <!-- Override header & cell styles to remove the default selection behavior -->
                     <DataGrid.Resources>
-                        <!-- Column header style (light gray background, centered) -->
                         <Style TargetType="DataGridColumnHeader">
                             <Setter Property="Background" Value="#F0F0F0"/>
                             <Setter Property="Foreground" Value="#333333"/>
@@ -292,8 +249,6 @@
                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
                             <Setter Property="Height" Value="32"/>
                         </Style>
-
-                        <!-- Cell style: use our NoHighlightDataGridCellStyle as default -->
                         <Style TargetType="DataGridCell">
                             <Setter Property="Background" Value="Transparent"/>
                             <Setter Property="BorderBrush" Value="#DDDDDD"/>
@@ -313,10 +268,7 @@
             </Grid>
         </Border>
 
-
-        <!-- ────────────────────────────────────────────────────────────────── -->
-        <!-- Row 2, Column 1: Right Pane = “Console” panel (unchanged)       -->
-        <!-- ────────────────────────────────────────────────────────────────── -->
+        <!-- Row 2, Column 1: Right Pane = “Console” panel -->
         <Border Grid.Row="2" Grid.Column="1"
                 Background="#F5F5F5"
                 CornerRadius="6"
