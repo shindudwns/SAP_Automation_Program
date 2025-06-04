@@ -313,14 +313,14 @@ namespace SimplifyQuoter.Services
         /// <summary>
         /// Generate a ≤20-word summary for the specified part code.
         /// </summary>
-        public async Task<string> GeneratePartSummaryAsync(string code)
+        public async Task<string> GeneratePartSummaryAsync(string code, string brand)
         {
             if (string.IsNullOrWhiteSpace(code))
                 return string.Empty;
 
             // Prompt for concise summary
             var prompt = $@"
-                Generate a concise product name and its key specifications for the part number ""{code}"".  
+                Generate a concise product name and its key specifications for the part number ""{code}"" from this brand: ""{brand}"".  
                 • Only output the product's usage & specs, such as weight, length, volume, separated by commas.  
                 • Do not add any name of product, surrounding sentences, adjectives or explanations.  
                 • Use ALL CAPITAL LETTERS.

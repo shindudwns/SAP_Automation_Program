@@ -190,7 +190,7 @@ namespace SimplifyQuoter.Services
             using (var ai = new AiEnrichmentService())
             {
                 // 5.1) Get concise summary
-                var description = await ai.GeneratePartSummaryAsync(part);
+                var description = await ai.GeneratePartSummaryAsync(part, brand);
 
                 // 5.2) Determine SL group code
                 var groupCode = await ai.DetermineItemGroupCodeAsync(part, brand);
