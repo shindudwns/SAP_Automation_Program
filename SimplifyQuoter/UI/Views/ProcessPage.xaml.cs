@@ -41,7 +41,7 @@ namespace SimplifyQuoter.Views
 
         private int _totalCount;
         /// <summary>
-        /// Total number of items to process (set when Loaded fires).
+        /// Total number of items to process (set when Loaded fires or when patching starts).
         /// </summary>
         public int TotalCount
         {
@@ -103,7 +103,8 @@ namespace SimplifyQuoter.Views
             UserName = state.UserName ?? "(unknown)";
 
             if (_slClient?.HttpClient?.BaseAddress != null)
-                ServerName = _slClient.HttpClient.BaseAddress.GetLeftPart(UriPartial.Authority);
+                //ServerName = _slClient.HttpClient.BaseAddress.GetLeftPart(UriPartial.Authority);
+                ServerName = "SM_NEW_PROD";
             else
                 ServerName = "(unknown)";
 
@@ -118,7 +119,7 @@ namespace SimplifyQuoter.Views
         /// Fired once when the control appears.
         /// 1) Builds the definitive ItemDto list (Merged or new from SelectedRows).
         /// 2) Loops through each, attempting Create.  If “already exists,” GET existing prices → enqueue in FailedItems.
-        /// 3) After the create‐pass, shows a console summary and enables the “Patch” toolbar if there are any FailedItems.
+        /// 3) After the create-pass, shows a console summary and enables the “Patch” toolbar if there are any FailedItems.
         /// </summary>
         private async void ProcessPage_Loaded(object sender, RoutedEventArgs e)
         {
@@ -141,9 +142,9 @@ namespace SimplifyQuoter.Views
                 }
             }
 
-            // 2) Initialize counters
-            TotalCount = itemDtos.Count;  // Now raises PropertyChanged → ProgressBar.Maximum updates
-            ProcessedCount = 0;           // Raises PropertyChanged → ProgressBar.Value updates
+            // 2) Initialize counters for creation pass
+            TotalCount = itemDtos.Count;  // Raises PropertyChanged ⇒ ProgressBar.Maximum updates
+            ProcessedCount = 0;           // Raises PropertyChanged ⇒ ProgressBar.Value updates
 
             var succeededItems = new List<string>();
             var outrightFailed = new List<string>();
@@ -203,7 +204,7 @@ namespace SimplifyQuoter.Views
                     outrightFailed.Add(logPart);
                 }
 
-                ProcessedCount++;  // Raises PropertyChanged → ProgressBar.Value & PercentText update
+                ProcessedCount++;  // Raises PropertyChanged ⇒ ProgressBar.Value & PercentText update
             }
 
             // 4) Summarize the CREATE pass in the console
@@ -297,7 +298,7 @@ namespace SimplifyQuoter.Views
         }
 
         /// <summary>
-        /// When a single FailedItemViewModel’s PropertyChanged fires, check if it was “IsSelectedToUpdate”— 
+        /// When a single FailedItemViewModel’s PropertyChanged fires, check if it was “IsSelectedToUpdate”—
         /// and if so, update the “Patch Selected” button’s enabled state.
         /// </summary>
         private void FailedItemViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -317,13 +318,17 @@ namespace SimplifyQuoter.Views
         }
 
         /// <summary>
-        /// “Patch Selected” button clicked – perform PATCH for every checked item.
-        /// Automatically un‐checks each once done.
+        /// “Patch Selected” button clicked – perform PATCH for every checked item,
+        /// and update the ProgressBar as each patch completes.
         /// </summary>
         private async void BtnPatchSelected_Click(object sender, RoutedEventArgs e)
         {
             var toPatch = FailedItems.Where(vm => vm.IsSelectedToUpdate).ToList();
             if (!toPatch.Any()) return;
+
+            // ─── Reset progress indicators for the patch step ─────────────────────────
+            TotalCount = toPatch.Count;   // Re-bind ProgressBar.Maximum to number of items being patched
+            ProcessedCount = 0;           // Start at 0 so the bar is empty initially
 
             AppendConsole($"[{Timestamp}] Starting PATCH of {toPatch.Count} selected items...");
 
@@ -348,17 +353,23 @@ namespace SimplifyQuoter.Views
                 {
                     AppendConsole($"[{Timestamp}] ✘ PATCH failed for {vm.ItemCode}: {ex.Message}");
                 }
+
+                // ─── Increment the processed‐count so the ProgressBar moves ─────────
+                ProcessedCount++;
             }
 
             AppendConsole($"[{Timestamp}] PATCH operation complete. {patchCount} item(s) updated.");
             RefreshPatchButtonState();
 
+            // ─── (Optional) You could restore the original TotalCount/ProcessedCount here if you want,
+            // but usually showing patch progress independently is sufficient.
+
             // 6) Finally, after patching, insert/update the job_log row:
             //    record total_cells, success_count, failure_count, and patch_count here.
             var state = AutomationWizardState.Current;
-            int totalCells = TotalCount;                      // original number of items
-            int successCount = (TotalCount - FailedItems.Count) + patchCount;
-            int failureCount = FailedItems.Count - patchCount;
+            int totalCells = TotalCount;                      // original number being patched
+            int successCount = patchCount;
+            int failureCount = totalCells - patchCount;
 
             var jobEntry = new JobLogEntry
             {
