@@ -16,14 +16,14 @@ namespace SimplifyQuoter.Views
 {
     /// <summary>
     /// Step 4: ProcessPage loops over each (possibly replaced) ItemDto,
-    /// calls Service Layer, updates a ProgressBar & live console, and shows final completion.
+    /// calls Service Layer, updates a live console, and finally logs the job.
     /// </summary>
     public partial class ProcessPage : UserControl, INotifyPropertyChanged
     {
         private int _processedCount;
 
         /// <summary>
-        /// Number of rows processed so far (updates the progress bar).
+        /// Number of rows processed so far (updates the progress bar, if bound).
         /// </summary>
         public int ProcessedCount
         {
@@ -55,12 +55,12 @@ namespace SimplifyQuoter.Views
         public string ServerName { get; private set; }
 
         /// <summary>
-        /// Username that’s currently logged in (for display).
+        /// Username that’s currently logged in (for display and for job_log.user_id).
         /// </summary>
         public string UserName { get; private set; }
 
         /// <summary>
-        /// An ObservableCollection bound to an ItemsControl to show live console messages.
+        /// An ObservableCollection bound to an ItemsControl (or ListBox) to show live console messages.
         /// </summary>
         public ObservableCollection<string> ConsoleMessages { get; }
             = new ObservableCollection<string>();
@@ -72,7 +72,7 @@ namespace SimplifyQuoter.Views
             InitializeComponent();
             DataContext = this;
 
-            // Grab SL client and username from our shared wizard state:
+            // Grab the SL client and current user from our shared wizard state:
             var state = AutomationWizardState.Current;
             _slClient = state.SlClient;
             UserName = state.UserName ?? string.Empty;
@@ -82,7 +82,7 @@ namespace SimplifyQuoter.Views
             else
                 ServerName = "(unknown)";
 
-            // We'll set TotalCount in the Loaded handler (once we know which DTOs to process).
+            // We will set TotalCount in the Loaded handler once we know which DTOs to process.
             TotalCount = 0;
             ProcessedCount = 0;
 
@@ -90,10 +90,9 @@ namespace SimplifyQuoter.Views
         }
 
         /// <summary>
-        /// When this UserControl is loaded, we pick either the merged DTOs
-        /// (if user clicked “Replace Excel”) or fall back to building from SelectedRows.
-        /// Then we iterate over each ItemDto, call Service Layer, update a ProgressBar & console, and finish.
-        /// Finally, we show a summary of which items succeeded and which failed.
+        /// When this UserControl is loaded, we pick either the merged DTOs (if “Replace Excel” was used)
+        /// or rebuild fresh from SelectedRows.  Then we loop over each ItemDto, call Service Layer,
+        /// update a live console, show a summary of successes/failures, and insert a single row into job_log.
         /// </summary>
         private async void ProcessPage_Loaded(object sender, RoutedEventArgs e)
         {
@@ -101,17 +100,14 @@ namespace SimplifyQuoter.Views
 
             var state = AutomationWizardState.Current;
 
-            // 1) Get the “merged” lists if they exist; otherwise rebuild from SelectedRows:
+            // 1) Determine the definitive list of ItemDto to process:
             var itemDtos = state.MergedItemMasterDtos;
-            var quotationDtos = state.MergedQuotationDtos;
-
             if (itemDtos == null)
             {
-                // No merged ItemMaster – rebuild from SelectedRows + user’s margin/UoM:
+                // Rebuild from SelectedRows + margin/UoM:
                 double marginPct = state.MarginPercent;
                 string uom = state.UoM;
                 itemDtos = new List<ItemDto>(state.SelectedRows.Count);
-
                 foreach (var rv in state.SelectedRows)
                 {
                     var dto = await Transformer.ToItemDtoAsync(rv, marginPct, uom);
@@ -119,28 +115,14 @@ namespace SimplifyQuoter.Views
                 }
             }
 
-            if (quotationDtos == null)
-            {
-                // No merged Quotation – rebuild from SelectedRows:
-                quotationDtos = new List<QuotationDto>(state.SelectedRows.Count);
-                foreach (var rv in state.SelectedRows)
-                {
-                    var qdto = Transformer.ToQuotationDto(rv);
-                    quotationDtos.Add(qdto);
-                }
-            }
-
-            // 2) Now that we have definitive lists, set TotalCount & reset ProcessedCount:
+            // 2) Set up counters and totals
             TotalCount = itemDtos.Count;
             ProcessedCount = 0;
 
-            // Prepare two lists to track successes and failures:
             var succeededItems = new List<string>();
             var failedItems = new List<string>();
 
-            //
-            // ─── Process “Item Master” DTOs ───────────────────────────────────────────────────
-            //
+            // 3) Loop through each ItemDto and call the Service Layer
             var itemService = new ItemService(_slClient);
             for (int i = 0; i < itemDtos.Count; i++)
             {
@@ -150,7 +132,6 @@ namespace SimplifyQuoter.Views
 
                 try
                 {
-                    // Awaiting this call; if it throws, we catch below:
                     await itemService.CreateOrUpdateAsync(dto);
                     AppendConsole($"[{Timestamp}] ✔ Success: Item {logPart}");
                     succeededItems.Add(logPart);
@@ -164,41 +145,16 @@ namespace SimplifyQuoter.Views
                 ProcessedCount++;
             }
 
-            /*
-            // ─── OPTIONAL QUOTATION BLOCK (commented out) ────────────────────────────────────────
-            var quoteService = new QuotationService(_slClient);
-            for (int i = 0; i < quotationDtos.Count; i++)
-            {
-                var qdto = quotationDtos[i];
-                AppendConsole($"[{Timestamp}] Processing Quotation ({i + 1}/{quotationDtos.Count}): {qdto.CardCode}");
-
-                try
-                {
-                    await quoteService.CreateAsync(qdto);
-                    AppendConsole($"[{Timestamp}] ✔ Quotation Success: {qdto.CardCode}");
-                }
-                catch (Exception ex)
-                {
-                    AppendConsole($"[{Timestamp}] ✘ Quotation Error: {ex.Message}");
-                }
-
-                // Note: We do NOT bump ProcessedCount again here,
-                // because ProcessedCount specifically reflects the ItemMaster loop.
-            }
-            */
-
+            // 4) When done, print a final “All done” line in the console
             AppendConsole($"[{Timestamp}] All {ProcessedCount}/{TotalCount} rows processed.");
+            AppendConsole(string.Empty);
 
-            // ─── Instead of a MessageBox, append a summary inside the console area ─────────────
-            AppendConsole(""); // blank line for spacing
-
+            // 5) Print a summary of which items succeeded and which failed
             if (succeededItems.Count > 0)
             {
                 AppendConsole($"[{Timestamp}] {succeededItems.Count} succeeded:");
                 foreach (var part in succeededItems)
-                {
                     AppendConsole($"   • {part}");
-                }
             }
             else
             {
@@ -209,19 +165,37 @@ namespace SimplifyQuoter.Views
             {
                 AppendConsole($"[{Timestamp}] {failedItems.Count} failed:");
                 foreach (var part in failedItems)
-                {
                     AppendConsole($"   • {part}");
-                }
             }
             else
             {
                 AppendConsole($"[{Timestamp}] No items failed.");
             }
 
-            // (Optionally keep a blank line at the end)
-            AppendConsole("");
-        }
+            AppendConsole(string.Empty);
 
+            // 6) Finally—write a single row into job_log so we can track this run
+            var jobEntry = new JobLogEntry
+            {
+                // Let DB generate its own UUID if we pass null here:
+                Id = null,
+                UserId = state.UserName ?? "UNKNOWN_USER",
+                FileName = state.UploadedFilePath ?? "UNKNOWN_FILE",
+                JobType = "ItemMasterImport",
+                StartedAt = DateTime.Now.AddSeconds(-ProcessedCount), // approximate
+                CompletedAt = DateTime.Now,
+                TotalCells = TotalCount,
+                SuccessCount = succeededItems.Count,
+                FailureCount = failedItems.Count
+            };
+
+            using (var db = new DatabaseService())
+            {
+                db.InsertJobLog(jobEntry);
+            }
+
+            // That’s it—do NOT pop up a MessageBox (we already wrote everything into the console).
+        }
 
         /// <summary>
         /// Returns the current time as "HH:mm:ss" for console logging.
@@ -229,17 +203,17 @@ namespace SimplifyQuoter.Views
         private string Timestamp => DateTime.Now.ToString("HH:mm:ss");
 
         /// <summary>
-        /// Add a new message to the console list.
-        /// We no longer manually scroll any ListBox – the ScrollViewer in XAML handles scrolling.
+        /// Appends a line of text into the console area.
+        /// The new XAML for ProcessPage will bind an ItemsControl/ScrollViewer to this collection
+        /// so that it auto-scrolls as new lines appear.
         /// </summary>
         private void AppendConsole(string message)
         {
             ConsoleMessages.Add(message);
-            // The new XAML has a ScrollViewer around an ItemsControl bound to ConsoleMessages,
-            // so explicit ScrollIntoView(…) is no longer needed.
+            // We rely on the ItemsControl’s ScrollViewer in XAML to auto-scroll. 
         }
 
-        // ============= INotifyPropertyChanged Implementation =============
+        // INotifyPropertyChanged implementation
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

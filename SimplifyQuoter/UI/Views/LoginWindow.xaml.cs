@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Windows;
+using SimplifyQuoter.Models;
 using SimplifyQuoter.Services;
 using SimplifyQuoter.Services.ServiceLayer;
 
@@ -13,6 +14,7 @@ namespace SimplifyQuoter.Views
     {
         public ServiceLayerClient SlClient { get; private set; }
 
+        // Bound to the TextBoxes / PasswordBox in XAML:
         public string CompanyDB => txtCompanyDb.Text.Trim();
         public string UserName => txtUserName.Text.Trim();
         public string Password => txtPassword.Password;
@@ -26,7 +28,7 @@ namespace SimplifyQuoter.Views
 
         private void BtnViewLicense_Click(object sender, RoutedEventArgs e)
         {
-            // Create and show LicenseWindow modally
+            // Show the LicenseWindow modally:
             var licenseWindow = new LicenseWindow
             {
                 Owner = this
@@ -69,18 +71,22 @@ namespace SimplifyQuoter.Views
             // 3) Attempt Service Layer login
             try
             {
-                // CompanyDB and Password and UserName come from your LoginWindow’s fields
                 await SlClient.LoginAsync(CompanyDB, UserName, Password);
 
-                // 4) Log acceptance (now passing UserName as user_id)
+                // 4) Store the logged‐in userID into the shared state:
+                AutomationWizardState.Current.UserName = UserName;
+                // Also store the SL client so that downstream pages can reuse it:
+                AutomationWizardState.Current.SlClient = SlClient;
+
+                // 5) Log acceptance (now passing UserName as user_id)
                 using (var db = new DatabaseService())
                 {
                     string localIp = GetLocalIPAddress();
                     string deviceInfo = Environment.MachineName;
-                    string agreementVersion = "1.0"; // Or read from config
+                    string agreementVersion = "1.0"; // or read from config
 
                     db.LogAcceptance(
-                        userId: UserName,             
+                        userId: UserName,
                         licenseCode: LicenseCode,
                         licenseAccept: true,
                         agreementVersion: agreementVersion,
@@ -89,8 +95,8 @@ namespace SimplifyQuoter.Views
                     );
                 }
 
-                // 5) Indicate success, close dialog
-                DialogResult = true;   // <— This makes ShowDialog() return “true”
+                // 6) Indicate success, close dialog
+                DialogResult = true;  // This will make ShowDialog() return “true”
             }
             catch (Exception ex)
             {
@@ -100,10 +106,9 @@ namespace SimplifyQuoter.Views
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );
-                // Don’t set DialogResult, so ShowDialog() returns false
+                // Do not set DialogResult, so ShowDialog() returns false
             }
         }
-
 
         private static string GetLocalIPAddress()
         {

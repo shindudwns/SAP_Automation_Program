@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using Npgsql;
+using SimplifyQuoter.Models;
 
 namespace SimplifyQuoter.Services
 {
@@ -307,6 +308,65 @@ UPDATE sap_row
        sq_exec_count  = sq_exec_count + 1
  WHERE id = @rid";
                 cmd.Parameters.AddWithValue("rid", rowId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Insert a new job_log row.  If entry.Id is null, we let the DB generate it.
+        /// </summary>
+        public void InsertJobLog(JobLogEntry entry)
+        {
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+INSERT INTO job_log (
+    id,
+    user_id,
+    file_name,
+    job_type,
+    started_at,
+    completed_at,
+    total_cells,
+    success_count,
+    failure_count
+) VALUES (
+    /* if @id is null, DEFAULT gen_random_uuid() in SQL will kick in */
+    COALESCE(@id, gen_random_uuid()),   
+    @userId,
+    @fileName,
+    @jobType,
+    COALESCE(@startedAt, NOW()),
+    @completedAt,
+    @totalCells,
+    @successCount,
+    @failureCount
+);
+";
+                // Id: if entry.Id is null, pass DBNull.Value so COALESCE picks gen_random_uuid()
+                if (entry.Id.HasValue)
+                    cmd.Parameters.AddWithValue("id", NpgsqlTypes.NpgsqlDbType.Uuid, entry.Id.Value);
+                else
+                    cmd.Parameters.AddWithValue("id", NpgsqlTypes.NpgsqlDbType.Uuid, DBNull.Value);
+
+                cmd.Parameters.AddWithValue("userId", entry.UserId ?? string.Empty);
+                cmd.Parameters.AddWithValue("fileName", entry.FileName ?? string.Empty);
+                cmd.Parameters.AddWithValue("jobType", entry.JobType ?? string.Empty);
+
+                if (entry.StartedAt != default(DateTime))
+                    cmd.Parameters.AddWithValue("startedAt", entry.StartedAt);
+                else
+                    cmd.Parameters.AddWithValue("startedAt", DBNull.Value);
+
+                if (entry.CompletedAt.HasValue)
+                    cmd.Parameters.AddWithValue("completedAt", entry.CompletedAt.Value);
+                else
+                    cmd.Parameters.AddWithValue("completedAt", DBNull.Value);
+
+                cmd.Parameters.AddWithValue("totalCells", entry.TotalCells);
+                cmd.Parameters.AddWithValue("successCount", entry.SuccessCount);
+                cmd.Parameters.AddWithValue("failureCount", entry.FailureCount);
+
                 cmd.ExecuteNonQuery();
             }
         }

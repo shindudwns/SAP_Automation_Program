@@ -26,7 +26,7 @@ namespace SimplifyQuoter.Models
 
         private AutomationWizardState() { }
 
-        /// <summary>All rows read from the uploaded Excel file.</summary>
+        /// <summary>All rows read from the uploaded Excel file (Step 1).</summary>
         public ObservableCollection<RowView> AllRows { get; set; }
 
         /// <summary>Rows the user selected in Step 2.</summary>
@@ -35,28 +35,30 @@ namespace SimplifyQuoter.Models
         /// <summary>Already-logged-in ServiceLayerClient (holds cookies/session).</summary>
         public ServiceLayerClient SlClient { get; set; }
 
-        /// <summary>Logged-in user name (for display in Step 4).</summary>
+        /// <summary>Logged-in user name (for display and job logging).</summary>
         public string UserName { get; set; }
 
         /// <summary>GUID for this SAP automation run (optional).</summary>
         public Guid SapFileId { get; set; }
 
-        // store the user’s Margin % (as a plain double, e.g. 20.0 → 20%)
+        /// <summary>Which file path (or file name) the user uploaded in Step 1.</summary>
+        public string UploadedFilePath { get; set; }
+
+        // Store the user’s Margin % (as a plain double, e.g. 20.0 → 20%).
         public double MarginPercent { get; set; } = 20.0;
 
-        // store the user’s chosen UoM (e.g. “EACH” or “PK” or custom)
+        // Store the user’s chosen UoM (e.g. “EACH” or “PK” or custom).
         public string UoM { get; set; } = "EACH";
 
-   
         /// <summary>
-        /// After “Replace Excel” is clicked, ReviewConfirmPage populates this
+        /// After “Replace Excel” is clicked (Step 3), ReviewConfirmPage populates this
         /// with exactly the ItemDto list built from the edited spreadsheet.
-        /// ProcessPage will read from here when doing the final SAP insert.
+        /// ProcessPage (Step 4) will read from here when doing the final SAP insert.
         /// </summary>
         public List<ItemDto> MergedItemMasterDtos { get; set; }
 
         /// <summary>
-        /// After “Replace Excel” is clicked, ReviewConfirmPage populates this
+        /// After “Replace Excel” is clicked (Step 3), ReviewConfirmPage populates this
         /// with exactly the QuotationDto list built from the edited spreadsheet.
         /// ProcessPage will read from here when doing the final SAP insert.
         /// </summary>
