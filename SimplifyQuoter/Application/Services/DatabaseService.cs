@@ -329,47 +329,40 @@ INSERT INTO job_log (
     completed_at,
     total_cells,
     success_count,
-    failure_count
+    failure_count,
+    patch_count
 ) VALUES (
-    /* if @id is null, DEFAULT gen_random_uuid() in SQL will kick in */
-    COALESCE(@id, gen_random_uuid()),   
-    @userId,
-    @fileName,
-    @jobType,
-    COALESCE(@startedAt, NOW()),
-    @completedAt,
-    @totalCells,
-    @successCount,
-    @failureCount
+    COALESCE(@id, gen_random_uuid()),
+    @user,
+    @file,
+    @type,
+    @start,
+    @end,
+    @total,
+    @succ,
+    @fail,
+    @patch
 );
 ";
-                // Id: if entry.Id is null, pass DBNull.Value so COALESCE picks gen_random_uuid()
-                if (entry.Id.HasValue)
-                    cmd.Parameters.AddWithValue("id", NpgsqlTypes.NpgsqlDbType.Uuid, entry.Id.Value);
-                else
-                    cmd.Parameters.AddWithValue("id", NpgsqlTypes.NpgsqlDbType.Uuid, DBNull.Value);
 
-                cmd.Parameters.AddWithValue("userId", entry.UserId ?? string.Empty);
-                cmd.Parameters.AddWithValue("fileName", entry.FileName ?? string.Empty);
-                cmd.Parameters.AddWithValue("jobType", entry.JobType ?? string.Empty);
+                cmd.Parameters.AddWithValue("id", (object)entry.Id ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("user", entry.UserId);
+                cmd.Parameters.AddWithValue("file", entry.FileName);
+                cmd.Parameters.AddWithValue("type", entry.JobType);
+                cmd.Parameters.AddWithValue("start", entry.StartedAt);
+                cmd.Parameters.AddWithValue("end", entry.CompletedAt);
+                cmd.Parameters.AddWithValue("total", entry.TotalCells);
+                cmd.Parameters.AddWithValue("succ", entry.SuccessCount);
+                cmd.Parameters.AddWithValue("fail", entry.FailureCount);
 
-                if (entry.StartedAt != default(DateTime))
-                    cmd.Parameters.AddWithValue("startedAt", entry.StartedAt);
-                else
-                    cmd.Parameters.AddWithValue("startedAt", DBNull.Value);
-
-                if (entry.CompletedAt.HasValue)
-                    cmd.Parameters.AddWithValue("completedAt", entry.CompletedAt.Value);
-                else
-                    cmd.Parameters.AddWithValue("completedAt", DBNull.Value);
-
-                cmd.Parameters.AddWithValue("totalCells", entry.TotalCells);
-                cmd.Parameters.AddWithValue("successCount", entry.SuccessCount);
-                cmd.Parameters.AddWithValue("failureCount", entry.FailureCount);
+                // NEW:
+                cmd.Parameters.AddWithValue("patch", entry.PatchCount);
 
                 cmd.ExecuteNonQuery();
             }
         }
+
+
 
         // ————— IDisposable —————
 

@@ -53,5 +53,11 @@ namespace SimplifyQuoter.Models
         /// Of those TotalCells, how many failed?
         /// </summary>
         public int FailureCount { get; set; }
+
+        /// <summary>
+        /// number of patch‐operations submitted (for any items that already existed in SAP).
+        /// </summary>
+        public int PatchCount { get; set; }
+
     }
 }

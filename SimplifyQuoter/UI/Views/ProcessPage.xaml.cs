@@ -1,5 +1,4 @@
-﻿// File: Views/ProcessPage.xaml.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -17,16 +16,18 @@ using SimplifyQuoter.Services.ServiceLayer.Dtos;
 namespace SimplifyQuoter.Views
 {
     /// <summary>
-    /// Step 4: ProcessPage loops over each (possibly replaced) ItemDto,
-    /// calls Service Layer, updates a live console, shows before/after failures,
-    /// and finally logs the job into job_log.
+    /// Step 4: ProcessPage
+    ///  • Runs through all ItemDto objects, attempts to Create each item.
+    ///  • Queues “already exists” cases into FailedItems for price patching.
+    ///  • Allows the user to select which to PATCH and then issues those PATCH calls.
+    ///  • Finally, logs everything into the job_log table (including patch_count).
     /// </summary>
     public partial class ProcessPage : UserControl, INotifyPropertyChanged
     {
         private int _processedCount;
 
         /// <summary>
-        /// Number of rows processed so far (updates the progress bar).
+        /// Number of items processed so far (updates the ProgressBar and PercentText).
         /// </summary>
         public int ProcessedCount
         {
@@ -40,12 +41,12 @@ namespace SimplifyQuoter.Views
         }
 
         /// <summary>
-        /// Total number of rows to process (set in Loaded).
+        /// Total number of items to process (set when Loaded fires).
         /// </summary>
         public int TotalCount { get; private set; }
 
         /// <summary>
-        /// A simple "XX%" text for display (e.g. "50%").
+        /// “XX%” text for display over the ProgressBar.
         /// </summary>
         public string PercentText =>
             TotalCount == 0
@@ -53,26 +54,24 @@ namespace SimplifyQuoter.Views
                 : $"{(ProcessedCount * 100 / TotalCount)}%";
 
         /// <summary>
-        /// Name of the Service Layer server (e.g. "https://myserver:50000").
+        /// Name of the Service Layer server (e.g. “https://myserver:50000”).
         /// </summary>
         public string ServerName { get; private set; }
 
         /// <summary>
-        /// Username that’s currently logged in (for display and for job_log.user_id).
+        /// The user who is logged in (also used as job_log.user_id).
         /// </summary>
         public string UserName { get; private set; }
 
         /// <summary>
-        /// An ObservableCollection bound to an ItemsControl (or ListBox) to show live console messages.
+        /// Live console messages bound to an ItemsControl in XAML.
         /// </summary>
-        public ObservableCollection<string> ConsoleMessages { get; }
-            = new ObservableCollection<string>();
+        public ObservableCollection<string> ConsoleMessages { get; } = new ObservableCollection<string>();
 
         /// <summary>
-        /// Collection of items that “already existed” and need price‐patching.
+        /// All items that “already existed” in SAP (queried via GET) and are queued for price patching.
         /// </summary>
-        public ObservableCollection<FailedItemViewModel> FailedItems { get; }
-            = new ObservableCollection<FailedItemViewModel>();
+        public ObservableCollection<FailedItemViewModel> FailedItems { get; } = new ObservableCollection<FailedItemViewModel>();
 
         private readonly ServiceLayerClient _slClient;
 
@@ -81,7 +80,10 @@ namespace SimplifyQuoter.Views
             InitializeComponent();
             DataContext = this;
 
-            // Grab SL client and current user from shared wizard state:
+            // Whenever a new FailedItemViewModel is added, hook its PropertyChanged so we know when
+            // IsSelectedToUpdate toggles.  That way, the "Patch Selected" button can enable/disable itself.
+            FailedItems.CollectionChanged += FailedItems_CollectionChanged;
+
             var state = AutomationWizardState.Current;
             _slClient = state.SlClient;
             UserName = state.UserName ?? "(unknown)";
@@ -91,7 +93,7 @@ namespace SimplifyQuoter.Views
             else
                 ServerName = "(unknown)";
 
-            // We’ll set TotalCount in Loaded, once we know which DTOs to process
+            // We’ll set TotalCount when the control actually loads and we know how many ItemDto’s there are.
             TotalCount = 0;
             ProcessedCount = 0;
 
@@ -99,11 +101,10 @@ namespace SimplifyQuoter.Views
         }
 
         /// <summary>
-        /// Called once when the UserControl is first shown.
-        /// 1) Attempts a Create for each ItemDto.
-        /// 2) If “already exists”, loads the existing prices and adds to FailedItems.
-        /// 3) At the end, prints a summary in Console and populates FailedItemsDataGrid.
-        /// 4) Writes a single row into job_log.
+        /// Fired once when the control appears.
+        /// 1) Builds the definitive ItemDto list (Merged or new from SelectedRows).
+        /// 2) Loops through each, attempting Create.  If “already exists,” GET existing prices → enqueue in FailedItems.
+        /// 3) After the create‐pass, shows a console summary and enables the “Patch” toolbar if there are any FailedItems.
         /// </summary>
         private async void ProcessPage_Loaded(object sender, RoutedEventArgs e)
         {
@@ -111,15 +112,14 @@ namespace SimplifyQuoter.Views
 
             var state = AutomationWizardState.Current;
 
-            // 1) Build the definitive list of ItemDto to process:
+            // 1) Build the definitive ItemDto list
             var itemDtos = state.MergedItemMasterDtos;
             if (itemDtos == null)
             {
-                // No “Replace Excel” override – rebuild from SelectedRows:
+                // No ReplaceExcel override, rebuild from SelectedRows:
                 double marginPct = state.MarginPercent;
                 string uom = state.UoM;
                 itemDtos = new List<ItemDto>(state.SelectedRows.Count);
-
                 foreach (var rv in state.SelectedRows)
                 {
                     var dto = await Transformer.ToItemDtoAsync(rv, marginPct, uom);
@@ -127,15 +127,15 @@ namespace SimplifyQuoter.Views
                 }
             }
 
-            // 2) Initialize counters and temporary lists
+            // 2) Initialize counters and tracking lists
             TotalCount = itemDtos.Count;
             ProcessedCount = 0;
 
             var succeededItems = new List<string>();
             var outrightFailed = new List<string>();
-            // “outrightFailed” = those that failed for reasons other than “already exists”
+            // “outrightFailed” = those that got a 400/500 for reasons other than “already exists”
 
-            // 3) First pass – attempt to Create each item
+            // 3) Attempt to CREATE each item
             var itemService = new ItemService(_slClient);
             foreach (var dto in itemDtos)
             {
@@ -144,18 +144,19 @@ namespace SimplifyQuoter.Views
 
                 try
                 {
+                    // Try to POST a brand‐new item
                     await itemService.CreateOrUpdateAsync(dto);
-                    AppendConsole($"[{Timestamp}] ✔ Success: {logPart}");
+                    AppendConsole($"[{Timestamp}] ✔ Created: {logPart}");
                     succeededItems.Add(logPart);
                 }
                 catch (HttpRequestException httpEx)
                 {
-                    // Check if this was a “400 … already exists” error:
+                    // If it’s “already exists,” queue for patching:
                     if (httpEx.Message.IndexOf("already exists", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        // Fetch the existing item’s prices:
                         try
                         {
+                            // GET that item’s current prices
                             var existing = await itemService.GetExistingItemAsync(dto.ItemCode);
                             var failedVm = new FailedItemViewModel(
                                 itemCode: dto.ItemCode,
@@ -169,29 +170,28 @@ namespace SimplifyQuoter.Views
                         }
                         catch (Exception getEx)
                         {
-                            // Could not fetch existing data – treat as an outright failure
-                            AppendConsole($"[{Timestamp}] ✘ Could not retrieve existing item {logPart}: {getEx.Message}");
+                            AppendConsole($"[{Timestamp}] ✘ Failed to GET existing '{logPart}': {getEx.Message}");
                             outrightFailed.Add(logPart);
                         }
                     }
                     else
                     {
-                        // Some other 400/500 error
-                        AppendConsole($"[{Timestamp}] ✘ Error ({logPart}): {httpEx.Message}");
+                        // Some other HTTP‐level failure
+                        AppendConsole($"[{Timestamp}] ✘ Error for '{logPart}': {httpEx.Message}");
                         outrightFailed.Add(logPart);
                     }
                 }
                 catch (Exception ex)
                 {
-                    // Unexpected exception
-                    AppendConsole($"[{Timestamp}] ✘ Unexpected Exception ({logPart}): {ex.Message}");
+                    // Unexpected failure
+                    AppendConsole($"[{Timestamp}] ✘ Unexpected error for '{logPart}': {ex.Message}");
                     outrightFailed.Add(logPart);
                 }
 
                 ProcessedCount++;
             }
 
-            // 4) Final summary of the “Create” loop
+            // 4) Summarize the CREATE pass in the console
             AppendConsole($"[{Timestamp}] All {ProcessedCount}/{TotalCount} creation attempts complete.");
             AppendConsole(string.Empty);
 
@@ -221,7 +221,10 @@ namespace SimplifyQuoter.Views
             {
                 AppendConsole($"[{Timestamp}] {FailedItems.Count} items already existed (queued for patch):");
                 foreach (var vm in FailedItems)
-                    AppendConsole($"   • {vm.ItemCode}");
+                    AppendConsole(
+                        $"   • {vm.ItemCode} (Old: {vm.OldPurchasingPrice}/{vm.OldSalesPrice}, " +
+                        $"New: {vm.NewPurchasingPrice}/{vm.NewSalesPrice})"
+                    );
             }
             else
             {
@@ -230,63 +233,101 @@ namespace SimplifyQuoter.Views
 
             AppendConsole(string.Empty);
 
-            // 5) Enable/disable “Select All” / “Deselect All” / “Patch Selected” buttons
+            // 5) Enable “Select All” / “Deselect All” if we have any FailedItems
             BtnSelectAll.IsEnabled = FailedItems.Count > 0;
             BtnDeselectAll.IsEnabled = FailedItems.Count > 0;
+
+            // “Patch Selected” remains disabled by default—you must check at least one row manually
             BtnPatchSelected.IsEnabled = false;
-            // → “Patch Selected” remains disabled until the user checks at least one row
         }
 
         /// <summary>
-        /// “Select All” clicked – check every FailedItemViewModel.
+        /// “Select All” button clicked – check every FailedItemViewModel.
         /// </summary>
         private void BtnSelectAll_Click(object sender, RoutedEventArgs e)
         {
             foreach (var vm in FailedItems)
                 vm.IsSelectedToUpdate = true;
 
-            BtnPatchSelected.IsEnabled = FailedItems.Any(x => x.IsSelectedToUpdate);
+            RefreshPatchButtonState();
         }
 
         /// <summary>
-        /// “Deselect All” clicked – uncheck every FailedItemViewModel.
+        /// “Deselect All” button clicked – uncheck every FailedItemViewModel.
         /// </summary>
         private void BtnDeselectAll_Click(object sender, RoutedEventArgs e)
         {
             foreach (var vm in FailedItems)
                 vm.IsSelectedToUpdate = false;
 
-            BtnPatchSelected.IsEnabled = false;
+            RefreshPatchButtonState();
         }
 
         /// <summary>
-        /// Fires whenever the user toggles a cell in FailedItemsDataGrid.
-        /// We simply check “is at least one row IsSelectedToUpdate == true?” to enable Patch button.
+        /// When any FailedItemViewModel is added to the collection, subscribe to its PropertyChanged
+        /// so that we can detect when IsSelectedToUpdate toggles.
         /// </summary>
-        private void FailedItemsDataGrid_CurrentCellChanged(object sender, EventArgs e)
+        private void FailedItems_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            BtnPatchSelected.IsEnabled = FailedItems.Any(x => x.IsSelectedToUpdate);
+            if (e.NewItems != null)
+            {
+                foreach (var obj in e.NewItems)
+                {
+                    if (obj is FailedItemViewModel vm)
+                    {
+                        vm.PropertyChanged += FailedItemViewModel_PropertyChanged;
+                    }
+                }
+            }
         }
 
         /// <summary>
-        /// “Patch Selected” clicked – PATCH prices for each checked item.
+        /// When a single FailedItemViewModel’s PropertyChanged fires, check if it was “IsSelectedToUpdate”—
+        /// and if so, update the “Patch Selected” button’s enabled state.
+        /// </summary>
+        private void FailedItemViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(FailedItemViewModel.IsSelectedToUpdate))
+            {
+                RefreshPatchButtonState();
+            }
+        }
+
+        /// <summary>
+        /// Recalculates whether “Patch Selected” should be enabled (if at least one row is checked).
+        /// </summary>
+        private void RefreshPatchButtonState()
+        {
+            BtnPatchSelected.IsEnabled = FailedItems.Any(vm => vm.IsSelectedToUpdate);
+        }
+
+        /// <summary>
+        /// “Patch Selected” button clicked – perform PATCH for every checked item.
+        /// Automatically un‐checks each once done.
         /// </summary>
         private async void BtnPatchSelected_Click(object sender, RoutedEventArgs e)
         {
-            var toPatch = FailedItems.Where(x => x.IsSelectedToUpdate).ToList();
+            var toPatch = FailedItems.Where(vm => vm.IsSelectedToUpdate).ToList();
             if (!toPatch.Any()) return;
 
-            var itemService = new ItemService(_slClient);
             AppendConsole($"[{Timestamp}] Starting PATCH of {toPatch.Count} selected items...");
+
+            var itemService = new ItemService(_slClient);
+            int patchCount = 0;
 
             foreach (var vm in toPatch)
             {
-                AppendConsole($"[{Timestamp}] Patching {vm.ItemCode}: Old({vm.OldPurchasingPrice}/{vm.OldSalesPrice}) → New({vm.NewPurchasingPrice}/{vm.NewSalesPrice})");
+                AppendConsole(
+                    $"[{Timestamp}] Patching '{vm.ItemCode}': " +
+                    $"Old({vm.OldPurchasingPrice}/{vm.OldSalesPrice}) → " +
+                    $"New({vm.NewPurchasingPrice}/{vm.NewSalesPrice})"
+                );
                 try
                 {
                     await itemService.PatchItemPricesAsync(vm.ItemCode, vm.NewPurchasingPrice, vm.NewSalesPrice);
                     AppendConsole($"[{Timestamp}] ✔ PATCH success for {vm.ItemCode}");
                     vm.IsSelectedToUpdate = false;
+                    patchCount++;
                 }
                 catch (Exception ex)
                 {
@@ -294,18 +335,43 @@ namespace SimplifyQuoter.Views
                 }
             }
 
-            AppendConsole($"[{Timestamp}] PATCH operation complete.");
-            BtnPatchSelected.IsEnabled = false;
+            AppendConsole($"[{Timestamp}] PATCH operation complete. {patchCount} item(s) updated.");
+            RefreshPatchButtonState();
+
+            // 6) Finally, after patching, we also insert (or update) the job_log row:
+            //    We record total_cells, success_count, failure_count, and patch_count here.
+            var state = AutomationWizardState.Current;
+            int totalCells = TotalCount;                      // original number of items
+            int successCount = (TotalCount - FailedItems.Count) + patchCount;
+            int failureCount = FailedItems.Count - patchCount;
+
+            var jobEntry = new JobLogEntry
+            {
+                Id = null,
+                UserId = state.UserName ?? "(unknown)",
+                FileName = state.UploadedFilePath ?? "(unknown file)",
+                JobType = "ItemMasterImport",
+                StartedAt = DateTime.Now.AddSeconds(-ProcessedCount), // approximate
+                CompletedAt = DateTime.Now,
+                TotalCells = totalCells,
+                SuccessCount = successCount,
+                FailureCount = failureCount,
+                PatchCount = patchCount
+            };
+
+            using (var db = new DatabaseService())
+            {
+                db.InsertJobLog(jobEntry);
+            }
         }
 
         /// <summary>
-        /// Returns the current time as "HH:mm:ss" for console logging.
+        /// Returns “HH:mm:ss”‐formatted timestamp for console logging.
         /// </summary>
         private string Timestamp => DateTime.Now.ToString("HH:mm:ss");
 
         /// <summary>
-        /// Appends a line of text into the console area.
-        /// The ItemsControl + ScrollViewer in XAML will auto‐scroll.
+        /// Adds a new line to the console area; the ItemsControl/ScrollViewer in XAML auto‐scrolls.
         /// </summary>
         private void AppendConsole(string message)
         {
@@ -315,43 +381,42 @@ namespace SimplifyQuoter.Views
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string name = null) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        private void OnPropertyChanged([CallerMemberName] string propName = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
 
         #endregion
     }
 
-
     /// <summary>
-    /// ViewModel for each “already existed” item, showing old vs. new prices and a checkbox.
+    /// VM for each “already existed” item.  Shows old vs. new prices and a checkbox.
     /// </summary>
     public class FailedItemViewModel : INotifyPropertyChanged
     {
         public string ItemCode { get; }
 
         /// <summary>
-        /// The “old” U_PurchasingPrice currently in SAP.
+        /// “Old” U_PurchasingPrice from SAP.
         /// </summary>
         public double OldPurchasingPrice { get; }
 
         /// <summary>
-        /// The “old” U_SalesPrice currently in SAP.
+        /// “Old” U_SalesPrice from SAP.
         /// </summary>
         public double OldSalesPrice { get; }
 
         /// <summary>
-        /// The “new” U_PurchasingPrice the user attempted to push.
+        /// “New” U_PurchasingPrice that the user attempted.
         /// </summary>
         public double NewPurchasingPrice { get; }
 
         /// <summary>
-        /// The “new” U_SalesPrice the user attempted to push.
+        /// “New” U_SalesPrice that the user attempted.
         /// </summary>
         public double NewSalesPrice { get; }
 
         private bool _isSelectedToUpdate;
         /// <summary>
-        /// Whether the user has checked this row for patching via “Patch Selected.”
+        /// Whether the user has checked this row for patching (“Patch Selected”).
         /// </summary>
         public bool IsSelectedToUpdate
         {
@@ -375,9 +440,7 @@ namespace SimplifyQuoter.Views
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string propName = null)
-        {
+        private void OnPropertyChanged([CallerMemberName] string propName = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-        }
     }
 }
