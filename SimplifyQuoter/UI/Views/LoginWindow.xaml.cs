@@ -69,9 +69,10 @@ namespace SimplifyQuoter.Views
             // 3) Attempt Service Layer login
             try
             {
+                // CompanyDB and Password and UserName come from your LoginWindow’s fields
                 await SlClient.LoginAsync(CompanyDB, UserName, Password);
 
-                // 4) Log acceptance
+                // 4) Log acceptance (now passing UserName as user_id)
                 using (var db = new DatabaseService())
                 {
                     string localIp = GetLocalIPAddress();
@@ -79,6 +80,7 @@ namespace SimplifyQuoter.Views
                     string agreementVersion = "1.0"; // Or read from config
 
                     db.LogAcceptance(
+                        userId: UserName,             
                         licenseCode: LicenseCode,
                         licenseAccept: true,
                         agreementVersion: agreementVersion,
@@ -101,6 +103,7 @@ namespace SimplifyQuoter.Views
                 // Don’t set DialogResult, so ShowDialog() returns false
             }
         }
+
 
         private static string GetLocalIPAddress()
         {

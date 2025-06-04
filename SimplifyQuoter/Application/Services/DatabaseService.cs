@@ -69,11 +69,12 @@ SELECT 1
         ///   license_code, license_accept, company_name
         /// </summary>
         public void LogAcceptance(
-            string licenseCode,
-            bool licenseAccept,
-            string agreementVersion,
-            string deviceInfo,
-            string ipAddress)
+    string userId,             
+    string licenseCode,
+    bool licenseAccept,
+    string agreementVersion,
+    string deviceInfo,
+    string ipAddress)
         {
             // 1) Look up company_name from the license table
             string companyName = string.Empty;
@@ -90,11 +91,12 @@ SELECT company_name
                     companyName = (string)o;
             }
 
-            // 2) Insert into acceptance_log
+            // 2) Insert into acceptance_log (including the new user_id)
             using (var cmd = _conn.CreateCommand())
             {
                 cmd.CommandText = @"
 INSERT INTO acceptance_log (
+    user_id,
     ip_address,
     accepted_at,
     agreement_version,
@@ -103,9 +105,12 @@ INSERT INTO acceptance_log (
     license_accept,
     company_name
 ) VALUES (
-    @ip, NOW(), @ver, @device, @code, @accept, @company
+    @user, @ip, NOW(), @ver, @device, @code, @accept, @company
 );
 ";
+                // Add the new parameter first:
+                cmd.Parameters.AddWithValue("user", userId ?? string.Empty);
+
                 cmd.Parameters.AddWithValue("ip", (object)ipAddress ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("ver", agreementVersion ?? string.Empty);
                 cmd.Parameters.AddWithValue("device", (object)deviceInfo ?? DBNull.Value);
@@ -116,6 +121,7 @@ INSERT INTO acceptance_log (
                 cmd.ExecuteNonQuery();
             }
         }
+
 
         // ————— Existing methods —————
 
