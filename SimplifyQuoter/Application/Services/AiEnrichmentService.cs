@@ -320,7 +320,7 @@ namespace SimplifyQuoter.Services
 
             // Prompt for concise summary
             var prompt = $@"
-                You are an expert in industrial/electromechanical parts and can generate concise, all-caps product descriptions from just a Part number and a Brand.  Output only the description text (no leading “Description:” or any extra labels).
+                You are an expert in industrial/electromechanical parts. Given only a Part number and Brand, output a very short, all-caps product description containing only the core details (e.g., series/family, function, channel count, voltage). Omit any packaging, bus compatibility, or ancillary features.
 
                 Examples:
 
