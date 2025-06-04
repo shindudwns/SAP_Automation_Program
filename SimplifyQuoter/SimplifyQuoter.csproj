@@ -130,6 +130,7 @@
     </ApplicationDefinition>
     <Compile Include="Domain\Models\AutomationWizardState.cs" />
     <Compile Include="Domain\Models\JobLogEntry.cs" />
+    <Compile Include="Infrastructure\ServiceLayer\Clients\HttpClientExtensions.cs" />
     <Compile Include="UI\Converters\ValueToWidthConverter.cs" />
     <Compile Include="Domain\Models\RowView.cs" />
     <Compile Include="Application\Services\AiEnrichmentService.cs" />

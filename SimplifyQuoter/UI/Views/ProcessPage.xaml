@@ -5,79 +5,167 @@
              Height="Auto"
              Width="Auto"
              Background="White">
+    <Grid Margin="20">
+        <Grid.ColumnDefinitions>
+            <!-- Left side is 3* -->
+            <ColumnDefinition Width="3*"/>
+            <!-- Right side is 2* -->
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <!-- Row 0: Server/User info -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 1: ProgressBar + percentage overlay -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 2: Main content area (FailedItems on left, Console on right) -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-	<!--
-      We create a 2-column Grid:
-       • Left column (Width="3*") = server/user info + progress bar
-       • Right column (Width="2*") = the new “Console” panel
-      Then we stack everything in 3 rows:
-       • Row 0: Server/User text
-       • Row 1: ProgressBar (with overlayed percentage)
-       • Row 2: The “Console” (right side) and empty placeholder (left side)
-    -->
-	<Grid Margin="20">
-		<Grid.ColumnDefinitions>
-			<!-- Left side is 3 parts -->
-			<ColumnDefinition Width="3*"/>
-			<!-- Right side is 2 parts -->
-			<ColumnDefinition Width="2*"/>
-		</Grid.ColumnDefinitions>
-		<Grid.RowDefinitions>
-			<!-- Row 0: Server/User info -->
-			<RowDefinition Height="Auto"/>
-			<!-- Row 1: ProgressBar + percentage overlay -->
-			<RowDefinition Height="Auto"/>
-			<!-- Row 2: Console panel on the right; left can remain empty or host additional content later -->
-			<RowDefinition Height="*"/>
-		</Grid.RowDefinitions>
-
-		<!-- ============================== -->
-		<!-- Row 0: Server & User Info     -->
-		<!-- ============================== -->
-		<StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+        <!-- =========================================== -->
+        <!-- Row 0 (all columns): Server & User Info     -->
+        <!-- =========================================== -->
+        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                     Orientation="Horizontal"
                     Margin="0,0,0,10">
-			<TextBlock Text="Server: "
-                       FontWeight="Bold"
-                       VerticalAlignment="Center"/>
-			<TextBlock Text="{Binding ServerName}"
-                       VerticalAlignment="Center"
-                       Margin="4,0,0,0"/>
-			<TextBlock Text="   User: "
-                       FontWeight="Bold"
-                       VerticalAlignment="Center"
-                       Margin="20,0,0,0"/>
-			<TextBlock Text="{Binding UserName}"
-                       VerticalAlignment="Center"
-                       Margin="4,0,0,0"/>
-		</StackPanel>
+            <TextBlock Text="Server: " FontWeight="Bold" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding ServerName}" VerticalAlignment="Center" Margin="4,0,0,0"/>
 
-		<!-- ================================= -->
-		<!-- Row 1: ProgressBar + Percentage   -->
-		<!-- ================================= -->
-		<Grid Grid.Row="1"
-              Grid.Column="0"
-              Margin="0,0,10,10">
-			<!-- Background ProgressBar, bound to ProcessedCount and TotalCount -->
-			<ProgressBar x:Name="ProgressBarControl"
+            <TextBlock Text="   User: " FontWeight="Bold" VerticalAlignment="Center" Margin="20,0,0,0"/>
+            <TextBlock Text="{Binding UserName}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+        </StackPanel>
+
+        <!-- =============================================== -->
+        <!-- Row 1, Column 0–0: ProgressBar + % overlay      -->
+        <!-- =============================================== -->
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,10,10">
+            <ProgressBar x:Name="ProgressBarControl"
                          Minimum="0"
                          Maximum="{Binding TotalCount}"
                          Value="{Binding ProcessedCount}"
                          Height="24"
-                         VerticalAlignment="Center" />
+                         VerticalAlignment="Center"/>
 
-			<!-- Overlay a centered white “XX%” text atop the bar -->
-			<TextBlock Text="{Binding PercentText}"
+            <TextBlock Text="{Binding PercentText}"
                        FontWeight="Bold"
                        Foreground="White"
                        HorizontalAlignment="Center"
-                       VerticalAlignment="Center" />
-		</Grid>
+                       VerticalAlignment="Center"/>
+        </Grid>
 
-		<!-- ===================================== -->
-		<!-- Row 2, Column 1 (Right): “Console”   -->
-		<!-- ===================================== -->
-		<Border Grid.Row="2"
+        <!-- ======================================================= -->
+        <!-- Row 2, Column 0: Left pane = Failed Items + toolbar   -->
+        <!-- ======================================================= -->
+        <Grid Grid.Row="2" Grid.Column="0"
+              Margin="0,0,10,0">
+            <Grid.RowDefinitions>
+                <!-- toolbar row -->
+                <RowDefinition Height="Auto"/>
+                <!-- DataGrid row -->
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- ===== Row 0: “Select All” / “Deselect All” / “Patch Selected” ===== -->
+            <StackPanel Grid.Row="0"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Margin="0,0,0,6">
+                <Button x:Name="BtnSelectAll"
+                        Content="Select All"
+                        Width="80"
+                        Height="28"
+                        Margin="0,0,8,0"
+                        Click="BtnSelectAll_Click"/>
+                <Button x:Name="BtnDeselectAll"
+                        Content="Deselect All"
+                        Width="100"
+                        Height="28"
+                        Margin="0,0,8,0"
+                        Click="BtnDeselectAll_Click"/>
+                <Button x:Name="BtnPatchSelected"
+                        Content="Patch Selected"
+                        Width="110"
+                        Height="28"
+                        IsEnabled="False"
+                        Click="BtnPatchSelected_Click"/>
+            </StackPanel>
+
+            <!-- ===== Row 1: DataGrid of failed items ===== -->
+            <DataGrid x:Name="FailedItemsDataGrid"
+                      Grid.Row="1"
+                      AutoGenerateColumns="False"
+                      CanUserResizeColumns="True"
+                      IsReadOnly="False"
+                      SelectionMode="Extended"
+                      HeadersVisibility="Column"
+                      GridLinesVisibility="All"
+                      RowBackground="#FFFFFF"
+                      AlternatingRowBackground="#F9F9F9"
+                      HorizontalGridLinesBrush="#DDDDDD"
+                      VerticalGridLinesBrush="#DDDDDD"
+                      FontSize="12"
+                      ColumnHeaderHeight="30"
+                      RowHeight="28"
+                      ItemsSource="{Binding FailedItems}">
+
+                <!-- ===== Define columns: ===== -->
+                <DataGrid.Columns>
+                    <!-- Checkbox column to toggle IsSelectedToUpdate -->
+                    <DataGridCheckBoxColumn Header="Update?"
+                                            Binding="{Binding IsSelectedToUpdate, Mode=TwoWay}"
+                                            Width="Auto"/>
+
+                    <!-- ItemCode column -->
+                    <DataGridTextColumn Header="Item Code"
+                                        Binding="{Binding ItemCode}"
+                                        IsReadOnly="True"
+                                        Width="2*"/>
+
+                    <!-- Old U_PurchasingPrice -->
+                    <DataGridTextColumn Header="Old Purch Price"
+                                        Binding="{Binding OldPurchasingPrice}"
+                                        IsReadOnly="True"
+                                        Width="Auto"/>
+
+                    <!-- Old U_SalesPrice -->
+                    <DataGridTextColumn Header="Old Sales Price"
+                                        Binding="{Binding OldSalesPrice}"
+                                        IsReadOnly="True"
+                                        Width="Auto"/>
+
+                    <!-- New U_PurchasingPrice -->
+                    <DataGridTextColumn Header="New Purch Price"
+                                        Binding="{Binding NewPurchasingPrice}"
+                                        IsReadOnly="True"
+                                        Width="Auto"/>
+
+                    <!-- New U_SalesPrice -->
+                    <DataGridTextColumn Header="New Sales Price"
+                                        Binding="{Binding NewSalesPrice}"
+                                        IsReadOnly="True"
+                                        Width="Auto"/>
+                </DataGrid.Columns>
+
+                <!-- ===== Styles for header & cells ===== -->
+                <DataGrid.Resources>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#F0F0F0"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                    </Style>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="BorderBrush" Value="#DDDDDD"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                        <Setter Property="Padding" Value="4,2"/>
+                    </Style>
+                </DataGrid.Resources>
+            </DataGrid>
+        </Grid>
+
+        <!-- ====================================================== -->
+        <!-- Row 2, Column 1: Right pane = “Console” (existing)    -->
+        <!-- ====================================================== -->
+        <Border Grid.Row="2"
                 Grid.Column="1"
                 Background="#F5F5F5"
                 CornerRadius="4"
@@ -85,33 +173,31 @@
                 SnapsToDevicePixels="True"
                 BorderBrush="#DDDDDD"
                 BorderThickness="1">
-			<DockPanel>
-				<!-- Console Header -->
-				<TextBlock Text="Console"
+            <DockPanel>
+                <!-- Console Header -->
+                <TextBlock Text="Console"
                            FontWeight="SemiBold"
                            FontSize="14"
                            DockPanel.Dock="Top"
                            Margin="0,0,0,8"/>
 
-				<!-- Scrollable list of console messages -->
-				<ScrollViewer VerticalScrollBarVisibility="Auto"
+                <!-- Scrollable list of console messages -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
-					<ItemsControl ItemsSource="{Binding ConsoleMessages}">
-						<ItemsControl.ItemTemplate>
-							<DataTemplate>
-								<!-- Each console line is a TextBlock using Consolas font -->
-								<TextBlock Text="{Binding}"
+                    <ItemsControl ItemsSource="{Binding ConsoleMessages}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}"
                                            FontFamily="Consolas"
                                            FontSize="12"
                                            Foreground="#333333"
                                            TextWrapping="Wrap"
                                            Margin="0,0,0,2"/>
-							</DataTemplate>
-						</ItemsControl.ItemTemplate>
-					</ItemsControl>
-				</ScrollViewer>
-			</DockPanel>
-		</Border>
-
-	</Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+    </Grid>
 </UserControl>
