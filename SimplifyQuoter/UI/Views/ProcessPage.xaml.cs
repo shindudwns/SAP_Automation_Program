@@ -25,7 +25,6 @@ namespace SimplifyQuoter.Views
     public partial class ProcessPage : UserControl, INotifyPropertyChanged
     {
         private int _processedCount;
-
         /// <summary>
         /// Number of items processed so far (updates the ProgressBar and PercentText).
         /// </summary>
@@ -40,10 +39,21 @@ namespace SimplifyQuoter.Views
             }
         }
 
+        private int _totalCount;
         /// <summary>
         /// Total number of items to process (set when Loaded fires).
         /// </summary>
-        public int TotalCount { get; private set; }
+        public int TotalCount
+        {
+            get => _totalCount;
+            private set
+            {
+                if (_totalCount == value) return;
+                _totalCount = value;
+                OnPropertyChanged();                     // Notify that ProgressBar.Maximum must update
+                OnPropertyChanged(nameof(PercentText));  // PercentText depends on TotalCount
+            }
+        }
 
         /// <summary>
         /// “XX%” text for display over the ProgressBar.
@@ -132,8 +142,8 @@ namespace SimplifyQuoter.Views
             }
 
             // 2) Initialize counters
-            TotalCount = itemDtos.Count;
-            ProcessedCount = 0;
+            TotalCount = itemDtos.Count;  // Now raises PropertyChanged → ProgressBar.Maximum updates
+            ProcessedCount = 0;           // Raises PropertyChanged → ProgressBar.Value updates
 
             var succeededItems = new List<string>();
             var outrightFailed = new List<string>();
@@ -193,7 +203,7 @@ namespace SimplifyQuoter.Views
                     outrightFailed.Add(logPart);
                 }
 
-                ProcessedCount++;
+                ProcessedCount++;  // Raises PropertyChanged → ProgressBar.Value & PercentText update
             }
 
             // 4) Summarize the CREATE pass in the console
@@ -270,7 +280,7 @@ namespace SimplifyQuoter.Views
 
         /// <summary>
         /// When any new FailedItemViewModel is added to the collection, subscribe to its PropertyChanged
-        /// so that we can detect when IsSelectedToUpdate toggles.
+        /// so that we can detect when its IsSelectedToUpdate toggles.
         /// </summary>
         private void FailedItems_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
@@ -287,7 +297,7 @@ namespace SimplifyQuoter.Views
         }
 
         /// <summary>
-        /// When a single FailedItemViewModel’s PropertyChanged fires, check if it was “IsSelectedToUpdate”—
+        /// When a single FailedItemViewModel’s PropertyChanged fires, check if it was “IsSelectedToUpdate”— 
         /// and if so, update the “Patch Selected” button’s enabled state.
         /// </summary>
         private void FailedItemViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
