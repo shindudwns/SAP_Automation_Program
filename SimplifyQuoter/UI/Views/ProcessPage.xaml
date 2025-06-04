@@ -5,179 +5,331 @@
              Height="Auto"
              Width="Auto"
              Background="White">
+
+    <!-- ──────────────────────────────────────────────────────────────────────── -->
+    <!-- 1) Shared resources (e.g. centering Checkbox, removing default selection) -->
+    <!-- ──────────────────────────────────────────────────────────────────────── -->
+    <UserControl.Resources>
+        <!-- Center a CheckBox inside its DataGridCell -->
+        <Style x:Key="CenteredCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0"/>
+        </Style>
+
+        <!-- A RowStyle that forces every DataGridRow to stay un-highlighted -->
+        <Style x:Key="NoHighlightDataGridRowStyle" TargetType="DataGridRow">
+            <!-- Even in normal state, make background white and no border -->
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="Black"/>
+
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <!-- When selected, keep the background transparent/white and text black -->
+                    <Setter Property="Background" Value="White"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- A CellStyle that forces every DataGridCell to stay un-highlighted -->
+        <Style x:Key="NoHighlightDataGridCellStyle" TargetType="DataGridCell">
+            <!-- Default: transparent background, thin vertical border -->
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#DDDDDD"/>
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="Foreground" Value="Black"/>
+
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <!-- When selected, force transparency and black text -->
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+
     <Grid Margin="20">
+        <!-- Two columns: Left = 3* (failed items), Right = 2* (console) -->
         <Grid.ColumnDefinitions>
-            <!-- Left side is 3* -->
             <ColumnDefinition Width="3*"/>
-            <!-- Right side is 2* -->
             <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
+
+        <!-- Three rows: 
+             Row0 = Server/User info 
+             Row1 = ProgressBar + overlay 
+             Row2 = Main content (left = failed items, right = console) -->
         <Grid.RowDefinitions>
-            <!-- Row 0: Server/User info -->
             <RowDefinition Height="Auto"/>
-            <!-- Row 1: ProgressBar + percentage overlay -->
             <RowDefinition Height="Auto"/>
-            <!-- Row 2: Main content area (FailedItems on left, Console on right) -->
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- =========================================== -->
-        <!-- Row 0 (all columns): Server & User Info     -->
-        <!-- =========================================== -->
-        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                    Orientation="Horizontal"
-                    Margin="0,0,0,10">
-            <TextBlock Text="Server: " FontWeight="Bold" VerticalAlignment="Center"/>
-            <TextBlock Text="{Binding ServerName}" VerticalAlignment="Center" Margin="4,0,0,0"/>
 
-            <TextBlock Text="   User: " FontWeight="Bold" VerticalAlignment="Center" Margin="20,0,0,0"/>
-            <TextBlock Text="{Binding UserName}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+        <!-- ────────────────────────────────────────────────────────────────── -->
+        <!-- Row 0 (spans both columns): “Server:” and “User:” text blocks  -->
+        <!-- ────────────────────────────────────────────────────────────────── -->
+        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                    Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="Server: "
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"
+                       FontFamily="Segoe UI"/>
+            <TextBlock Text="{Binding ServerName}"
+                       VerticalAlignment="Center"
+                       Margin="4,0,0,0"
+                       FontFamily="Segoe UI"/>
+
+            <TextBlock Text="   User: "
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"
+                       Margin="20,0,0,0"
+                       FontFamily="Segoe UI"/>
+            <TextBlock Text="{Binding UserName}"
+                       VerticalAlignment="Center"
+                       Margin="4,0,0,0"
+                       FontFamily="Segoe UI"/>
         </StackPanel>
 
-        <!-- =============================================== -->
-        <!-- Row 1, Column 0–0: ProgressBar + % overlay      -->
-        <!-- =============================================== -->
-        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,10,10">
+
+        <!-- ────────────────────────────────────────────────────────────────── -->
+        <!-- Row 1 (spans both columns): ProgressBar + “XX%” overlay        -->
+        <!-- ────────────────────────────────────────────────────────────────── -->
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,10">
             <ProgressBar x:Name="ProgressBarControl"
                          Minimum="0"
                          Maximum="{Binding TotalCount}"
                          Value="{Binding ProcessedCount}"
                          Height="24"
-                         VerticalAlignment="Center"/>
-
+                         VerticalAlignment="Center"
+                         Foreground="#3A7BD5"
+                         Background="#E0E0E0"/>
             <TextBlock Text="{Binding PercentText}"
                        FontWeight="Bold"
                        Foreground="White"
                        HorizontalAlignment="Center"
-                       VerticalAlignment="Center"/>
+                       VerticalAlignment="Center"
+                       FontFamily="Segoe UI"/>
         </Grid>
 
-        <!-- ======================================================= -->
-        <!-- Row 2, Column 0: Left pane = Failed Items + toolbar   -->
-        <!-- ======================================================= -->
-        <Grid Grid.Row="2" Grid.Column="0"
-              Margin="0,0,10,0">
-            <Grid.RowDefinitions>
-                <!-- toolbar row -->
-                <RowDefinition Height="Auto"/>
-                <!-- DataGrid row -->
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
 
-            <!-- ===== Row 0: “Select All” / “Deselect All” / “Patch Selected” ===== -->
-            <StackPanel Grid.Row="0"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        Margin="0,0,0,6">
-                <Button x:Name="BtnSelectAll"
-                        Content="Select All"
-                        Width="80"
-                        Height="28"
-                        Margin="0,0,8,0"
-                        Click="BtnSelectAll_Click"/>
-                <Button x:Name="BtnDeselectAll"
-                        Content="Deselect All"
-                        Width="100"
-                        Height="28"
-                        Margin="0,0,8,0"
-                        Click="BtnDeselectAll_Click"/>
-                <Button x:Name="BtnPatchSelected"
-                        Content="Patch Selected"
-                        Width="110"
-                        Height="28"
-                        IsEnabled="False"
-                        Click="BtnPatchSelected_Click"/>
-            </StackPanel>
+        <!-- ────────────────────────────────────────────────────────────────── -->
+        <!-- Row 2, Column 0: Left Pane = Failed Items + toolbar            -->
+        <!-- ────────────────────────────────────────────────────────────────── -->
+        <Border Grid.Row="2" Grid.Column="0"
+                Background="White"
+                CornerRadius="6"
+                BorderThickness="1"
+                BorderBrush="#CCCCCC"
+                Padding="10"
+                Margin="0,0,10,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <!-- Toolbar row -->
+                    <RowDefinition Height="*"/>
+                    <!-- DataGrid row -->
+                </Grid.RowDefinitions>
 
-            <!-- ===== Row 1: DataGrid of failed items ===== -->
-            <DataGrid x:Name="FailedItemsDataGrid"
-                      Grid.Row="1"
-                      AutoGenerateColumns="False"
-                      CanUserResizeColumns="True"
-                      IsReadOnly="False"
-                      SelectionMode="Extended"
-                      HeadersVisibility="Column"
-                      GridLinesVisibility="All"
-                      RowBackground="#FFFFFF"
-                      AlternatingRowBackground="#F9F9F9"
-                      HorizontalGridLinesBrush="#DDDDDD"
-                      VerticalGridLinesBrush="#DDDDDD"
-                      FontSize="12"
-                      ColumnHeaderHeight="30"
-                      RowHeight="28"
-                      ItemsSource="{Binding FailedItems}">
+                <!-- ===== Toolbar Buttons: Select All / Deselect All / Patch Selected ===== -->
+                <StackPanel Grid.Row="0"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,0,0,8">
+                    <Button x:Name="BtnSelectAll"
+                            Content="Select All"
+                            Width="88"
+                            Height="28"
+                            Margin="0,0,6,0"
+                            Background="#F0F0F0"
+                            Foreground="#333333"
+                            FontFamily="Segoe UI"
+                            FontSize="12"
+                            BorderThickness="0"
+                            Click="BtnSelectAll_Click"/>
 
-                <!-- ===== Define columns: ===== -->
-                <DataGrid.Columns>
-                    <!-- Checkbox column to toggle IsSelectedToUpdate -->
-                    <DataGridCheckBoxColumn Header="Update?"
-                                            Binding="{Binding IsSelectedToUpdate, Mode=TwoWay}"
-                                            Width="Auto"/>
+                    <Button x:Name="BtnDeselectAll"
+                            Content="Deselect All"
+                            Width="100"
+                            Height="28"
+                            Margin="0,0,6,0"
+                            Background="#F0F0F0"
+                            Foreground="#333333"
+                            FontFamily="Segoe UI"
+                            FontSize="12"
+                            BorderThickness="0"
+                            Click="BtnDeselectAll_Click"/>
 
-                    <!-- ItemCode column -->
-                    <DataGridTextColumn Header="Item Code"
-                                        Binding="{Binding ItemCode}"
-                                        IsReadOnly="True"
-                                        Width="2*"/>
+                    <Button x:Name="BtnPatchSelected"
+                            Content="Patch Selected"
+                            Width="112"
+                            Height="28"
+                            Background="#3A7BD5"
+                            Foreground="White"
+                            FontFamily="Segoe UI"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            BorderThickness="0"
+                            IsEnabled="False"
+                            Click="BtnPatchSelected_Click"/>
+                </StackPanel>
 
-                    <!-- Old U_PurchasingPrice -->
-                    <DataGridTextColumn Header="Old Purch Price"
-                                        Binding="{Binding OldPurchasingPrice}"
-                                        IsReadOnly="True"
-                                        Width="Auto"/>
+                <!-- ===== Failed Items DataGrid ===== -->
+                <DataGrid x:Name="FailedItemsDataGrid"
+                          Grid.Row="1"
+                          AutoGenerateColumns="False"
+                          CanUserResizeColumns="True"
+                          IsReadOnly="False"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="None"
+                          RowBackground="#FFFFFF"
+                          AlternatingRowBackground="#F9F9F9"
+                          HorizontalGridLinesBrush="#DDDDDD"
+                          VerticalGridLinesBrush="#DDDDDD"
+                          FontSize="12"
+                          FontFamily="Segoe UI"
+                          ColumnHeaderHeight="32"
+                          RowHeight="28"
+                          ItemsSource="{Binding FailedItems}"
+                          SelectionMode="Extended"
+                          RowStyle="{StaticResource NoHighlightDataGridRowStyle}"
+                          CellStyle="{StaticResource NoHighlightDataGridCellStyle}">
 
-                    <!-- Old U_SalesPrice -->
-                    <DataGridTextColumn Header="Old Sales Price"
-                                        Binding="{Binding OldSalesPrice}"
-                                        IsReadOnly="True"
-                                        Width="Auto"/>
+                    <!-- ===== Column Definitions ===== -->
+                    <DataGrid.Columns>
+                        <!-- 1) “Update?” CheckBox column, centered -->
+                        <DataGridCheckBoxColumn Header="Update?"
+                                                Binding="{Binding IsSelectedToUpdate, Mode=TwoWay}"
+                                                Width="Auto"
+                                                ElementStyle="{StaticResource CenteredCheckBoxStyle}"
+                                                EditingElementStyle="{StaticResource CenteredCheckBoxStyle}"/>
 
-                    <!-- New U_PurchasingPrice -->
-                    <DataGridTextColumn Header="New Purch Price"
-                                        Binding="{Binding NewPurchasingPrice}"
-                                        IsReadOnly="True"
-                                        Width="Auto"/>
+                        <!-- 2) Item Code (read-only text) -->
+                        <DataGridTextColumn Header="Item Code"
+                                            Binding="{Binding ItemCode}"
+                                            IsReadOnly="True"
+                                            Width="2*"/>
 
-                    <!-- New U_SalesPrice -->
-                    <DataGridTextColumn Header="New Sales Price"
-                                        Binding="{Binding NewSalesPrice}"
-                                        IsReadOnly="True"
-                                        Width="Auto"/>
-                </DataGrid.Columns>
+                        <!-- 3) Old Purchase Price (light gray background) -->
+                        <DataGridTextColumn Header="Old Purchasing"
+                                            Binding="{Binding OldPurchasingPrice}"
+                                            IsReadOnly="True"
+                                            Width="Auto">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Background" Value="#FFF5F5F5"/>
+                                    <Setter Property="Padding" Value="4,0"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
 
-                <!-- ===== Styles for header & cells ===== -->
-                <DataGrid.Resources>
-                    <Style TargetType="DataGridColumnHeader">
-                        <Setter Property="Background" Value="#F0F0F0"/>
-                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                        <Setter Property="VerticalContentAlignment" Value="Center"/>
-                        <Setter Property="FontWeight" Value="SemiBold"/>
-                    </Style>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="BorderBrush" Value="#DDDDDD"/>
-                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                        <Setter Property="Padding" Value="4,2"/>
-                    </Style>
-                </DataGrid.Resources>
-            </DataGrid>
-        </Grid>
 
-        <!-- ====================================================== -->
-        <!-- Row 2, Column 1: Right pane = “Console” (existing)    -->
-        <!-- ====================================================== -->
-        <Border Grid.Row="2"
-                Grid.Column="1"
+                        <!-- 5) New Purchase Price (light green background) -->
+                        <DataGridTextColumn Header="New Purchasing"
+                                            Binding="{Binding NewPurchasingPrice}"
+                                            IsReadOnly="True"
+                                            Width="Auto">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Background" Value="#E6F4EA"/>
+                                    <Setter Property="Padding" Value="4,0"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- 4) Old Sales Price (light gray background) -->
+                        <DataGridTextColumn Header="Old Sales"
+                                            Binding="{Binding OldSalesPrice}"
+                                            IsReadOnly="True"
+                                            Width="Auto">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Background" Value="#FFF5F5F5"/>
+                                    <Setter Property="Padding" Value="4,0"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- 6) New Sales Price (light green background) -->
+                        <DataGridTextColumn Header="New Sales"
+                                            Binding="{Binding NewSalesPrice}"
+                                            IsReadOnly="True"
+                                            Width="Auto">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Background" Value="#E6F4EA"/>
+                                    <Setter Property="Padding" Value="4,0"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+
+                    <!-- ===== In-place overrides for header & cell styles (thin vertical lines only) ===== -->
+                    <DataGrid.Resources>
+                        <!-- Column header style (light gray background, centered) -->
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#F0F0F0"/>
+                            <Setter Property="Foreground" Value="#333333"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="FontFamily" Value="Segoe UI"/>
+                            <Setter Property="FontSize" Value="13"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="Height" Value="32"/>
+                        </Style>
+
+                        <!-- Cell style: use our NoHighlightDataGridCellStyle as default -->
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderBrush" Value="#DDDDDD"/>
+                            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+                            <Setter Property="FontFamily" Value="Segoe UI"/>
+                            <Setter Property="FontSize" Value="12"/>
+                            <Setter Property="Padding" Value="4,2"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Foreground" Value="Black"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.Resources>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+
+        <!-- ────────────────────────────────────────────────────────────────── -->
+        <!-- Row 2, Column 1: Right Pane = “Console” panel (unchanged)       -->
+        <!-- ────────────────────────────────────────────────────────────────── -->
+        <Border Grid.Row="2" Grid.Column="1"
                 Background="#F5F5F5"
-                CornerRadius="4"
-                Padding="8"
+                CornerRadius="6"
+                Padding="10"
                 SnapsToDevicePixels="True"
-                BorderBrush="#DDDDDD"
+                BorderBrush="#CCCCCC"
                 BorderThickness="1">
             <DockPanel>
                 <!-- Console Header -->
                 <TextBlock Text="Console"
                            FontWeight="SemiBold"
                            FontSize="14"
+                           FontFamily="Segoe UI"
                            DockPanel.Dock="Top"
                            Margin="0,0,0,8"/>
 
@@ -187,6 +339,7 @@
                     <ItemsControl ItemsSource="{Binding ConsoleMessages}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
+                                <!-- Each line uses Consolas so it looks like a real console -->
                                 <TextBlock Text="{Binding}"
                                            FontFamily="Consolas"
                                            FontSize="12"
