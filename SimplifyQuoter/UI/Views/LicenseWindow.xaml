@@ -18,7 +18,7 @@
                        Padding="8"
                        TextWrapping="Wrap">
 				<TextBlock.Inlines>
-					<Run Text="FlowScale End User License Agreement (EULA)" />
+					<Run Text="SimplifyQuoter End User License Agreement (EULA)" />
 					<LineBreak/>
 					<Run Text="Version 1.0 – Effective: June 4, 2025" />
 					<LineBreak/>

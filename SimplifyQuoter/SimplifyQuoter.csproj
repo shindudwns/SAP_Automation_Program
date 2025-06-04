@@ -240,6 +240,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <Resource Include="sample.xlsx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

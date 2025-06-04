@@ -103,19 +103,46 @@ namespace SimplifyQuoter.Views
         /// </summary>
         private void DownloadSample_Click(object sender, RoutedEventArgs e)
         {
+            var saveDlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "Save Sample Excel File",
+                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                FileName = "sample.xlsx"
+            };
+            if (saveDlg.ShowDialog() != true) return;
+
             try
             {
-                Process.Start(new ProcessStartInfo
+                // ← Replace 'SimplifyQuoter' with your actual assembly/namespace if different
+                var resourceUri = new Uri(
+                    "pack://application:,,,/SimplifyQuoter;component/sample.xlsx",
+                    UriKind.Absolute);
+
+                var resInfo = Application.GetResourceStream(resourceUri);
+                if (resInfo == null)
+                    throw new Exception("Sample file not found as a Resource.");
+
+                using (var resourceStream = resInfo.Stream)
+                using (var fileStream = File.Create(saveDlg.FileName))
                 {
-                    FileName = "https://example.com/path/to/sample.xlsx",
-                    UseShellExecute = true
-                });
+                    resourceStream.CopyTo(fileStream);
+                }
+
+                MessageBox.Show("Sample file saved to:\n" + saveDlg.FileName,
+                                "Download Complete",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
             }
-            catch
+            catch (Exception ex)
             {
-                MessageBox.Show("Unable to open sample file link.",
-                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Unable to save sample file:\n{ex.Message}",
+                                "Error",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Error);
             }
+
         }
+
+
     }
 }

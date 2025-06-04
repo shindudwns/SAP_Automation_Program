@@ -555,6 +555,7 @@ namespace SimplifyQuoter.Views
             public string PartNumber => _dto.FrgnName;
             public int ItemGroup => _dto.ItmsGrpCod;
             public string PreferredVendor => _dto.BPCode ?? string.Empty;
+            public string Mainsupplier => _dto.Mainsupplier ?? string.Empty;
             public string PurchaseUnit => _dto.PurchaseUnit ?? string.Empty;
             public string SalesUnit => _dto.SalesUnit ?? string.Empty;
             public string InventoryUOM => _dto.InventoryUOM ?? string.Empty;

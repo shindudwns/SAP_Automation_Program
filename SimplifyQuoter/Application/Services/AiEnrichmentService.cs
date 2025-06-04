@@ -320,11 +320,32 @@ namespace SimplifyQuoter.Services
 
             // Prompt for concise summary
             var prompt = $@"
-                Generate a concise product name and its key specifications for the part number ""{code}"" from this brand: ""{brand}"".  
-                • Only output the product's usage & specs, such as weight, length, volume, separated by commas.  
-                • Do not add any name of product, surrounding sentences, adjectives or explanations.  
-                • Use ALL CAPITAL LETTERS.
-                • EXAMPLE: SLICER PLUS CUTTING WHEEL 6"" X .045"" X 7/8"".";
+                You are an expert in industrial/electromechanical parts and can generate concise, all-caps product descriptions from just a Part number and a Brand.  Output only the description text (no leading “Description:” or any extra labels).
+
+                Examples:
+
+                #1
+                Part number: 1FT6044-4AF71-3EB2  
+                Brand: SIEMENS  
+                SERVO MOTOR, 1FT6 SIMOTICS S SYNCHRONOUS SERVOMOTOR, 3 PHASE, 3 AMP, 3000 RPM, 5 NM
+
+                #2
+                Part number: HR705-2PL-24VDC  
+                Brand: Kacon  
+                ELECTROMECHANICAL RELAY, ICE CUBE TYPE, DPDT (2NO + 2NC) CONTACT CONFIGURATION, 24 V DC COIL VOLTAGE, 5 A CONTACT RATING, 250 V AC / 125 V DC SWITCHING VOLTAGE
+
+                #3
+                Part number: WF22-55  
+                Brand: MISUMI  
+                ROUND WIRE SPRING, 0.1 KG
+
+                ---
+
+                Now generate for:
+
+
+                Part number: ""{code}"" 
+                Brand: ""{brand}""";
 
             return await SendWithRetryAsync(prompt);
         }

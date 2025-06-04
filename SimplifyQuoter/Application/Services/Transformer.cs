@@ -316,6 +316,7 @@ namespace SimplifyQuoter.Services
                 FrgnName = partNumber,
                 ItmsGrpCod = itemGroup,
                 BPCode = vendor,
+                Mainsupplier = vendor,
                 PurchaseUnit = purchaseUoM,
                 SalesUnit = salesUoM,
                 InventoryUOM = inventoryUoM,
