@@ -4,37 +4,37 @@
              Height="Auto"
              Width="Auto"
              Background="White">
-    <Grid Margin="20">
-        <!-- Define 3 rows and 2 columns -->
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <!-- Row 0: Instruction & top of Excel preview -->
-            <RowDefinition Height="Auto"/>
-            <!-- Row 1: Inputs (Range / Margin % & UoM) -->
-            <RowDefinition Height="*"/>
-            <!-- Row 2: Selected Items & bottom of Excel preview -->
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <!-- Col 0: Instruction, Inputs, Selected Items -->
-            <ColumnDefinition Width="*"/>
-            <!-- Col 1: Excel preview (spans all 3 rows) -->
-        </Grid.ColumnDefinitions>
+	<Grid Margin="20">
+		<!-- Define 3 rows and 2 columns -->
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<!-- Row 0: Instruction & top of Excel preview -->
+			<RowDefinition Height="Auto"/>
+			<!-- Row 1: Inputs (Range / Margin % & UoM) -->
+			<RowDefinition Height="*"/>
+			<!-- Row 2: Selected Items & bottom of Excel preview -->
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="Auto"/>
+			<!-- Col 0: Instruction, Inputs, Selected Items -->
+			<ColumnDefinition Width="*"/>
+			<!-- Col 1: Excel preview (spans all 3 rows) -->
+		</Grid.ColumnDefinitions>
 
-        <!-- ================================================== -->
-        <!-- Row 0, Col 0: Instruction Text -->
-        <!-- ================================================== -->
-        <TextBlock Grid.Row="0"
+		<!-- ================================================== -->
+		<!-- Row 0, Col 0: Instruction Text -->
+		<!-- ================================================== -->
+		<TextBlock Grid.Row="0"
                    Grid.Column="0"
                    Text="You can type ranges or select directly from the sheet. All will be combined."
                    FontWeight="Bold"
                    TextWrapping="Wrap"
                    Margin="0,0,16,12"/>
 
-        <!-- ================================================== -->
-        <!-- Rows 0→2, Col 1: Excel Preview (DataGridAllRows) spanning all rows -->
-        <!-- ================================================== -->
-        <DataGrid x:Name="DataGridAllRows"
+		<!-- ================================================== -->
+		<!-- Rows 0→2, Col 1: Excel Preview (DataGridAllRows) spanning all rows -->
+		<!-- ================================================== -->
+		<DataGrid x:Name="DataGridAllRows"
                   Grid.Row="0"
                   Grid.RowSpan="3"
                   Grid.Column="1"
@@ -46,49 +46,53 @@
                   HeadersVisibility="Column"
                   Margin="0,0,0,0"/>
 
-        <!-- ================================================== -->
-        <!-- Row 1, Col 0: Stacked Inputs (Range, then Margin % & UoM side-by-side) -->
-        <!-- ================================================== -->
-        <StackPanel Grid.Row="1"
+		<!-- ================================================== -->
+		<!-- Row 1, Col 0: Stacked Inputs (Range, then Margin % & UoM side-by-side) -->
+		<!-- ================================================== -->
+		<StackPanel Grid.Row="1"
                     Grid.Column="0"
                     Orientation="Vertical"
                     Margin="0,0,16,12">
 
-            <!-- 1) Range Field (unchanged) -->
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                <TextBlock Text="Range:"
+			<!-- 1) Range Field (with placeholder) -->
+			<StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+				<TextBlock Text="Range:"
                            VerticalAlignment="Center"
                            Margin="0,0,4,0"/>
-                <Border Background="#EEE"
+				<Border Background="#EEE"
                         CornerRadius="4"
                         Padding="4,2"
                         VerticalAlignment="Center">
-                    <TextBox x:Name="TxtRange"
+					<TextBox x:Name="TxtRange"
                              Width="140"
                              Background="Transparent"
                              BorderThickness="0"
                              FontSize="14"
-                             ToolTip="e.g. 1-5, 8-11"
-                             VerticalContentAlignment="Center"/>
-                </Border>
-                <Button Content="Apply"
+                             VerticalContentAlignment="Center"
+                             Text="4-8, 11, 56-90"
+                             Foreground="Gray"
+                             GotFocus="TxtRange_GotFocus"
+                             LostFocus="TxtRange_LostFocus"
+                             ToolTip="e.g. 4-8, 11, 56-90"/>
+				</Border>
+				<Button Content="Apply"
                         Click="BtnApplyRange_Click"
                         Margin="8,0,0,0"
                         Padding="8,4"
                         VerticalAlignment="Center"/>
-            </StackPanel>
+			</StackPanel>
 
-            <!-- 2) Margin % and UoM on the same line -->
-            <StackPanel Orientation="Horizontal">
-                <!-- Margin % label + textbox -->
-                <TextBlock Text="Margin %:"
+			<!-- 2) Margin % and UoM on the same line -->
+			<StackPanel Orientation="Horizontal">
+				<!-- Margin % label + textbox -->
+				<TextBlock Text="Margin %:"
                            VerticalAlignment="Center"
                            Margin="0,0,4,0"/>
-                <Border Background="#EEE"
+				<Border Background="#EEE"
                         CornerRadius="4"
                         Padding="4,2"
                         VerticalAlignment="Center">
-                    <TextBox x:Name="TxtMargin"
+					<TextBox x:Name="TxtMargin"
                              Width="60"
                              Background="Transparent"
                              BorderThickness="0"
@@ -96,62 +100,62 @@
                              Text="20"
                              VerticalContentAlignment="Center"
                              ToolTip="Enter margin as a percentage (e.g. 20)"/>
-                </Border>
+				</Border>
 
-                <!-- Small gap between Margin % and UoM -->
-                <Rectangle Width="24" Fill="Transparent"/>
+				<!-- Small gap between Margin % and UoM -->
+				<Rectangle Width="24" Fill="Transparent"/>
 
-                <!-- UoM label + dropdown (editable) -->
-                <TextBlock Text="UoM:"
+				<!-- UoM label + dropdown (editable) -->
+				<TextBlock Text="UoM:"
                            VerticalAlignment="Center"
                            Margin="0,0,4,0"/>
-                <Border Background="#EEE"
+				<Border Background="#EEE"
                         CornerRadius="4"
                         Padding="4,2"
                         VerticalAlignment="Center">
-                    <ComboBox x:Name="CmbUoM"
+					<ComboBox x:Name="CmbUoM"
                               Width="100"
                               Background="Transparent"
                               BorderThickness="0"
                               IsEditable="True"
                               FontSize="14"
                               VerticalContentAlignment="Center">
-                        <ComboBoxItem Content="EACH"/>
-                        <ComboBoxItem Content="PK"/>
-                    </ComboBox>
-                </Border>
-            </StackPanel>
-        </StackPanel>
+						<ComboBoxItem Content="EACH"/>
+						<ComboBoxItem Content="PK"/>
+					</ComboBox>
+				</Border>
+			</StackPanel>
+		</StackPanel>
 
-        <!-- ================================================== -->
-        <!-- Row 2, Col 0: Selected Items Box (widened to fit whitespace) -->
-        <!-- ================================================== -->
-        <GroupBox Header="Selected Items"
+		<!-- ================================================== -->
+		<!-- Row 2, Col 0: Selected Items Box (widened to fit whitespace) -->
+		<!-- ================================================== -->
+		<GroupBox Header="Selected Items"
                   Grid.Row="2"
                   Grid.Column="0"
                   Padding="4"
                   Margin="0,0,136,0"
                   Width="300">
-            <DataGrid x:Name="DataGridSelected"
+			<DataGrid x:Name="DataGridSelected"
                       AutoGenerateColumns="False"
                       CanUserAddRows="False"
                       IsReadOnly="True"
                       HeadersVisibility="Column"
                       GridLinesVisibility="All"/>
-        </GroupBox>
+		</GroupBox>
 
-        <!-- ========================= -->
-        <!-- New “Next” Button -->
-        <!-- ========================= -->
-        <Button x:Name="BtnNext"
-            Content="Next"
-            Grid.Row="2"
-            Grid.Column="0"
-            HorizontalAlignment="Right"
-            Margin="0,12,0,0"
-            Padding="4,2"
-            Width="80"
-            Height="30"
-            Click="BtnNext_Click"/>
-    </Grid>
+		<!-- ========================= -->
+		<!-- New “Next” Button -->
+		<!-- ========================= -->
+		<Button x:Name="BtnNext"
+                Content="Next"
+                Grid.Row="2"
+                Grid.Column="0"
+                HorizontalAlignment="Right"
+                Margin="0,12,0,0"
+                Padding="4,2"
+                Width="80"
+                Height="30"
+                Click="BtnNext_Click"/>
+	</Grid>
 </UserControl>

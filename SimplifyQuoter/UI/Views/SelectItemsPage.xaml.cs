@@ -4,9 +4,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
 using SimplifyQuoter.Models;
-using System.Windows.Navigation;      
+using System.Windows.Navigation;
 using SimplifyQuoter.Views;
-using System.Windows.Media;
+using System.Windows.Media;  // ← Add this for Brushes.Gray / Brushes.Black
 
 namespace SimplifyQuoter.Views
 {
@@ -16,8 +16,9 @@ namespace SimplifyQuoter.Views
     /// </summary>
     public partial class SelectItemsPage : UserControl
     {
-        public event EventHandler ProceedToReview;
         private const string RangePlaceholder = "4-8, 11, 56-90";
+
+        public event EventHandler ProceedToReview;
 
         public SelectItemsPage()
         {
@@ -27,8 +28,15 @@ namespace SimplifyQuoter.Views
 
         private void SelectItemsPage_Loaded(object sender, RoutedEventArgs e)
         {
-            var state = AutomationWizardState.Current;
+            // 1) Initialize placeholder if needed
+            if (string.IsNullOrWhiteSpace(TxtRange.Text))
+            {
+                TxtRange.Text = RangePlaceholder;
+                TxtRange.Foreground = Brushes.Gray;
+            }
 
+            // 2) Populate the grids
+            var state = AutomationWizardState.Current;
             if (state.AllRows == null || state.AllRows.Count == 0)
                 return;
 
@@ -95,7 +103,7 @@ namespace SimplifyQuoter.Views
         private void BtnApplyRange_Click(object sender, RoutedEventArgs e)
         {
             var text = TxtRange.Text.Trim();
-            if (string.IsNullOrEmpty(text))
+            if (string.IsNullOrEmpty(text) || text == RangePlaceholder)
                 return;
 
             var state = AutomationWizardState.Current;
@@ -132,18 +140,18 @@ namespace SimplifyQuoter.Views
 
             DataGridSelected.Items.Refresh();
 
-            // Temporarily unsubscribe from SelectedCellsChanged so UnselectAll() doesn't clear our selection
+            // Temporarily unsubscribe from SelectedCellsChanged so UnselectAll() doesn’t clear our manual selection
             DataGridAllRows.SelectedCellsChanged -= DataGridAllRows_SelectedCellsChanged;
             DataGridAllRows.UnselectAll();
 
-            // Copy the selected rows into a separate list before iterating
+            // Re‐select rows in DataGridAllRows to match state.SelectedRows
             var toSelect = state.SelectedRows.ToList();
             foreach (var rv in toSelect)
             {
                 DataGridAllRows.SelectedItems.Add(rv);
             }
 
-            // Re-subscribe to the event after we finish
+            // Re‐subscribe to the event
             DataGridAllRows.SelectedCellsChanged += DataGridAllRows_SelectedCellsChanged;
         }
 
@@ -173,7 +181,6 @@ namespace SimplifyQuoter.Views
             }
             else
             {
-                // If parsing fails, default back to 0 or previous:
                 state.MarginPercent = 0.0;
             }
 
@@ -181,41 +188,34 @@ namespace SimplifyQuoter.Views
             state.UoM = CmbUoM.Text?.Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(state.UoM))
             {
-                // If the user didn’t select anything, default to “EACH”
                 state.UoM = "EACH";
             }
             // =======================================================
 
-            // Now navigate to ReviewConfirmPage.xaml:
+            // Navigate to ReviewConfirmPage.xaml:
             var nav = NavigationService.GetNavigationService(this);
             if (nav != null)
             {
-                // If this UserControl is hosted in a Frame/NavigationWindow:
                 nav.Navigate(new ReviewConfirmPage());
                 return;
             }
 
-            // Fallback: if NavigationService is null (e.g. you swap pages manually):
+            // Fallback if NavigationService is null:
             var wizard = Window.GetWindow(this) as WizardWindow;
             if (wizard != null)
             {
                 wizard.ShowStep(3);
-                // ← Assumes that step index 3 is ReviewConfirmPage. 
-                //     Adjust the step number according to your WizardWindow implementation.
             }
 
-            // Optionally, you can still raise ProceedToReview if something else listens to it:
             ProceedToReview?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
         /// Public wrapper so that WizardWindow can “simulate” clicking Next.
-        /// Returns true if navigation-to-review was allowed (i.e. at least one row was selected).
+        /// Returns true if navigation-to-review was allowed.
         /// </summary>
         public bool TryProceedToReview()
         {
-            // Copy of BtnNext_Click’s validation & state‐copy logic, 
-            // except we do NOT re‐invoke NavigationService here.
             var state = AutomationWizardState.Current;
 
             if (state.SelectedRows.Count == 0)
@@ -244,11 +244,31 @@ namespace SimplifyQuoter.Views
                 state.UoM = "EACH";
             }
 
-            // Raise the same event that BtnNext_Click would have:
             ProceedToReview?.Invoke(this, EventArgs.Empty);
             return true;
         }
 
 
+        // ────────────────────────────────────────────────────────────────────────
+        //  Placeholder‐specific handlers:
+        // ────────────────────────────────────────────────────────────────────────
+
+        private void TxtRange_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (TxtRange.Text == RangePlaceholder)
+            {
+                TxtRange.Text = "";
+                TxtRange.Foreground = Brushes.Black;
+            }
+        }
+
+        private void TxtRange_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(TxtRange.Text))
+            {
+                TxtRange.Text = RangePlaceholder;
+                TxtRange.Foreground = Brushes.Gray;
+            }
+        }
     }
 }
