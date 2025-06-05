@@ -195,12 +195,18 @@ namespace SimplifyQuoter.Services
                 // 5.2) Determine SL group code
                 var groupCode = await ai.DetermineItemGroupCodeAsync(part, brand);
 
-                // 6) Build and return the ItemDto, 
-                //      setting PurchaseUnit/SalesUnit/InventoryUOM = user’s UoM
+                // 6) Build description part
+                string itemName = $"{brand}, {part}, {description}";
+                if (!string.IsNullOrEmpty(weight))
+                {
+                    itemName += $", {weight}KG";
+                }
+
+                // 7) Build and return the ItemDto, 
                 return new ItemDto
                 {
                     ItemCode = "H-" + part,
-                    ItemName = brand + ", " + part + ", " + description + ", " + weight + "KG",
+                    ItemName = itemName,
                     FrgnName = part,
                     ItmsGrpCod = groupCode,
 
