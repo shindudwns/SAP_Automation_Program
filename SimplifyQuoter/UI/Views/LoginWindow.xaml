@@ -17,16 +17,6 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 SnapsToDevicePixels="True">
-            <!-- Optional drop shadow: uncomment if desired
-            <Border.Effect>
-                <DropShadowEffect Color="Black"
-                                  Direction="270"
-                                  ShadowDepth="5"
-                                  Opacity="0.3"
-                                  BlurRadius="8"/>
-            </Border.Effect>
-            -->
-
             <!-- Canvas layout for absolute positioning: -->
             <Canvas>
                 <!-- 1) Title at the top -->
@@ -43,7 +33,7 @@
                     <Run Text="Welcome"/><Run Language="ko-kr" Text=", SAP"/><LineBreak/><Run Language="ko-kr"/>
                 </TextBlock>
 
-                <!-- 2) CompanyDB Label and ComboBox -->
+                <!-- 2) Server Label and ComboBox -->
                 <TextBlock Text="Server"
                            FontWeight="SemiBold"
                            Foreground="#555"
@@ -57,6 +47,7 @@
                           BorderThickness="1"
                           Background="White"
                           IsEditable="True"
+                          Text="SM_NEW_PROD"
                           Canvas.Left="215"
                           Canvas.Top="100">
                     <ComboBoxItem Content="SM_NEW_PROD"/>
