@@ -159,11 +159,29 @@ namespace SimplifyQuoter.Services.ServiceLayer
         /// </summary>
         public async Task PatchItemPricesAsync(string itemCode, double newPurchPrice, double newSalesPrice)
         {
+            // Build a single payload with both the UDFs and the ItemPrices array:
             var patchPayload = new
             {
                 U_PurchasingPrice = newPurchPrice,
-                U_SalesPrice = newSalesPrice
+                U_SalesPrice = newSalesPrice,
+
+                ItemPrices = new[]
+                {
+            // Update the purchasing‐price row (PriceList = 11)
+            new
+            {
+                PriceList = 11,
+                Price     = newPurchPrice
+            },
+            // Update the sales‐price row (PriceList = 12)
+            new
+            {
+                PriceList = 12,
+                Price     = newSalesPrice
+            }
+        }
             };
+
             var json = JsonConvert.SerializeObject(
                 patchPayload,
                 new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
@@ -171,7 +189,7 @@ namespace SimplifyQuoter.Services.ServiceLayer
             Debug.WriteLine("📤 SL PatchItemPrices payload:");
             Debug.WriteLine(json);
 
-            // Copy cookies again:
+            // Copy cookies (B1SESSION, ROUTEID) as before
             var sl = _client as ServiceLayerClient;
             if (sl != null)
             {
@@ -193,14 +211,13 @@ namespace SimplifyQuoter.Services.ServiceLayer
             using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
             {
                 var url = $"Items('{Uri.EscapeDataString(itemCode)}')";
-                var resp = await _client.HttpClient
-                                         .PatchAsync(url, content)    // requiring extension: HttpClient.PatchAsync
-                                         .ConfigureAwait(false);
+                var resp = await _client.HttpClient.PatchAsync(url, content).ConfigureAwait(false);
                 var body = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
                 Debug.WriteLine($"📥 SL PatchItemPrices response: {(int)resp.StatusCode} {resp.ReasonPhrase}");
                 Debug.WriteLine(body);
                 resp.EnsureSuccessStatusCode();
             }
         }
+
     }
 }

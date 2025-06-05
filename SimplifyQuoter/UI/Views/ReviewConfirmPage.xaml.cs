@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -364,91 +365,118 @@ namespace SimplifyQuoter.Views
 
                 string chosenPath = dlg.FileName;
 
+                // 1) Read the edited preview sheet (it may be ItemMaster or Quotation format).
                 List<RowView> previewRows = ExcelService.Instance.ReadReviewSheet(chosenPath);
+
+                // 2) Grab the original selection (before editing).
                 var state = AutomationWizardState.Current;
                 var originalSelected = state.SelectedRows;
 
-                if (previewRows.Count != originalSelected.Count)
-                {
-                    MessageBox.Show(
-                        "The edited file’s row count does not match the original selection count.\n" +
-                        "Make sure you did not add or remove rows in the Excel preview.",
-                        "Row Count Mismatch",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
-                    return;
-                }
-
-                var mergedRowViews = new List<RowView>(previewRows.Count);
-
+                // 3) Build a dictionary: sequenceNumber → edited RowView
+                //    (We expect the first column of previewRows to be that “sequence” from 1…N.)
+                var seqToEdited = new Dictionary<int, RowView>();
                 foreach (var rvNew in previewRows)
                 {
-                    if (!int.TryParse(rvNew.Cells[0]?.Trim(), out int seq)
-                        || seq < 1
-                        || seq > originalSelected.Count)
-                    {
-                        MessageBox.Show(
-                            $"Invalid sequence value '{rvNew.Cells[0]}' encountered in the preview sheet.\n" +
-                            "Each row’s first column must be 1,2,3,… matching the original selection order.",
-                            "Sequence Error",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Error);
-                        return;
-                    }
+                    // Try parse the “Sequence” column (column index 0 in rvNew.Cells):
+                    if (!int.TryParse(rvNew.Cells.ElementAtOrDefault(0)?.Trim(), out int seq))
+                        continue;
+                    if (seq < 1)
+                        continue;
 
-                    int originalIndex = seq - 1;
-                    var rvOld = originalSelected[originalIndex];
-
-                    int colCount = Math.Max(rvOld.Cells.Length, rvNew.Cells.Length);
-                    var mergedCells = new string[colCount];
-
-                    for (int i = 0; i < colCount; i++)
-                    {
-                        string oldText = (i < rvOld.Cells.Length) ? rvOld.Cells[i] : string.Empty;
-                        string newText = (i < rvNew.Cells.Length) ? rvNew.Cells[i] : string.Empty;
-
-                        if (string.IsNullOrWhiteSpace(newText))
-                        {
-                            mergedCells[i] = oldText;
-                        }
-                        else if (!string.Equals(oldText?.Trim(), newText?.Trim(), StringComparison.Ordinal))
-                        {
-                            mergedCells[i] = newText.Trim();
-                        }
-                        else
-                        {
-                            mergedCells[i] = oldText;
-                        }
-                    }
-
-                    var rvMerged = new RowView
-                    {
-                        RowIndex = rvOld.RowIndex,
-                        RowId = rvOld.RowId,
-                        Cells = mergedCells
-                    };
-                    mergedRowViews.Add(rvMerged);
+                    // If the same seq appears multiple times, the last one “wins.”
+                    seqToEdited[seq] = rvNew;
                 }
 
+                // 4) Build a new merged list.  We iterate over all sequences present in seqToEdited,
+                //    sorted ascending.  For each sequence:
+                //      • If seq ≤ originalSelected.Count, we merge “old” + “new” on a cell-by-cell basis.
+                //      • If seq > originalSelected.Count, it’s purely a “brand-new” row → take rvNew.Cells as-is.
+                //
+                //    This means:
+                //      – If a sequence that used to exist is now missing, it simply gets dropped.
+                //      – If new sequences appear (beyond originalCount), they get included automatically.
+                var mergedRowViews = new List<RowView>();
+                foreach (var kvp in seqToEdited.OrderBy(k => k.Key))
+                {
+                    int seq = kvp.Key;
+                    var rvNew = kvp.Value;
+
+                    if (seq <= originalSelected.Count)
+                    {
+                        // Merge with the old row at index (seq−1):
+                        var rvOld = originalSelected[seq - 1];
+                        int oldLen = rvOld.Cells.Length;
+                        int newLen = rvNew.Cells.Length;
+                        int colCount = Math.Max(oldLen, newLen);
+
+                        var mergedCells = new string[colCount];
+                        for (int c = 0; c < colCount; c++)
+                        {
+                            string oldText = (c < oldLen) ? rvOld.Cells[c] : string.Empty;
+                            string newText = (c < newLen) ? rvNew.Cells[c] : string.Empty;
+
+                            // If the user left the new cell blank, keep the old value:
+                            if (string.IsNullOrWhiteSpace(newText))
+                            {
+                                mergedCells[c] = oldText;
+                            }
+                            // If newText differs from oldText, use newText:
+                            else if (!string.Equals(oldText?.Trim(), newText?.Trim(), StringComparison.Ordinal))
+                            {
+                                mergedCells[c] = newText.Trim();
+                            }
+                            else
+                            {
+                                // They are identical (or both whitespace), so keep old:
+                                mergedCells[c] = oldText;
+                            }
+                        }
+
+                        mergedRowViews.Add(new RowView
+                        {
+                            RowIndex = rvOld.RowIndex,
+                            RowId = rvOld.RowId,
+                            Cells = mergedCells
+                        });
+                    }
+                    else
+                    {
+                        // A brand-new row (sequence > originalCount).  We include it “as-is.”
+                        // RowIndex/RowId aren’t really used downstream for SAP insertion, so we can
+                        // just pass along whatever was read. If you prefer, you can set RowId = Guid.Empty.
+                        mergedRowViews.Add(new RowView
+                        {
+                            RowIndex = rvNew.RowIndex,
+                            RowId = Guid.Empty,
+                            Cells = rvNew.Cells
+                        });
+                    }
+                }
+
+                // 5) Replace state.SelectedRows with our merged set
                 state.AllRows = new ObservableCollection<RowView>(mergedRowViews);
                 state.SelectedRows.Clear();
                 foreach (var rv in mergedRowViews)
                     state.SelectedRows.Add(rv);
 
+                // 6) Re‐build DTO lists from mergedRowViews
                 _currentItemMasterDtos = new List<ItemDto>(state.SelectedRows.Count);
                 _currentQuotationDtos = new List<QuotationDto>(state.SelectedRows.Count);
                 string chosenUoM = state.UoM;
 
                 foreach (var rv in state.SelectedRows)
                 {
-                    var dto = Transformer.ToItemDtoFromEditedRow(rv, chosenUoM);
-                    _currentItemMasterDtos.Add(dto);
+                    // 6.a) Build ItemDto from edited row
+                    var itemDto = Transformer.ToItemDtoFromEditedRow(rv, chosenUoM);
+                    _currentItemMasterDtos.Add(itemDto);
 
-                    string cardCode = (rv.Cells.Length > 1) ? rv.Cells[1]?.Trim() : string.Empty;
+                    // 6.b) Build QuotationDto from edited row
+                    string cardCode = rv.Cells.Length > 1 ? rv.Cells[1]?.Trim() : string.Empty;
 
                     DateTime docDate = DateTime.Today;
                     if (rv.Cells.Length > 2 &&
-                        DateTime.TryParseExact(rv.Cells[2]?.Trim(), "yyyy-MM-dd",
+                        DateTime.TryParseExact(rv.Cells[2]?.Trim(),
+                                               "yyyy-MM-dd",
                                                CultureInfo.InvariantCulture,
                                                DateTimeStyles.None,
                                                out var parsedDate))
@@ -456,7 +484,7 @@ namespace SimplifyQuoter.Views
                         docDate = parsedDate;
                     }
 
-                    string qItemCode = (rv.Cells.Length > 3) ? rv.Cells[3]?.Trim() : string.Empty;
+                    string qItemCode = rv.Cells.Length > 3 ? rv.Cells[3]?.Trim() : string.Empty;
 
                     double quantity = 0;
                     if (rv.Cells.Length > 4 && !string.IsNullOrWhiteSpace(rv.Cells[4]))
@@ -468,7 +496,7 @@ namespace SimplifyQuoter.Views
                                         out quantity);
                     }
 
-                    string freeText = (rv.Cells.Length > 5) ? rv.Cells[5]?.Trim() : string.Empty;
+                    string freeText = rv.Cells.Length > 5 ? rv.Cells[5]?.Trim() : string.Empty;
 
                     var qdto = new QuotationDto
                     {
@@ -487,11 +515,11 @@ namespace SimplifyQuoter.Views
                     _currentQuotationDtos.Add(qdto);
                 }
 
-                // ─── STORE MERGED DTOS IN WIZARD STATE ─────────────────────────────────
+                // 7) Update wizard state with the merged DTOs
                 state.MergedItemMasterDtos = new List<ItemDto>(_currentItemMasterDtos);
                 state.MergedQuotationDtos = new List<QuotationDto>(_currentQuotationDtos);
-                // ─────────────────────────────────────────────────────────────────────
 
+                // 8) Refresh whichever tab is currently visible
                 if (PreviewTabs.SelectedIndex == 0)
                 {
                     BuildItemMasterColumns();
@@ -515,6 +543,7 @@ namespace SimplifyQuoter.Views
                     MessageBoxImage.Error);
             }
         }
+
 
         #endregion
 
