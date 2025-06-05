@@ -5,7 +5,8 @@ using System.Windows.Controls;
 using System.Collections.Generic;
 using SimplifyQuoter.Models;
 using System.Windows.Navigation;      
-using SimplifyQuoter.Views;         
+using SimplifyQuoter.Views;
+using System.Windows.Media;
 
 namespace SimplifyQuoter.Views
 {
@@ -16,6 +17,7 @@ namespace SimplifyQuoter.Views
     public partial class SelectItemsPage : UserControl
     {
         public event EventHandler ProceedToReview;
+        private const string RangePlaceholder = "4-8, 11, 56-90";
 
         public SelectItemsPage()
         {
@@ -246,5 +248,7 @@ namespace SimplifyQuoter.Views
             ProceedToReview?.Invoke(this, EventArgs.Empty);
             return true;
         }
+
+
     }
 }
