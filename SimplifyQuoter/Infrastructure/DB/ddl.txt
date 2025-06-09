@@ -109,6 +109,18 @@ CREATE TABLE public.license (
 
 
 
+CREATE TABLE job_log (
+  id            UUID                            PRIMARY KEY,
+  user_id       TEXT,
+  file_name     TEXT,
+  job_type      TEXT,
+  started_at    TIMESTAMP WITH TIME ZONE,
+  completed_at  TIMESTAMP WITH TIME ZONE,
+  total_cells   INTEGER,
+  success_count INTEGER,
+  failure_count INTEGER,
+  patch_count   INTEGER
+);
 
 
 

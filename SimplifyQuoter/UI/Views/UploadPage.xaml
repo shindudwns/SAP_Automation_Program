@@ -17,16 +17,22 @@
         </Grid.RowDefinitions>
 
         <!-- ========== Centered Upload Card ========== -->
-        <Border Grid.Row="1"
-            Width="600"
-            Height="300"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            CornerRadius="8"
-            Background="white"
-            BorderBrush="white"
-            BorderThickness="2"
-            SnapsToDevicePixels="True">
+        <Border x:Name="DropBorder"
+                Grid.Row="1"
+                Width="600"
+                Height="300"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                CornerRadius="8"
+                Background="White"
+                BorderBrush="White"
+                BorderThickness="2"
+                SnapsToDevicePixels="True"
+                AllowDrop="True"
+                DragEnter="DropBorder_DragEnter"
+                DragOver="DropBorder_DragOver"
+                Drop="Border_Drop">
+
             <!-- Dashed outline via StrokeDashArray requires Path or Rectangle: use Rectangle for simplicity -->
             <Grid>
                 <Rectangle Stroke="#CCC"

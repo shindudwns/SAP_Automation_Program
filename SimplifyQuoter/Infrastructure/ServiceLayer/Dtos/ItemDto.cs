@@ -10,7 +10,6 @@ namespace SimplifyQuoter.Services.ServiceLayer.Dtos
         [JsonProperty("ForeignName")]
         public string FrgnName { get; set; }
 
-        // Must be an integer matching the SL “ItemsGroupCode”
         [JsonProperty("ItemsGroupCode")]
         public int ItmsGrpCod { get; set; }
 

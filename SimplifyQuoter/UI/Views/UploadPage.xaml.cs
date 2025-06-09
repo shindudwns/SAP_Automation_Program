@@ -34,18 +34,45 @@ namespace SimplifyQuoter.Views
         /// <summary>
         /// Handles a drag‐and‐drop onto the dashed rectangle
         /// </summary>
+        // Show copy cursor when dragging a file over the drop zone
+        private void DropBorder_DragEnter(object sender, DragEventArgs e)
+        {
+            e.Handled = true;
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effects = DragDropEffects.Copy;
+            else
+                e.Effects = DragDropEffects.None;
+        }
+
+        // Same as DragEnter—keeps cursor if you hover
+        private void DropBorder_DragOver(object sender, DragEventArgs e)
+        {
+            e.Handled = true;
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effects = DragDropEffects.Copy;
+            else
+                e.Effects = DragDropEffects.None;
+        }
+
+        // Your existing Drop handler
         private void Border_Drop(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files.Length == 0) return;
+
+            var path = files[0];
+            if (!Path.GetExtension(path)
+                     .Equals(".xlsx", StringComparison.OrdinalIgnoreCase))
             {
-                var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (files.Length > 0 && Path.GetExtension(files[0])
-                                         .Equals(".xlsx", StringComparison.OrdinalIgnoreCase))
-                {
-                    LoadFile(files[0]);
-                }
+                MessageBox.Show("Only .xlsx files are supported.", "Drop Error",
+                                MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
+
+            LoadFile(path);
         }
+
 
         /// <summary>
         /// Show an OpenFileDialog to pick a .xlsx file
