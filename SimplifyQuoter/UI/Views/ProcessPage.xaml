@@ -285,22 +285,18 @@
                            Margin="0,0,0,8"/>
 
                 <!-- Scrollable list of console messages -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Disabled">
-                    <ItemsControl ItemsSource="{Binding ConsoleMessages}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <!-- Each line uses Consolas so it looks like a real console -->
-                                <TextBlock Text="{Binding}"
-                                           FontFamily="Consolas"
-                                           FontSize="12"
-                                           Foreground="#333333"
-                                           TextWrapping="Wrap"
-                                           Margin="0,0,0,2"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                <TextBox
+                    Text="{Binding ConsoleText,Mode=OneWay}"
+                    FontFamily="Consolas"
+                    FontSize="12"
+                    Foreground="#333333"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    IsReadOnly="True"
+                    AcceptsReturn="True"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled"
+                    TextWrapping="Wrap"/>
             </DockPanel>
         </Border>
     </Grid>

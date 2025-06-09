@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
@@ -77,6 +78,8 @@ namespace SimplifyQuoter.Views
         /// Live console messages bound to an ItemsControl in XAML.
         /// </summary>
         public ObservableCollection<string> ConsoleMessages { get; } = new ObservableCollection<string>();
+        public string ConsoleText
+            => string.Join(Environment.NewLine, ConsoleMessages);
 
         /// <summary>
         /// All items that “already existed” in SAP (queried via GET) and are queued for price patching.
@@ -90,12 +93,10 @@ namespace SimplifyQuoter.Views
             InitializeComponent();
             DataContext = this;
 
-            //
-            // ─── Listen for new items being added into FailedItems ─────────────────────────
-            //
-            // As soon as we add a new FailedItemViewModel to the collection (in the "already exists" branch),
-            // we hook up its PropertyChanged so we can detect when its IsSelectedToUpdate toggles.
-            //
+            // Update ConsoleText whenever we add new console lines
+            ConsoleMessages.CollectionChanged += OnConsoleMessagesChanged;
+
+            // Hook up patch‐queue notifications as before
             FailedItems.CollectionChanged += FailedItems_CollectionChanged;
 
             var state = AutomationWizardState.Current;
@@ -103,17 +104,24 @@ namespace SimplifyQuoter.Views
             UserName = state.UserName ?? "(unknown)";
 
             if (_slClient?.HttpClient?.BaseAddress != null)
-                //ServerName = _slClient.HttpClient.BaseAddress.GetLeftPart(UriPartial.Authority);
                 ServerName = "SM_NEW_PROD";
             else
                 ServerName = "(unknown)";
 
-            // We will set TotalCount in ProcessPage_Loaded once we know how many items are in the list
+            // Will set TotalCount in Loaded
             TotalCount = 0;
             ProcessedCount = 0;
 
             Loaded += ProcessPage_Loaded;
         }
+
+
+        private void OnConsoleMessagesChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            // Whenever ConsoleMessages changes, notify that ConsoleText has changed
+            OnPropertyChanged(nameof(ConsoleText));
+        }
+
 
         /// <summary>
         /// Fired once when the control appears.
@@ -131,7 +139,6 @@ namespace SimplifyQuoter.Views
             var itemDtos = state.MergedItemMasterDtos;
             if (itemDtos == null)
             {
-                // No “Replace Excel” override, rebuild from SelectedRows:
                 double marginPct = state.MarginPercent;
                 string uom = state.UoM;
                 itemDtos = new List<ItemDto>(state.SelectedRows.Count);
@@ -143,18 +150,16 @@ namespace SimplifyQuoter.Views
             }
 
             // 2) Initialize counters for creation pass
-            TotalCount = itemDtos.Count;  // Raises PropertyChanged ⇒ ProgressBar.Maximum updates
-            ProcessedCount = 0;           // Raises PropertyChanged ⇒ ProgressBar.Value updates
+            TotalCount = itemDtos.Count;
+            ProcessedCount = 0;
 
             var succeededItems = new List<string>();
             var outrightFailed = new List<string>();
-            // “outrightFailed” = items that failed for reasons other than “already exists”
 
-            // 3) Attempt to CREATE each item
             var itemService = new ItemService(_slClient);
             foreach (var dto in itemDtos)
             {
-                string logPart = dto.FrgnName; // or dto.ItemCode
+                string logPart = dto.FrgnName;
                 AppendConsole($"[{Timestamp}] Processing: {logPart}");
 
                 try
@@ -166,23 +171,20 @@ namespace SimplifyQuoter.Views
                 }
                 catch (HttpRequestException httpEx)
                 {
-                    // 3.b) If it’s “already exists,” queue for patching:
-                    if (!string.IsNullOrEmpty(httpEx.Message) &&
-                        httpEx.Message.IndexOf("already exists", StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (httpEx.Message.IndexOf("already exists", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
+                        // 3.b) Enqueue for patching
                         try
                         {
-                            // GET that item’s current prices
                             var existing = await itemService.GetExistingItemAsync(dto.ItemCode);
-                            var failedVm = new FailedItemViewModel(
-                                itemCode: dto.ItemCode,
-                                oldPurch: existing.U_PurchasingPrice,
-                                oldSales: existing.U_SalesPrice,
-                                newPurch: dto.U_PurchasingPrice,
-                                newSales: dto.U_SalesPrice
-                            );
-                            FailedItems.Add(failedVm);
-                            AppendConsole($"[{Timestamp}] ⚠ Item already exists: {logPart} → queued for price patch");
+                            var vm = new FailedItemViewModel(
+                                dto.ItemCode,
+                                existing.U_PurchasingPrice,
+                                existing.U_SalesPrice,
+                                dto.U_PurchasingPrice,
+                                dto.U_SalesPrice);
+                            FailedItems.Add(vm);
+                            AppendConsole($"[{Timestamp}] ⚠ Item already exists: {logPart} → queued for patch");
                         }
                         catch (Exception getEx)
                         {
@@ -192,30 +194,29 @@ namespace SimplifyQuoter.Views
                     }
                     else
                     {
-                        // 3.c) Some other HTTP-level failure
+                        // 3.c) Other HTTP error
                         AppendConsole($"[{Timestamp}] ✘ Error for '{logPart}': {httpEx.Message}");
                         outrightFailed.Add(logPart);
                     }
                 }
                 catch (Exception ex)
                 {
-                    // 3.d) Unexpected failure
+                    // 3.d) Unexpected error
                     AppendConsole($"[{Timestamp}] ✘ Unexpected error for '{logPart}': {ex.Message}");
                     outrightFailed.Add(logPart);
                 }
 
-                ProcessedCount++;  // Raises PropertyChanged ⇒ ProgressBar.Value & PercentText update
+                ProcessedCount++;
             }
 
-            // 4) Summarize the CREATE pass in the console
+            // 4) Summarize
             AppendConsole($"[{Timestamp}] All {ProcessedCount}/{TotalCount} creation attempts complete.");
             AppendConsole(string.Empty);
 
             if (succeededItems.Count > 0)
             {
                 AppendConsole($"[{Timestamp}] {succeededItems.Count} succeeded:");
-                foreach (var code in succeededItems)
-                    AppendConsole($"   • {code}");
+                succeededItems.ForEach(c => AppendConsole($"   • {c}"));
             }
             else
             {
@@ -225,8 +226,7 @@ namespace SimplifyQuoter.Views
             if (outrightFailed.Count > 0)
             {
                 AppendConsole($"[{Timestamp}] {outrightFailed.Count} failed (other errors):");
-                foreach (var code in outrightFailed)
-                    AppendConsole($"   • {code}");
+                outrightFailed.ForEach(c => AppendConsole($"   • {c}"));
             }
             else
             {
@@ -237,10 +237,7 @@ namespace SimplifyQuoter.Views
             {
                 AppendConsole($"[{Timestamp}] {FailedItems.Count} items already existed (queued for patch):");
                 foreach (var vm in FailedItems)
-                    AppendConsole(
-                        $"   • {vm.ItemCode} (Old: {vm.OldPurchasingPrice}/{vm.OldSalesPrice}, " +
-                        $"New: {vm.NewPurchasingPrice}/{vm.NewSalesPrice})"
-                    );
+                    AppendConsole($"   • {vm.ItemCode} (Old: {vm.OldPurchasingPrice}/{vm.OldSalesPrice}, New: {vm.NewPurchasingPrice}/{vm.NewSalesPrice})");
             }
             else
             {
@@ -249,13 +246,12 @@ namespace SimplifyQuoter.Views
 
             AppendConsole(string.Empty);
 
-            // 5) Enable “Select All” / “Deselect All” if we have any FailedItems
+            // Enable toolbar buttons
             BtnSelectAll.IsEnabled = FailedItems.Count > 0;
             BtnDeselectAll.IsEnabled = FailedItems.Count > 0;
-
-            // “Patch Selected” remains disabled until the user actually checks at least one checkbox.
             BtnPatchSelected.IsEnabled = false;
         }
+
 
         /// <summary>
         /// “Select All” button clicked – check every FailedItemViewModel.
