@@ -228,6 +228,69 @@ namespace SimplifyQuoter.Services
         }
 
 
+        public static ItemDto ToItemDtoWithoutAI(
+            RowView rv,
+            double marginPercent,
+            string uom)
+        {
+            // 1) Extract raw cells
+            var part = rv.Cells.Length > 2 ? rv.Cells[2]?.Trim() : string.Empty;
+            var brand = rv.Cells.Length > 1 ? rv.Cells[1]?.Trim() : string.Empty;
+            var price = rv.Cells.Length > 9 ? rv.Cells[9]?.Trim() : null;
+            var weight = rv.Cells.Length > 11 ? rv.Cells[11]?.Trim() : null;
+
+            // 2) Clean currency symbols/commas
+            if (!string.IsNullOrEmpty(price))
+                price = price.Replace("$", "").Replace(",", "");
+
+            // 3) Parse purchase price
+            double purchasePrice = 0;
+            if (!string.IsNullOrEmpty(price)
+                && double.TryParse(price,
+                                   NumberStyles.Any,
+                                   CultureInfo.InvariantCulture,
+                                   out var parsed))
+            {
+                purchasePrice = parsed;
+            }
+
+            // 4) Compute sales price (same formula as ToItemDtoAsync)
+            double salesPrice;
+            if (marginPercent >= 100)
+            {
+                salesPrice = purchasePrice;
+            }
+            else
+            {
+                var markupFactor = 1.0 - (marginPercent / 100.0);
+                salesPrice = (markupFactor > 0)
+                    ? Math.Round(purchasePrice / markupFactor, 4)
+                    : purchasePrice;
+            }
+
+            // 5) Build fallback description
+            //    "brand, part, , {weight}KG"
+            var desc = $"{brand}, {part}, WRITE_HERE,";
+            if (!string.IsNullOrEmpty(weight))
+                desc += $" {weight}KG";
+
+            // 6) Construct the DTO
+            return new ItemDto
+            {
+                ItemCode = "H-" + part,
+                ItemName = desc,
+                FrgnName = part,
+                ItmsGrpCod = 121,           // hard-coded ETC
+                BPCode = "VL000442",
+                Mainsupplier = "VL000442",
+                CardType = "cSupplier",
+                PurchaseUnit = uom,
+                SalesUnit = uom,
+                InventoryUOM = uom,
+                U_PurchasingPrice = purchasePrice,
+                U_SalesPrice = salesPrice
+            };
+        }
 
         /// <summary>
         /// Map a RowView into a single‐line QuotationDto

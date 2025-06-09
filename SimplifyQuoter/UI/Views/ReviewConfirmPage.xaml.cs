@@ -28,11 +28,11 @@ namespace SimplifyQuoter.Views
         // Stored lists of DTOs for each tab:
         private List<ItemDto> _currentItemMasterDtos;
         private List<QuotationDto> _currentQuotationDtos;
-
-        /// <summary>
-        /// When true, the “Loading…” overlay appears.
-        /// </summary>
+        private int _totalCount;
+        private int _currentCount;
+        private bool _skipAi;
         private bool _isLoading;
+        public event EventHandler ProceedToProcess;
         public bool IsLoading
         {
             get => _isLoading;
@@ -46,9 +46,7 @@ namespace SimplifyQuoter.Views
             }
         }
 
-        public event EventHandler ProceedToProcess;
 
-        private int _currentCount;
         public int CurrentCount
         {
             get => _currentCount;
@@ -62,7 +60,6 @@ namespace SimplifyQuoter.Views
                 }
             }
         }
-        private int _totalCount;
         public int TotalCount
         {
             get => _totalCount;
@@ -77,19 +74,22 @@ namespace SimplifyQuoter.Views
             }
         }
 
-        /// e.g. "Loading… (3/10)"
-
         public string LoadingText => $"Loading… ({CurrentCount}/{TotalCount})";
 
         public ReviewConfirmPage()
         {
             InitializeComponent();
-
-            // Set the DataContext so that our bindings (e.g. IsLoading) work:
             DataContext = this;
-
             Loaded += ReviewConfirmPage_Loaded;
         }
+
+        private void BtnSkipAI_Click(object sender, RoutedEventArgs e)
+        {
+            _skipAi = true;
+            BtnSkipAI.IsEnabled = false;
+
+        }
+
 
         /// <summary>
         /// On load (or whenever the control re‐appears), rebuild both DTO lists.
@@ -102,49 +102,42 @@ namespace SimplifyQuoter.Views
         {
             var state = AutomationWizardState.Current;
 
-            // ─────────────────────────────────────────────────────────────
             // BEFORE STARTING ANY async calls, show the Loading overlay:
             IsLoading = true;
-            // ─────────────────────────────────────────────────────────────
-
             TotalCount = state.SelectedRows.Count;
             CurrentCount = 0;
 
             try
             {
                 // 1) Build ItemMaster DTOs using Transformer.ToItemDtoAsync
+                _currentItemMasterDtos = new List<ItemDto>();
                 double marginPct = state.MarginPercent;
                 string uom = state.UoM;
-                _currentItemMasterDtos = new List<ItemDto>();
                 
                 foreach (var rv in state.SelectedRows)
                 {
-                    // This call may run AI/DB lookups, so it can take time:
-                    var dto = await Transformer.ToItemDtoAsync(rv, marginPct, uom);
+                    // This call may run AI/DB or not AI lookups
+                    ItemDto dto = _skipAi
+                        ? Transformer.ToItemDtoWithoutAI(rv, marginPct, uom)
+                        : await Transformer.ToItemDtoAsync(rv, marginPct, uom);
+
                     _currentItemMasterDtos.Add(dto);
-
                     CurrentCount++;
+
+
                 }
 
-                // 2) Build Quotation DTOs using Transformer.ToQuotationDto
-                _currentQuotationDtos = new List<QuotationDto>();
-                foreach (var rv in state.SelectedRows)
-                {
-                    var qdto = Transformer.ToQuotationDto(rv);
-                    _currentQuotationDtos.Add(qdto);
-                }
+                _currentQuotationDtos = state.SelectedRows
+                    .Select(rv => Transformer.ToQuotationDto(rv))
+                    .ToList();
 
-                // 3) Update the “(N)” on the Quotation tab header:
-                TabItem_QuotePreview.Header = $"Quotation Preview ({_currentQuotationDtos.Count})";
+                TabItem_QuotePreview.Header =
+                    $"Quotation Preview ({_currentQuotationDtos.Count})";
 
-                // 4) Build columns for each DataGrid
                 BuildItemMasterColumns();
                 BuildQuotationColumns();
-
-                // 5) Bind the default (ItemMaster) DataGrid
                 BindItemMasterGrid();
 
-                // 6) Ensure QuotationDataGrid is hidden initially
                 QuotationDataGrid.Visibility = Visibility.Collapsed;
             }
             catch (Exception ex)
@@ -161,6 +154,7 @@ namespace SimplifyQuoter.Views
                 // ───────────────────────────────────────────────────────────
                 // AFTER ALL async calls have completed (or on error), hide Loading:
                 IsLoading = false;
+
                 // ───────────────────────────────────────────────────────────
             }
         }

@@ -181,19 +181,27 @@
         <!-- This is a sibling of the above content, all inside the same parent Grid. -->
         <!-- ──────────────────────────────────────────────────────────────────── -->
         <Border
-            Background="#CCFFFFFF"                                
+            Background="#CCFFFFFF"
             Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
             Grid.Row="0" Grid.RowSpan="4">
 
-            <!-- bind to LoadingText instead of hard-coded "Loading…" -->
-            <TextBlock
-                Text="{Binding LoadingText}"
-                FontSize="24"
-                FontWeight="Bold"
-                Foreground="#444444"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        >
+                <TextBlock
+                    Text="{Binding LoadingText}"
+                    FontSize="24"
+                    FontWeight="Bold"
+                    Foreground="#444444"/>
+                <Button x:Name="BtnSkipAI"
+                        Content="Skip AI"
+                        FontSize="14"
+                        Padding="8,4"
+                        Click="BtnSkipAI_Click"/>
+            </StackPanel>
         </Border>
+
 
     </Grid>
 </UserControl>
