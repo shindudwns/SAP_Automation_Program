@@ -270,7 +270,7 @@ namespace SimplifyQuoter.Services
 
             // 5) Build fallback description
             //    "brand, part, , {weight}KG"
-            var desc = $"{brand}, {part}, WRITE_HERE,";
+            var desc = $"{brand}, {part}, WRITEHERE,";
             if (!string.IsNullOrEmpty(weight))
                 desc += $" {weight}KG";
 
