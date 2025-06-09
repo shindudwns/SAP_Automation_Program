@@ -48,6 +48,39 @@ namespace SimplifyQuoter.Views
 
         public event EventHandler ProceedToProcess;
 
+        private int _currentCount;
+        public int CurrentCount
+        {
+            get => _currentCount;
+            private set
+            {
+                if (_currentCount != value)
+                {
+                    _currentCount = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(LoadingText));
+                }
+            }
+        }
+        private int _totalCount;
+        public int TotalCount
+        {
+            get => _totalCount;
+            private set
+            {
+                if (_totalCount != value)
+                {
+                    _totalCount = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(LoadingText));
+                }
+            }
+        }
+
+        /// e.g. "Loading… (3/10)"
+
+        public string LoadingText => $"Loading… ({CurrentCount}/{TotalCount})";
+
         public ReviewConfirmPage()
         {
             InitializeComponent();
@@ -74,18 +107,23 @@ namespace SimplifyQuoter.Views
             IsLoading = true;
             // ─────────────────────────────────────────────────────────────
 
+            TotalCount = state.SelectedRows.Count;
+            CurrentCount = 0;
+
             try
             {
                 // 1) Build ItemMaster DTOs using Transformer.ToItemDtoAsync
                 double marginPct = state.MarginPercent;
                 string uom = state.UoM;
-
                 _currentItemMasterDtos = new List<ItemDto>();
+                
                 foreach (var rv in state.SelectedRows)
                 {
                     // This call may run AI/DB lookups, so it can take time:
                     var dto = await Transformer.ToItemDtoAsync(rv, marginPct, uom);
                     _currentItemMasterDtos.Add(dto);
+
+                    CurrentCount++;
                 }
 
                 // 2) Build Quotation DTOs using Transformer.ToQuotationDto

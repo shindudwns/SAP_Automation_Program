@@ -184,14 +184,16 @@
             Background="#CCFFFFFF"                                
             Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
             Grid.Row="0" Grid.RowSpan="4">
-            <!-- Cover rows 0..3 -->
+
+            <!-- bind to LoadingText instead of hard-coded "Loading…" -->
             <TextBlock
-                Text="Loading…"
+                Text="{Binding LoadingText}"
                 FontSize="24"
                 FontWeight="Bold"
                 Foreground="#444444"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"/>
         </Border>
+
     </Grid>
 </UserControl>
