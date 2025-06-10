@@ -147,6 +147,7 @@ namespace SimplifyQuoter.Services
             var brand = rv.Cells.Length > 1 ? rv.Cells[1]?.Trim() : string.Empty;
             var price = rv.Cells.Length > 9 ? rv.Cells[9]?.Trim() : null;
             var weight = rv.Cells.Length > 11 ? rv.Cells[11]?.Trim() : null;
+            var remark = rv.Cells.Length > 13 ? rv.Cells[13]?.Trim() : null;
 
             Debug.WriteLine($"🔍 Raw purchase‐price cell: '{price}'");
 
@@ -197,6 +198,11 @@ namespace SimplifyQuoter.Services
 
                 // 6) Build description part
                 string itemName = $"{brand}, {part}, {description}";
+
+                if (!string.IsNullOrEmpty(remark))
+                {
+                    itemName += $", {remark}";
+                }
                 if (!string.IsNullOrEmpty(weight))
                 {
                     itemName += $", {weight}KG";
@@ -229,15 +235,16 @@ namespace SimplifyQuoter.Services
 
 
         public static ItemDto ToItemDtoWithoutAI(
-            RowView rv,
-            double marginPercent,
-            string uom)
+    RowView rv,
+    double marginPercent,
+    string uom)
         {
             // 1) Extract raw cells
             var part = rv.Cells.Length > 2 ? rv.Cells[2]?.Trim() : string.Empty;
             var brand = rv.Cells.Length > 1 ? rv.Cells[1]?.Trim() : string.Empty;
             var price = rv.Cells.Length > 9 ? rv.Cells[9]?.Trim() : null;
             var weight = rv.Cells.Length > 11 ? rv.Cells[11]?.Trim() : null;
+            var remark = rv.Cells.Length > 13 ? rv.Cells[13]?.Trim() : null;
 
             // 2) Clean currency symbols/commas
             if (!string.IsNullOrEmpty(price))
@@ -268,11 +275,18 @@ namespace SimplifyQuoter.Services
                     : purchasePrice;
             }
 
-            // 5) Build fallback description
-            //    "brand, part, , {weight}KG"
-            var desc = $"{brand}, {part}, WRITEHERE,";
+            // 5) Build fallback description, inserting commas only when fields are present
+            string desc = $"{brand}, {part}, WRITEHERE";
+
+            if (!string.IsNullOrEmpty(remark))
+            {
+                desc += $", {remark}";
+            }
+
             if (!string.IsNullOrEmpty(weight))
-                desc += $" {weight}KG";
+            {
+                desc += $", {weight}KG";
+            }
 
             // 6) Construct the DTO
             return new ItemDto
@@ -280,7 +294,7 @@ namespace SimplifyQuoter.Services
                 ItemCode = "H-" + part,
                 ItemName = desc,
                 FrgnName = part,
-                ItmsGrpCod = 121,           // hard-coded ETC
+                ItmsGrpCod = 121,           // hard‐coded ETC
                 BPCode = "VL000442",
                 Mainsupplier = "VL000442",
                 CardType = "cSupplier",
@@ -291,6 +305,7 @@ namespace SimplifyQuoter.Services
                 U_SalesPrice = salesPrice
             };
         }
+
 
         /// <summary>
         /// Map a RowView into a single‐line QuotationDto
