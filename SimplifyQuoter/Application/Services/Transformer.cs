@@ -8,6 +8,7 @@ using SimplifyQuoter.Services.ServiceLayer.Dtos;
 using SimplifyQuoter.Services;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
+using System.Security.Cryptography;
 
 namespace SimplifyQuoter.Services
 {
@@ -208,6 +209,9 @@ namespace SimplifyQuoter.Services
                     itemName += $", {weight}KG";
                 }
 
+                itemName = itemName.ToUpperInvariant();
+
+
                 // 7) Build and return the ItemDto, 
                 return new ItemDto
                 {
@@ -287,6 +291,9 @@ namespace SimplifyQuoter.Services
             {
                 desc += $", {weight}KG";
             }
+
+            desc = desc.ToUpperInvariant();
+
 
             // 6) Construct the DTO
             return new ItemDto
