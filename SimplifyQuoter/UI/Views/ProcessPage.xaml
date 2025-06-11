@@ -136,6 +136,33 @@
                             BorderThickness="0"
                             IsEnabled="False"
                             Click="BtnPatchSelected_Click"/>
+
+                    <!-- Generate Excel -->
+                    <Button x:Name="BtnGenerateExcel"
+                            Content="Generate Excel"
+                            Width="112" Height="28"
+                            Background="#3A7BD5"
+                            Foreground="White"
+                            FontFamily="Segoe UI"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            BorderThickness="0"
+                            Margin="6,0,0,0"
+                            Click="BtnGenerateExcel_Click"/>
+
+                    <!-- New: Download Excel (hidden until generation completes) -->
+                    <Button x:Name="BtnDownloadExcel"
+                            Content="Download Excel"
+                            Width="112" Height="28"
+                            Background="#3A7BD5"
+                            Foreground="White"
+                            FontFamily="Segoe UI"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            BorderThickness="0"
+                            Margin="6,0,0,0"
+                            Click="BtnDownloadExcel_Click"
+                            Visibility="Collapsed"/>
                 </StackPanel>
 
                 <!-- Failed Items DataGrid -->

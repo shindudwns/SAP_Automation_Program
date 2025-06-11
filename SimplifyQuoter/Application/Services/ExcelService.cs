@@ -13,6 +13,7 @@ using OfficeOpenXml.Style;
 using SimplifyQuoter.Services.ServiceLayer.Dtos;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using SimplifyQuoter.Views;
 
 namespace SimplifyQuoter.Services
 {
@@ -22,14 +23,9 @@ namespace SimplifyQuoter.Services
 
         static ExcelService()
         {
-            // NEW for EPPlus 8+: choose one of these:
-            // Non-commercial personal use:
             ExcelPackage.License.SetNonCommercialPersonal("Your Name");
-            // – or – Non-commercial organization:
-            // ExcelPackage.License.SetNonCommercialOrganization("My Org Name");
-            //
-            // (Don’t call the obsolete LicenseContext property any more.)
         }
+
 
         /// <summary>
         /// For Import-TXT flow: persists into import_file & import_row tables.
@@ -378,6 +374,66 @@ RETURNING id";
             }
             return rows;
         }
+
+
+        /// <summary>
+        /// Writes the fully-formatted export with SAP data.
+        /// </summary>
+        public async Task WriteFormattedExportAsync(
+            System.Collections.Generic.IEnumerable<FormattedExportRow> rows,
+            string outputPath)
+        {
+            var dir = Path.GetDirectoryName(outputPath);
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            if (File.Exists(outputPath))
+                File.Delete(outputPath);
+
+            using (var pkg = new ExcelPackage(new FileInfo(outputPath)))
+            {
+                var ws = pkg.Workbook.Worksheets.Add("Export");
+                var headers = new[]
+                {
+                    "Item No.", "BP Catalog No.", "Item Description",
+                    "Quantity", "Unit Price", "Discount %", "Tax Code",
+                    "Total (LC)", "Free Text", "Whse", "In Stock",
+                    "UoM Name", "UoM Code", "Rebate", "Purchasing Price",
+                    "Margin (%)"
+                };
+                for (int c = 0; c < headers.Length; c++)
+                {
+                    ws.Cells[1, c + 1].Value = headers[c];
+                    ws.Cells[1, c + 1].Style.Font.Bold = true;
+                }
+
+                int r = 2;
+                foreach (var row in rows)
+                {
+                    ws.Cells[r, 1].Value = row.ItemNo;
+                    ws.Cells[r, 2].Value = row.BPCatalogNo;
+                    ws.Cells[r, 3].Value = row.ItemDescription;
+                    ws.Cells[r, 4].Value = row.Quantity;
+                    ws.Cells[r, 5].Value = row.UnitPrice;
+                    ws.Cells[r, 6].Value = row.DiscountPct;
+                    ws.Cells[r, 7].Value = row.TaxCode;
+                    ws.Cells[r, 8].Value = row.TotalLC;
+                    ws.Cells[r, 9].Value = row.FreeText;
+                    ws.Cells[r, 10].Value = row.Whse;
+                    ws.Cells[r, 11].Value = row.InStock;
+                    ws.Cells[r, 12].Value = row.UoMName;
+                    ws.Cells[r, 13].Value = row.UoMCode;
+                    ws.Cells[r, 14].Value = row.Rebate;
+                    ws.Cells[r, 15].Value = row.PurchasingPrice;
+                    ws.Cells[r, 16].Value = row.MarginPct;
+                    r++;
+                }
+
+                ws.Cells[ws.Dimension.Address].AutoFitColumns();
+                await pkg.SaveAsync();
+            }
+        }
+
 
     }
 }

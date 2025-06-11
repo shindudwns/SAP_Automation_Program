@@ -3,12 +3,17 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Win32;
+using Newtonsoft.Json.Linq;
 using SimplifyQuoter.Models;
 using SimplifyQuoter.Services;
 using SimplifyQuoter.Services.ServiceLayer;
@@ -25,6 +30,10 @@ namespace SimplifyQuoter.Views
     /// </summary>
     public partial class ProcessPage : UserControl, INotifyPropertyChanged
     {
+        private readonly ServiceLayerClient _slClient;
+        private string _exportTempPath;
+        private const int BatchSize = 20;
+
         private DateTime _createStartedAt;
         private DateTime _patchStartedAt;
         private int _originalTotalCells;
@@ -76,28 +85,23 @@ namespace SimplifyQuoter.Views
 
         public ObservableCollection<FailedItemViewModel> FailedItems { get; } = new ObservableCollection<FailedItemViewModel>();
 
-        private readonly ServiceLayerClient _slClient;
 
         public ProcessPage()
         {
             InitializeComponent();
             DataContext = this;
 
-            ConsoleMessages.CollectionChanged += OnConsoleMessagesChanged;
-            FailedItems.CollectionChanged += FailedItems_CollectionChanged;
-
             var state = AutomationWizardState.Current;
             _slClient = state.SlClient;
-            UserName = state.UserName ?? "(unknown)";
-            ServerName = _slClient?.HttpClient?.BaseAddress != null
-                        ? "SM_NEW_PROD"
-                        : "(unknown)";
 
-            TotalCount = 0;
-            ProcessedCount = 0;
+            // Keep console in sync
+            ConsoleMessages.CollectionChanged += (_, __) => OnPropertyChanged(nameof(ConsoleText));
+            // Track selection for patch UI
+            FailedItems.CollectionChanged += FailedItems_CollectionChanged;
 
             Loaded += ProcessPage_Loaded;
         }
+
 
         private void OnConsoleMessagesChanged(object sender, NotifyCollectionChangedEventArgs e)
             => OnPropertyChanged(nameof(ConsoleText));
@@ -112,16 +116,16 @@ namespace SimplifyQuoter.Views
             AppendConsole($"[{Timestamp}] Starting Item Master Data processing...");
             var state = AutomationWizardState.Current;
 
-            // 1) Build the definitive ItemDto list
+            // 1) Build DTO list once
             var itemDtos = state.MergedItemMasterDtos;
             if (itemDtos == null)
             {
-                double marginPct = state.MarginPercent;
-                string uom = state.UoM;
                 itemDtos = new List<ItemDto>(state.SelectedRows.Count);
                 foreach (var rv in state.SelectedRows)
-                    itemDtos.Add(await Transformer.ToItemDtoAsync(rv, marginPct, uom));
+                    itemDtos.Add(await Transformer.ToItemDtoAsync(rv, state.MarginPercent, state.UoM));
+                state.MergedItemMasterDtos = itemDtos;
             }
+
 
             // stamp start time & initialize counters
             _createStartedAt = DateTime.Now;
@@ -257,18 +261,12 @@ namespace SimplifyQuoter.Views
         private void FailedItems_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.NewItems == null) return;
-            foreach (var obj in e.NewItems.OfType<FailedItemViewModel>())
-                obj.PropertyChanged += FailedItemViewModel_PropertyChanged;
-        }
-
-        private void FailedItemViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(FailedItemViewModel.IsSelectedToUpdate))
-                RefreshPatchButtonState();
+            foreach (FailedItemViewModel vm in e.NewItems)
+                vm.PropertyChanged += (s, ev) => RefreshPatchButtonState();
         }
 
         private void RefreshPatchButtonState()
-            => BtnPatchSelected.IsEnabled = FailedItems.Any(vm => vm.IsSelectedToUpdate);
+                    => BtnPatchSelected.IsEnabled = FailedItems.Any(vm => vm.IsSelectedToUpdate);
 
         /// <summary>
         /// Patch-pass: only runs when user clicks “Patch Selected”
@@ -331,12 +329,241 @@ namespace SimplifyQuoter.Views
                 db.InsertJobLog(patchLog);
         }
 
-        #region INotifyPropertyChanged
+
+
+
+        // ─────────────────────────────────────────────────────────
+        // STEP 5: EXPORT LOGIC
+        // ─────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Pair a RowView with its matching ItemDto.ItemCode.
+        /// </summary>
+        private class RowCodePair
+        {
+            public RowView Row { get; set; }
+            public string Code { get; set; }
+        }
+
+        /// <summary>
+        /// Kick off the export: fetch data from Service Layer, build Excel.
+        /// </summary>
+        private async void BtnGenerateExcel_Click(object sender, RoutedEventArgs e)
+        {
+            BtnGenerateExcel.IsEnabled = false;
+            BtnGenerateExcel.Content = "Generating…";
+
+            var state = AutomationWizardState.Current;
+            TotalCount = state.MergedItemMasterDtos.Count;
+            ProcessedCount = 0;
+
+            var pairs = state.SelectedRows
+                             .Zip(state.MergedItemMasterDtos, (rv, dto) => new RowCodePair { Row = rv, Code = dto.ItemCode })
+                             .ToList();
+
+            // Build export rows (batch or parallel)
+            List<FormattedExportRow> exportRows;
+            if (pairs.Count <= BatchSize)
+                exportRows = await FetchConcurrentlyAsync(pairs);
+            else
+            {
+                exportRows = new List<FormattedExportRow>();
+                for (int i = 0; i < pairs.Count; i += BatchSize)
+                {
+                    var chunk = pairs.GetRange(i, Math.Min(BatchSize, pairs.Count - i));
+                    exportRows.AddRange(await FetchBatchAsync(chunk));
+                }
+            }
+
+            // Write to temporary file
+            _exportTempPath = Path.Combine(
+                Path.GetTempPath(),
+                $"SAP_Export_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
+            );
+            await ExcelService.Instance.WriteFormattedExportAsync(exportRows, _exportTempPath);
+
+            BtnDownloadExcel.Visibility = Visibility.Visible;
+            BtnGenerateExcel.Visibility = Visibility.Collapsed;
+        }
+
+        /// <summary>
+        /// Let the user choose where to save the already-generated file.
+        /// </summary>
+        private void BtnDownloadExcel_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new SaveFileDialog
+            {
+                Filter = "Excel Files (*.xlsx)|*.xlsx",
+                FileName = Path.GetFileName(_exportTempPath)
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            File.Copy(_exportTempPath, dlg.FileName, overwrite: true);
+            Process.Start(new ProcessStartInfo(dlg.FileName) { UseShellExecute = true });
+        }
+
+        /// <summary>
+        /// Parallel GETs (max 10 concurrent) for small sets.
+        /// </summary>
+        private async Task<List<FormattedExportRow>> FetchConcurrentlyAsync(List<RowCodePair> pairs)
+        {
+            var sem = new SemaphoreSlim(10);
+            var tasks = pairs.Select(async p =>
+            {
+                await sem.WaitAsync();
+                try { return await FetchSingleItemAsync(p.Row, p.Code); }
+                finally { sem.Release(); }
+            }).ToArray();
+
+            return (await Task.WhenAll(tasks)).ToList();
+        }
+
+        /// <summary>
+        /// Fetch one item’s JSON and map to a row (with fallback).
+        /// </summary>
+        private async Task<FormattedExportRow> FetchSingleItemAsync(RowView rv, string itemCode)
+        {
+            string enc = Uri.EscapeDataString(itemCode);
+            string query = "$select=ItemCode,ItemName,SalesUnit,U_SalesPrice";
+
+            try
+            {
+                var resp = await _slClient.HttpClient
+                    .GetAsync($"Items('{enc}')?{query}");
+                if (!resp.IsSuccessStatusCode)
+                {
+                    AppendConsole($"[Excel] GET Items('{itemCode}') → {(int)resp.StatusCode} {resp.ReasonPhrase}");
+                    return CreateEmptyRow(itemCode, rv);
+                }
+
+                var json = JObject.Parse(await resp.Content.ReadAsStringAsync());
+                return ParseJsonToRow(json, rv);
+            }
+            catch (Exception ex)
+            {
+                AppendConsole($"[Excel] GET failed for '{itemCode}': {ex.Message}");
+                return CreateEmptyRow(itemCode, rv);
+            }
+            finally
+            {
+                ProcessedCount++;
+            }
+        }
+
+        /// <summary>
+        /// OData $batch for larger sets.
+        /// </summary>
+        private async Task<List<FormattedExportRow>> FetchBatchAsync(List<RowCodePair> pairs)
+        {
+            var paths = pairs
+                .Select(p => Uri.EscapeDataString(p.Code))
+                .Distinct()
+                .Select(enc => $"Items('{enc}')?$select=ItemCode,ItemName,SalesUnit,U_SalesPrice")
+                .ToList();
+
+            string boundary = "batch_" + Guid.NewGuid().ToString("N");
+            var content = ODataBatchHelper.CreateBatchContent(paths, boundary);
+
+            var req = new HttpRequestMessage(HttpMethod.Post, "$batch") { Content = content };
+            var resp = await _slClient.HttpClient.SendAsync(req);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                AppendConsole($"[Excel] $batch → {(int)resp.StatusCode} {resp.ReasonPhrase}");
+                // fallback
+                return await FetchConcurrentlyAsync(pairs);
+            }
+
+            var raw = await resp.Content.ReadAsStringAsync();
+            var bodies = ODataBatchHelper.ParseBatchResponse(raw, boundary);
+
+            var list = new List<FormattedExportRow>();
+            int idx = 0;
+            foreach (var p in pairs)
+            {
+                var json = JObject.Parse(bodies[idx++]);
+                list.Add(ParseJsonToRow(json, p.Row));
+                ProcessedCount++;
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Map JSON + row into the export model.
+        /// </summary>
+        private FormattedExportRow ParseJsonToRow(JObject json, RowView rv)
+        {
+            string itemNo = (string)json["ItemCode"];
+            string name = (string)json["ItemName"];
+            string uom = (string)json["SalesUnit"];
+            double price = (double?)(json["U_SalesPrice"]) ?? 0.0;
+
+            double qty = 0; double.TryParse(rv.Cells.ElementAtOrDefault(3), out qty);
+            string freeText = Transformer.ConvertDurationToFreeText(rv.Cells.ElementAtOrDefault(10) ?? "");
+
+            return new FormattedExportRow
+            {
+                ItemNo = itemNo,
+                BPCatalogNo = string.Empty,
+                ItemDescription = name,
+                Quantity = qty,
+                UnitPrice = price,
+                DiscountPct = "0",
+                TaxCode = string.Empty,
+                TotalLC = Math.Round(qty * price, 2),
+                FreeText = freeText,
+                Whse = "01",
+                InStock = string.Empty,
+                UoMName = uom,
+                UoMCode = "Manual",
+                Rebate = "No",
+                PurchasingPrice = string.Empty,
+                MarginPct = string.Empty
+            };
+        }
+
+        /// <summary>
+        /// Create a stub if the GET fails.
+        /// </summary>
+        private FormattedExportRow CreateEmptyRow(string code, RowView rv)
+        {
+            double qty = 0; double.TryParse(rv.Cells.ElementAtOrDefault(3), out qty);
+            string freeText = Transformer.ConvertDurationToFreeText(rv.Cells.ElementAtOrDefault(10) ?? "");
+
+            return new FormattedExportRow
+            {
+                ItemNo = code,
+                BPCatalogNo = string.Empty,
+                ItemDescription = "(missing)",
+                Quantity = qty,
+                UnitPrice = 0.0,
+                DiscountPct = "0",
+                TaxCode = string.Empty,
+                TotalLC = 0.0,
+                FreeText = freeText,
+                Whse = "01",
+                InStock = string.Empty,
+                UoMName = string.Empty,
+                UoMCode = "Manual",
+                Rebate = "No",
+                PurchasingPrice = string.Empty,
+                MarginPct = string.Empty
+            };
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string propName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-        #endregion
+        private void OnPropertyChanged([CallerMemberName] string prop = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
+
+
+
+
+
+
     }
+
+
+
 
     /// <summary>
     /// VM for each “already existed” item.

@@ -25,7 +25,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>6</ApplicationRevision>
+    <ApplicationRevision>7</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -157,8 +157,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Domain\Models\AutomationWizardState.cs" />
+    <Compile Include="Domain\Models\FormattedExportRow.cs" />
     <Compile Include="Domain\Models\JobLogEntry.cs" />
     <Compile Include="Infrastructure\ServiceLayer\Clients\HttpClientExtensions.cs" />
+    <Compile Include="Infrastructure\ServiceLayer\Services\ODataBatchHelper.cs" />
     <Compile Include="UI\Converters\ValueToWidthConverter.cs" />
     <Compile Include="Domain\Models\RowView.cs" />
     <Compile Include="Application\Services\AiEnrichmentService.cs" />
