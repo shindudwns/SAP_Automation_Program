@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -424,7 +425,7 @@ namespace SimplifyQuoter.Views
         private async Task<FormattedExportRow> FetchSingleItemAsync(RowView rv, string itemCode)
         {
             string enc = Uri.EscapeDataString(itemCode);
-            string query = "$select=ItemCode,ItemName,SalesUnit,U_SalesPrice";
+            string query = "$select=ItemCode,ItemName,SalesUnit,U_SalesPrice,QuantityOnStock";
 
             try
             {
@@ -458,7 +459,7 @@ namespace SimplifyQuoter.Views
             var paths = pairs
                 .Select(p => Uri.EscapeDataString(p.Code))
                 .Distinct()
-                .Select(enc => $"Items('{enc}')?$select=ItemCode,ItemName,SalesUnit,U_SalesPrice")
+                .Select(enc => $"Items('{enc}')?$select=ItemCode,ItemName,SalesUnit,U_SalesPrice,QuantityOnStock")
                 .ToList();
 
             string boundary = "batch_" + Guid.NewGuid().ToString("N");
@@ -498,22 +499,42 @@ namespace SimplifyQuoter.Views
             string uom = (string)json["SalesUnit"];
             double price = (double?)(json["U_SalesPrice"]) ?? 0.0;
 
-            double qty = 0; double.TryParse(rv.Cells.ElementAtOrDefault(3), out qty);
-            string freeText = Transformer.ConvertDurationToFreeText(rv.Cells.ElementAtOrDefault(10) ?? "");
+            // Stock check
+            double stock = (double?)(json["QuantityOnStock"]) ?? 0.0;
+            AppendConsole($"[Excel] QuantityOnStock for '{itemNo}': {stock}");
 
+            string inStock = stock > 0
+                ? stock.ToString(CultureInfo.InvariantCulture)
+                : string.Empty;
+
+            // 2) Parse the requested quantity from column D
+            double qtyWanted = 0;
+            double.TryParse(rv.Cells.ElementAtOrDefault(3), out qtyWanted);
+
+            // 3) Determine FreeText
+            string defaultFreeText = Transformer.ConvertDurationToFreeText(
+                rv.Cells.ElementAtOrDefault(10) ?? string.Empty
+            );
+            string freeText = (stock > 0 && stock >= qtyWanted)
+        ? "MFG IN STOCK"
+        : defaultFreeText;
+
+      
+
+            // 5) Build and return the row
             return new FormattedExportRow
             {
                 ItemNo = itemNo,
                 BPCatalogNo = string.Empty,
                 ItemDescription = name,
-                Quantity = qty,
+                Quantity = qtyWanted,
                 UnitPrice = price,
                 DiscountPct = "0",
                 TaxCode = string.Empty,
-                TotalLC = Math.Round(qty * price, 2),
+                TotalLC = price,
                 FreeText = freeText,
                 Whse = "01",
-                InStock = string.Empty,
+                InStock = inStock,
                 UoMName = uom,
                 UoMCode = "Manual",
                 Rebate = "No",
