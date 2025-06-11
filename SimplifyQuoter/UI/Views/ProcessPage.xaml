@@ -125,7 +125,7 @@
                             Click="BtnDeselectAll_Click"/>
 
                     <Button x:Name="BtnPatchSelected"
-                            Content="Patch Selected"
+                            Content="Update Prices"
                             Width="112"
                             Height="28"
                             Background="#3A7BD5"
@@ -139,7 +139,7 @@
 
                     <!-- Generate Excel -->
                     <Button x:Name="BtnGenerateExcel"
-                            Content="Generate Excel"
+                            Content="Generate Quotation"
                             Width="112" Height="28"
                             Background="#3A7BD5"
                             Foreground="White"
