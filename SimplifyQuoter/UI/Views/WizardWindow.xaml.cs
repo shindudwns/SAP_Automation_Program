@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using SimplifyQuoter.Models;
@@ -16,7 +17,7 @@ namespace SimplifyQuoter.Views
         {
             InitializeComponent();
 
-            // Instantiate each page and wire up navigation events
+            // Instantiate pages
             _uploadPage = new UploadPage();
             _uploadPage.FileLoaded += (s, e) => ShowStep(2);
 
@@ -28,41 +29,30 @@ namespace SimplifyQuoter.Views
 
             _processPage = new ProcessPage();
 
-            // Start at step #1
+            // Start at step 1
             ShowStep(1);
         }
 
         /// <summary>
-        /// Switches to the specified step (1..4). 
-        /// Updates PageHost content and visual state of circles & labels.
+        /// Switches to the specified step (1..4) and updates the stepper visuals.
         /// </summary>
         public void ShowStep(int stepNumber)
         {
-            // 1) Load the correct page
+            // 1) Load the correct content page
             switch (stepNumber)
             {
-                case 1:
-                    PageHost.Content = _uploadPage;
-                    break;
-                case 2:
-                    PageHost.Content = _selectItemsPage;
-                    break;
-                case 3:
-                    PageHost.Content = _reviewPage;
-                    break;
-                case 4:
-                    PageHost.Content = _processPage;
-                    break;
-                default:
-                    PageHost.Content = null;
-                    break;
+                case 1: PageHost.Content = _uploadPage; break;
+                case 2: PageHost.Content = _selectItemsPage; break;
+                case 3: PageHost.Content = _reviewPage; break;
+                case 4: PageHost.Content = _processPage; break;
+                default: PageHost.Content = null; break;
             }
 
-            // 2) Update the stepper visuals:
-            Brush lightFill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DDD"));
-            Brush darkFill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#555"));
-            Brush lightFore = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#888"));
-            Brush darkFore = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#555"));
+            // 2) Define brushes for selected vs. unselected
+            var lightFill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DDD"));
+            var darkFill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#555"));
+            var lightFore = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#888"));
+            var darkFore = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#555"));
 
             // Step 1
             StepCircle1.Fill = (stepNumber == 1) ? darkFill : lightFill;
@@ -72,7 +62,7 @@ namespace SimplifyQuoter.Views
             StepCircle2.Fill = (stepNumber == 2) ? darkFill : lightFill;
             StepLabel2.Foreground = (stepNumber == 2) ? darkFore : lightFore;
 
-            // Step 3
+            // Step 3 (always enabled)
             StepCircle3.Fill = (stepNumber == 3) ? darkFill : lightFill;
             StepLabel3.Foreground = (stepNumber == 3) ? darkFore : lightFore;
 
@@ -80,23 +70,24 @@ namespace SimplifyQuoter.Views
             StepCircle4.Fill = (stepNumber == 4) ? darkFill : lightFill;
             StepLabel4.Foreground = (stepNumber == 4) ? darkFore : lightFore;
 
-            // 3) Enable/disable circles based on prerequisites:
+            // 3) Enable/disable circles based on prerequisites
             bool canGoToStep2 = (AutomationWizardState.Current.AllRows != null);
             StepCircle2.IsEnabled = canGoToStep2;
             StepLabel2.Opacity = (canGoToStep2 ? 1.0 : 0.5);
 
-            bool canGoToStep3 = (AutomationWizardState.Current.SelectedRows.Count > 0);
-            StepCircle3.IsEnabled = canGoToStep3;
-            StepLabel3.Opacity = (canGoToStep3 ? 1.0 : 0.5);
+            // Step 3 is always enabled now
+            StepCircle3.IsEnabled = true;
+            StepLabel3.Opacity = 1.0;
 
-            bool canGoToStep4 = canGoToStep3;
+            bool canGoToStep4 = (AutomationWizardState.Current.SelectedRows.Count > 0);
             StepCircle4.IsEnabled = canGoToStep4;
             StepLabel4.Opacity = (canGoToStep4 ? 1.0 : 0.5);
         }
 
-        // ==========================
+        // =========================
         // Click Handlers for Circles
-        // ==========================
+        // =========================
+
         private void StepCircle1_Click(object sender, MouseButtonEventArgs e)
         {
             ShowStep(1);
@@ -104,25 +95,13 @@ namespace SimplifyQuoter.Views
 
         private void StepCircle2_Click(object sender, MouseButtonEventArgs e)
         {
-            // Only navigate if allowed (IsEnabled is true)
             if (StepCircle2.IsEnabled)
                 ShowStep(2);
         }
 
         private void StepCircle3_Click(object sender, MouseButtonEventArgs e)
         {
-            // Only attempt to proceed if “Selected Items” has at least one row.
-            if (!StepCircle3.IsEnabled)
-                return;
-
-            // Ask SelectItemsPage to validate & transfer its inputs into the shared state.
-            // If TryProceedToReview() returns true, we know it was valid → move to step 3.
-            bool ok = _selectItemsPage.TryProceedToReview();
-            if (ok)
-            {
-                ShowStep(3);
-            }
-            // If it wasn’t ok, TryProceedToReview already showed a MessageBox, so do nothing more.
+            ShowStep(3);
         }
 
         private void StepCircle4_Click(object sender, MouseButtonEventArgs e)
