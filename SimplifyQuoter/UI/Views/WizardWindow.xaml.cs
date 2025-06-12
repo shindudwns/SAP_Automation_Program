@@ -16,6 +16,7 @@ namespace SimplifyQuoter.Views
         public WizardWindow()
         {
             InitializeComponent();
+            this.Closed += (s, e) => AutomationWizardState.Current.Reset();
 
             // Instantiate pages
             _uploadPage = new UploadPage();
