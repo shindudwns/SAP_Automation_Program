@@ -30,8 +30,14 @@ namespace SimplifyQuoter.Services
             int n = int.Parse(m.Groups["n"].Value);
             bool isMonth = m.Groups["unit"].Value == "개월";
             int weeks = isMonth ? n * 4 : n;
-            return $"{weeks} WEEK ERO";
+
+            // Singular vs. plural, and "ARO" suffix
+            if (weeks == 1)
+                return "1 WEEK ARO";
+            else
+                return $"{weeks} WEEKS ARO";
         }
+
 
         public static Task<string> GetDescriptionAsync(string code)
         {

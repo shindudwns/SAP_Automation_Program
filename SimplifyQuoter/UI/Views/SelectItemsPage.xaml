@@ -77,17 +77,22 @@
 				</Border>
 				<Button Content="Apply"
                         Click="BtnApplyRange_Click"
-                        Margin="8,0,0,0"
+                        Margin="13,0,8,0"
                         Padding="8,4"
                         VerticalAlignment="Center"/>
+				<Button x:Name="BtnNext"
+		                Content="Next"
+		                Width="50"
+		                Margin="0,0,10,0"
+		                Click="BtnNext_Click"/>
 			</StackPanel>
 
 			<!-- 2) Margin % and UoM on the same line -->
 			<StackPanel Orientation="Horizontal">
 				<!-- Margin % label + textbox -->
-				<TextBlock Text="Margin %:"
+				<TextBlock Text="Margin %"
                            VerticalAlignment="Center"
-                           Margin="0,0,4,0"/>
+                           Margin="0,0,12,0"/>
 				<Border Background="#EEE"
                         CornerRadius="4"
                         Padding="4,2"
@@ -106,9 +111,9 @@
 				<Rectangle Width="24" Fill="Transparent"/>
 
 				<!-- UoM label + dropdown (editable) -->
-				<TextBlock Text="UoM:"
+				<TextBlock Text="UoM"
                            VerticalAlignment="Center"
-                           Margin="0,0,4,0"/>
+                           Margin="0,0,12,0"/>
 				<Border Background="#EEE"
                         CornerRadius="4"
                         Padding="4,2"
@@ -147,15 +152,6 @@
 		<!-- ========================= -->
 		<!-- New “Next” Button -->
 		<!-- ========================= -->
-		<Button x:Name="BtnNext"
-                Content="Next"
-                Grid.Row="2"
-                Grid.Column="0"
-                HorizontalAlignment="Right"
-                Margin="0,12,0,0"
-                Padding="4,2"
-                Width="80"
-                Height="30"
-                Click="BtnNext_Click"/>
+		
 	</Grid>
 </UserControl>
