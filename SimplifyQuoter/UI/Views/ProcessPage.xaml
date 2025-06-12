@@ -148,6 +148,7 @@
                             FontWeight="SemiBold"
                             BorderThickness="0"
                             Margin="6,0,0,0"
+                            IsEnabled="False"
                             Click="BtnGenerateExcel_Click"/>
 
                     <!-- New: Download Excel (hidden until generation completes) -->

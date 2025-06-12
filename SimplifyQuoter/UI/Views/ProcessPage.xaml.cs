@@ -245,6 +245,8 @@ namespace SimplifyQuoter.Views
             BtnSelectAll.IsEnabled = FailedItems.Count > 0;
             BtnDeselectAll.IsEnabled = FailedItems.Count > 0;
             BtnPatchSelected.IsEnabled = false;
+            BtnGenerateExcel.IsEnabled = true;
+
         }
 
         private void BtnSelectAll_Click(object sender, RoutedEventArgs e)
@@ -357,6 +359,17 @@ namespace SimplifyQuoter.Views
             BtnGenerateExcel.Content = "Generating…";
 
             var state = AutomationWizardState.Current;
+
+
+            // Error handling
+            if (state.MergedItemMasterDtos == null || state.MergedItemMasterDtos.Count == 0)
+            {
+                AppendConsole($"[{Timestamp}] ⚠ Quotation export not ready: please wait for all items to finish processing.");
+                return;
+            }
+
+
+
             TotalCount = state.MergedItemMasterDtos.Count;
             ProcessedCount = 0;
 
