@@ -379,17 +379,18 @@ namespace SimplifyQuoter.Views
 
             // Build export rows (batch or parallel)
             List<FormattedExportRow> exportRows;
-            if (pairs.Count <= BatchSize)
-                exportRows = await FetchConcurrentlyAsync(pairs);
-            else
-            {
-                exportRows = new List<FormattedExportRow>();
-                for (int i = 0; i < pairs.Count; i += BatchSize)
-                {
-                    var chunk = pairs.GetRange(i, Math.Min(BatchSize, pairs.Count - i));
-                    exportRows.AddRange(await FetchBatchAsync(chunk));
-                }
-            }
+            //if (pairs.Count <= BatchSize)
+            //    exportRows = await FetchConcurrentlyAsync(pairs);
+            //else
+            //{
+            //    exportRows = new List<FormattedExportRow>();
+            //    for (int i = 0; i < pairs.Count; i += BatchSize)
+            //    {
+            //        var chunk = pairs.GetRange(i, Math.Min(BatchSize, pairs.Count - i));
+            //        exportRows.AddRange(await FetchBatchAsync(chunk));
+            //    }
+            //}
+            exportRows = await FetchConcurrentlyAsync(pairs);
 
             // Write to temporary file
             _exportTempPath = Path.Combine(
