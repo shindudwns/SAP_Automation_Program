@@ -110,5 +110,11 @@ namespace SimplifyQuoter.Views
             if (StepCircle4.IsEnabled)
                 ShowStep(4);
         }
+
+        public void ClearProcessPage()
+        {
+            _processPage.ResetUi();
+        }
+
     }
 }

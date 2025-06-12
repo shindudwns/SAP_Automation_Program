@@ -63,7 +63,17 @@ namespace SimplifyQuoter.Models
         /// ProcessPage will read from here when doing the final SAP insert.
         /// </summary>
         public List<QuotationDto> MergedQuotationDtos { get; set; }
+        public void ClearForNewUpload()
+        {
+            SapFileId = Guid.Empty;
+            UploadedFilePath = null;
+            SelectedRows.Clear();
+            MergedItemMasterDtos = null;
+            MergedQuotationDtos = null;
 
+            // (If you ever cache AllRows anywhere else, clear that too:)
+            AllRows = null;
+        }
         public void Reset()
         {
             AllRows = null;

@@ -598,6 +598,19 @@ namespace SimplifyQuoter.Views
         private void OnPropertyChanged([CallerMemberName] string prop = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
 
+        public void ResetUi()
+        {
+            // clear out the old console + patch‐grid + counters + buttons
+            ConsoleMessages.Clear();
+            FailedItems.Clear();
+
+            TotalCount = 0;
+            ProcessedCount = 0;
+
+            BtnDownloadExcel.Visibility = Visibility.Collapsed;
+            BtnGenerateExcel.Visibility = Visibility.Visible;
+            BtnGenerateExcel.IsEnabled = false;
+        }
 
 
 

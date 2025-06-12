@@ -110,8 +110,17 @@ namespace SimplifyQuoter.Views
                 }
 
                 var state = AutomationWizardState.Current;
+                // Clear session when upload file / new file
+                state.ClearForNewUpload();
+
+
                 state.SapFileId = fileId;
+                state.UploadedFilePath = path;
                 state.AllRows = rows;
+
+                // clearing UI-side history session
+                var wizard = Window.GetWindow(this) as WizardWindow;
+                wizard?.ClearProcessPage();
 
                 // Fire the event so WizardWindow can advance to Step 2
                 FileLoaded?.Invoke(this, EventArgs.Empty);
