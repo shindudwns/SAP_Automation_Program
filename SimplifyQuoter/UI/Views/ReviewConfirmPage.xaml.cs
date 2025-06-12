@@ -248,18 +248,6 @@ namespace SimplifyQuoter.Views
             });
             QuotationDataGrid.Columns.Add(new DataGridTextColumn
             {
-                Header = "Card Code",
-                Binding = new System.Windows.Data.Binding("CardCode"),
-                Width = DataGridLength.Auto
-            });
-            QuotationDataGrid.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Doc Date",
-                Binding = new System.Windows.Data.Binding("DocDateFormatted"),
-                Width = DataGridLength.Auto
-            });
-            QuotationDataGrid.Columns.Add(new DataGridTextColumn
-            {
                 Header = "Item Code",
                 Binding = new System.Windows.Data.Binding("Line.ItemCode"),
                 Width = DataGridLength.Auto
