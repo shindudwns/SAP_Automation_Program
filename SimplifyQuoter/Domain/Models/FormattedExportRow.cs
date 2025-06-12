@@ -9,7 +9,7 @@ namespace SimplifyQuoter.Models
         public string ItemDescription { get; set; }
         public double Quantity { get; set; }
         public double UnitPrice { get; set; }
-        public string DiscountPct { get; set; }
+        public double DiscountPct { get; set; }
         public string TaxCode { get; set; }
         public double TotalLC { get; set; }
         public string FreeText { get; set; }

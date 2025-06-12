@@ -407,6 +407,9 @@ RETURNING id";
                     ws.Cells[1, c + 1].Style.Font.Bold = true;
                 }
 
+                ws.Column(6).Style.Numberformat.Format = "0.0000";
+
+
                 int r = 2;
                 foreach (var row in rows)
                 {

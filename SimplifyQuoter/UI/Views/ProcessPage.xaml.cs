@@ -70,6 +70,8 @@ namespace SimplifyQuoter.Views
             }
         }
 
+
+
         /// <summary>
         /// “XX%” text for display over the ProgressBar.
         /// </summary>
@@ -519,7 +521,10 @@ namespace SimplifyQuoter.Views
         ? "MFG IN STOCK"
         : defaultFreeText;
 
-      
+            double discountPct = 0.0;  // 0% by default
+            double discountFactor = 1.0 - (discountPct / 100.0);
+            double lineTotal = price * qtyWanted * discountFactor;
+
 
             // 5) Build and return the row
             return new FormattedExportRow
@@ -529,9 +534,10 @@ namespace SimplifyQuoter.Views
                 ItemDescription = name,
                 Quantity = qtyWanted,
                 UnitPrice = price,
-                DiscountPct = "0",
+                // TODO:: Try with integer 0.00
+                DiscountPct = discountPct,
                 TaxCode = string.Empty,
-                TotalLC = price,
+                TotalLC = lineTotal,
                 FreeText = freeText,
                 Whse = "01",
                 InStock = inStock,
@@ -548,8 +554,11 @@ namespace SimplifyQuoter.Views
         /// </summary>
         private FormattedExportRow CreateEmptyRow(string code, RowView rv)
         {
-            double qty = 0; double.TryParse(rv.Cells.ElementAtOrDefault(3), out qty);
+            double qty = 0; 
+            double.TryParse(rv.Cells.ElementAtOrDefault(3), out qty);
             string freeText = Transformer.ConvertDurationToFreeText(rv.Cells.ElementAtOrDefault(10) ?? "");
+            double discountPct = 0.0;
+            double lineTotal = 0.0 * qty * (1.0 - discountPct / 100.0);
 
             return new FormattedExportRow
             {
@@ -558,9 +567,9 @@ namespace SimplifyQuoter.Views
                 ItemDescription = "(missing)",
                 Quantity = qty,
                 UnitPrice = 0.0,
-                DiscountPct = "0",
+                DiscountPct = 0.000,
                 TaxCode = string.Empty,
-                TotalLC = 0.0,
+                TotalLC = lineTotal,
                 FreeText = freeText,
                 Whse = "01",
                 InStock = string.Empty,
