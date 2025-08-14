@@ -16,7 +16,7 @@ namespace SimplifyQuoter.Views
     /// </summary>
     public partial class SelectItemsPage : UserControl
     {
-        private const string RangePlaceholder = "4-8, 11, 56-90";
+        private const string RangePlaceholder = "13, 56-90";
 
         public event EventHandler ProceedToReview;
 
@@ -59,6 +59,18 @@ namespace SimplifyQuoter.Views
                 Width = new DataGridLength(1, DataGridLengthUnitType.Star)
             });
             DataGridSelected.ItemsSource = state.SelectedRows;
+            if (ChkSkipAI != null)
+                ChkSkipAI.IsChecked = AutomationWizardState.Current.SkipAI;
+        }
+
+        private void ChkSkipAI_Checked(object sender, RoutedEventArgs e)
+        {
+            AutomationWizardState.Current.SkipAI = true;
+        }
+
+        private void ChkSkipAI_Unchecked(object sender, RoutedEventArgs e)
+        {
+            AutomationWizardState.Current.SkipAI = false;
         }
 
         private void BuildGridColumns(DataGrid grid, System.Collections.ObjectModel.ObservableCollection<RowView> rows)
@@ -269,6 +281,11 @@ namespace SimplifyQuoter.Views
                 TxtRange.Text = RangePlaceholder;
                 TxtRange.Foreground = Brushes.Gray;
             }
+        }
+
+        private void TxtRange_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
         }
     }
 }

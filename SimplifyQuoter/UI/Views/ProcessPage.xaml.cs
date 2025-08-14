@@ -158,12 +158,21 @@ namespace SimplifyQuoter.Views
                         try
                         {
                             var existing = await itemService.GetExistingItemAsync(dto.ItemCode);
-                            FailedItems.Add(new FailedItemViewModel(
+
+                            // Description change update: begin
+                            // Old = 현재 SAP의 ItemName, New = 이번 업로드의 설명(우선순위: dto.ItemName -> dto.FrgnName)
+                            var oldName = await GetExistingItemNameAsync(dto.ItemCode);
+                            var vm = new FailedItemViewModel(
                                 dto.ItemCode,
                                 existing.U_PurchasingPrice,
                                 existing.U_SalesPrice,
                                 dto.U_PurchasingPrice,
-                                dto.U_SalesPrice));
+                                dto.U_SalesPrice);
+                            vm.OldDescription = oldName ?? string.Empty;
+                            vm.NewDescription = dto.ItemName ?? string.Empty;   // ← ForeignName fallback 제거
+                            FailedItems.Add(vm);
+                            // Description change update: end
+
                             AppendConsole($"[{Timestamp}] ⚠ Exists: {dto.FrgnName} → queued for patch");
                         }
                         catch (Exception getEx)
@@ -246,6 +255,48 @@ namespace SimplifyQuoter.Views
             BtnDeselectAll.IsEnabled = FailedItems.Count > 0;
             BtnPatchSelected.IsEnabled = false;
             BtnGenerateExcel.IsEnabled = true;
+            // Description change update: begin
+            BtnPatchDescriptions.IsEnabled = false;
+            RefreshPatchButtonState();   // ← 초기 활성화 상태 계산
+                                         // Description change update: end
+
+
+            // Horizontal scroll update: begin
+            try
+            {
+                // DataGrid 내부 ScrollViewer에 가로 스크롤 강제
+                ScrollViewer.SetHorizontalScrollBarVisibility(FailedItemsDataGrid, ScrollBarVisibility.Auto);
+                ScrollViewer.SetVerticalScrollBarVisibility(FailedItemsDataGrid, ScrollBarVisibility.Auto);
+                ScrollViewer.SetCanContentScroll(FailedItemsDataGrid, true);
+                ScrollViewer.SetPanningMode(FailedItemsDataGrid, PanningMode.HorizontalFirst);
+
+                // 열 폭을 셀 내용 기준으로 계산하게 해서 총 폭이 뷰를 넘기면 가로 스크롤바가 뜨도록 조정
+                foreach (var col in FailedItemsDataGrid.Columns)
+                {
+                    var header = col.Header as string ?? string.Empty;
+
+                    if (header == "Old Description" || header == "New Description")
+                    {
+                        col.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
+                        col.MinWidth = 300; // 너무 좁아지지 않게 최소 폭
+                    }
+                    else if (header == "Item Code")
+                    {
+                        col.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
+                        col.MinWidth = 120;
+                    }
+                    else if (header == "Old Purchasing" || header == "New Purchasing" ||
+                             header == "Old Sales" || header == "New Sales")
+                    {
+                        // 숫자열은 헤더 크기 정도로만
+                        col.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToHeader);
+                        col.MinWidth = 90;
+                    }
+                    // 체크박스/그 외 열은 그대로 둡니다 (기존 설정 유지)
+                }
+            }
+            catch { /* 무해한 보호용 */ }
+            // Horizontal scroll update: end
 
         }
 
@@ -270,8 +321,16 @@ namespace SimplifyQuoter.Views
                 vm.PropertyChanged += (s, ev) => RefreshPatchButtonState();
         }
 
+        // Description change update: begin
         private void RefreshPatchButtonState()
-                    => BtnPatchSelected.IsEnabled = FailedItems.Any(vm => vm.IsSelectedToUpdate);
+        {
+            // (기존 동작 유지) 가격 버튼: 선택된 행이 1개 이상이면 활성화
+            BtnPatchSelected.IsEnabled = FailedItems.Any(vm => vm.IsSelectedToUpdate);
+
+            // (추가) 설명 버튼: 선택 + NewDescription이 비어있지 않은 행이 1개 이상이면 활성화
+            BtnPatchDescriptions.IsEnabled = FailedItems.Any(vm =>
+                vm.IsSelectedToUpdate && !string.IsNullOrWhiteSpace(vm.NewDescription));
+        }
 
         /// <summary>
         /// Patch-pass: only runs when user clicks “Patch Selected”
@@ -334,6 +393,95 @@ namespace SimplifyQuoter.Views
                 db.InsertJobLog(patchLog);
         }
 
+
+        // Description change update: begin
+        /// <summary>
+        /// 설명만 PATCH (Update Descriptions 버튼)
+        /// </summary>
+        private async void BtnPatchDescriptions_Click(object sender, RoutedEventArgs e)
+        {
+            var toPatch = FailedItems.Where(vm => vm.IsSelectedToUpdate).ToList();
+            if (!toPatch.Any()) return;
+
+            AppendConsole($"[{Timestamp}] Starting DESCRIPTION PATCH of {toPatch.Count} selected items...");
+
+            int ok = 0, skipped = 0, fail = 0;
+
+            foreach (var vm in toPatch)
+            {
+                var newDesc = vm.NewDescription;
+                if (string.IsNullOrWhiteSpace(newDesc))
+                {
+                    skipped++;
+                    AppendConsole($"[{Timestamp}] ⚠ {vm.ItemCode}: empty New Description — skipped.");
+                    continue;
+                }
+
+                try
+                {
+                    await PatchItemDescriptionAsync(vm.ItemCode, newDesc);
+                    ok++;
+                    AppendConsole($"[{Timestamp}] ✔ DESC PATCH success for {vm.ItemCode}");
+                }
+                catch (Exception ex)
+                {
+                    fail++;
+                    AppendConsole($"[{Timestamp}] ✘ DESC PATCH failed for {vm.ItemCode}: {ex.Message}");
+                }
+            }
+
+            AppendConsole($"[{Timestamp}] DESCRIPTION PATCH complete. {ok} updated, {skipped} skipped, {fail} failed.");
+            RefreshPatchButtonState();
+        }
+
+        /// <summary>
+        /// 현재 품목의 ItemName(기존 설명) 조회
+        /// </summary>
+        private async Task<string> GetExistingItemNameAsync(string itemCode)
+        {
+            try
+            {
+                string enc = Uri.EscapeDataString(itemCode);
+                var resp = await _slClient.HttpClient.GetAsync($"Items('{enc}')?$select=ItemCode,ItemName");
+                if (!resp.IsSuccessStatusCode) return string.Empty;
+                var json = JObject.Parse(await resp.Content.ReadAsStringAsync());
+                return (string)json["ItemName"] ?? string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Service Layer: ItemName만 부분 업데이트
+        /// </summary>
+        // Description change update: begin
+        /// <summary>
+        /// Service Layer: ItemName만 부분 업데이트
+        /// </summary>
+        private async Task PatchItemDescriptionAsync(string itemCode, string newItemName)
+        {
+            var payload = new JObject
+            {
+                ["ItemName"] = (newItemName ?? string.Empty).Trim()
+            };
+            var json = payload.ToString();
+
+            string enc = Uri.EscapeDataString(itemCode);
+            string url = $"Items('{enc}')";
+
+            // C# 7.3 호환: using declaration 대신 전통 using 블록 사용
+            using (var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json"))
+            {
+                var resp = await _slClient.HttpClient.PatchAsync(url, content).ConfigureAwait(false);
+                var body = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+                Debug.WriteLine($"📥 SL PatchItemDescription response: {(int)resp.StatusCode} {resp.ReasonPhrase}");
+                Debug.WriteLine(body);
+                resp.EnsureSuccessStatusCode();
+            }
+        }
+        // Description change update: end
 
 
 
@@ -568,7 +716,7 @@ namespace SimplifyQuoter.Views
         /// </summary>
         private FormattedExportRow CreateEmptyRow(string code, RowView rv)
         {
-            double qty = 0; 
+            double qty = 0;
             double.TryParse(rv.Cells.ElementAtOrDefault(3), out qty);
             string freeText = Transformer.ConvertDurationToFreeText(rv.Cells.ElementAtOrDefault(10) ?? "");
             double discountPct = 0.0;
@@ -613,10 +761,10 @@ namespace SimplifyQuoter.Views
             BtnGenerateExcel.IsEnabled = false;
         }
 
+        private void FailedItemsDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
 
-
-
-
+        }
     }
 
 
@@ -632,6 +780,11 @@ namespace SimplifyQuoter.Views
         public double OldSalesPrice { get; }
         public double NewPurchasingPrice { get; }
         public double NewSalesPrice { get; }
+
+        // Description change update: begin
+        public string OldDescription { get; set; }
+        public string NewDescription { get; set; }
+        // Description change update: end
 
         private bool _isSelectedToUpdate;
         public bool IsSelectedToUpdate

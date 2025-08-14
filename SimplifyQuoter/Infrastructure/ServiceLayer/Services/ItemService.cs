@@ -136,6 +136,7 @@ namespace SimplifyQuoter.Services.ServiceLayer
                         $"B1SESSION={sess}; ROUTEID={route}"
                     );
                 }
+
             }
 
             // We only need to request the U_PurchasingPrice and U_SalesPrice fields:
@@ -155,16 +156,26 @@ namespace SimplifyQuoter.Services.ServiceLayer
         }
 
         /// <summary>
-        /// PATCH /Items('<itemCode>') updating only U_PurchasingPrice and U_SalesPrice.
+        /// PATCH /Items('<itemCode>') updating only U_PurchasingPrice and U_SalesPrice. ++ Description
         /// </summary>
-        public async Task PatchItemPricesAsync(string itemCode, double newPurchPrice, double newSalesPrice)
+        public async Task PatchItemPricesAsync(string itemCode, double newPurchPrice, double newSalesPrice, string newItemName = null)
         {
             // Build a single payload with both the UDFs and the ItemPrices array:
+            // Description change update: begin
+            // (Sanitize/truncate for SAP B1 ItemName length; keep null when empty to omit via NullValueHandling.Ignore)
+            string _safeItemName = null;
+            if (!string.IsNullOrWhiteSpace(newItemName))
+            {
+                var s = newItemName.Replace("\r", " ").Replace("\n", " ").Trim();
+                if (s.Length > 100) s = s.Substring(0, 100);
+                _safeItemName = s;
+            }
+            // Description change update: end
+
             var patchPayload = new
             {
                 U_PurchasingPrice = newPurchPrice,
                 U_SalesPrice = newSalesPrice,
-
                 ItemPrices = new[]
                 {
             // Update the purchasing‐price row (PriceList = 11)
@@ -179,7 +190,10 @@ namespace SimplifyQuoter.Services.ServiceLayer
                 PriceList = 12,
                 Price     = newSalesPrice
             }
-        }
+
+        },
+                ItemName = _safeItemName // ADD the Description 
+
             };
 
             var json = JsonConvert.SerializeObject(

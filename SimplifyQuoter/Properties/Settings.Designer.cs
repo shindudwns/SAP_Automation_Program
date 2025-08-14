@@ -22,5 +22,29 @@ namespace SimplifyQuoter.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool RememberId {
+            get {
+                return ((bool)(this["RememberId"]));
+            }
+            set {
+                this["RememberId"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string SavedUserId {
+            get {
+                return ((string)(this["SavedUserId"]));
+            }
+            set {
+                this["SavedUserId"] = value;
+            }
+        }
     }
 }

@@ -13,12 +13,12 @@ namespace SimplifyQuoter.Views
         private readonly ReviewConfirmPage _reviewPage;
         private readonly ProcessPage _processPage;
 
-        public WizardWindow()
+        public WizardWindow(int startStep = 1)
         {
             InitializeComponent();
+
             this.Closed += (s, e) => AutomationWizardState.Current.Reset();
 
-            // Instantiate pages
             _uploadPage = new UploadPage();
             _uploadPage.FileLoaded += (s, e) => ShowStep(2);
 
@@ -30,8 +30,9 @@ namespace SimplifyQuoter.Views
 
             _processPage = new ProcessPage();
 
-            // Start at step 1
-            ShowStep(1);
+            // 시작 스텝 보정 및 적용
+            var step = Math.Max(1, Math.Min(4, startStep));
+            ShowStep(step);
         }
 
         /// <summary>

@@ -7,6 +7,7 @@ using System.Windows;
 using SimplifyQuoter.Models;
 using SimplifyQuoter.Services;
 using SimplifyQuoter.Services.ServiceLayer;
+using SimplifyQuoter.Properties; // Settings.Default 쓰려고
 
 namespace SimplifyQuoter.Views
 {
@@ -24,6 +25,12 @@ namespace SimplifyQuoter.Views
         {
             InitializeComponent();
             SlClient = new ServiceLayerClient();
+            //if (string.IsNullOrWhiteSpace(txtLicenseCode.Text))
+            //    txtLicenseCode.Text = "aa";
+            // 저장된 설정 불러오기
+            chkRememberId.IsChecked = Properties.Settings.Default.RememberId;
+            if (Properties.Settings.Default.RememberId)
+                txtUserName.Text = Properties.Settings.Default.SavedUserId ?? string.Empty;
         }
 
         private void BtnViewLicense_Click(object sender, RoutedEventArgs e)
@@ -38,40 +45,46 @@ namespace SimplifyQuoter.Views
 
         private async void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            // 1) Ensure LicenseCode is entered
-            if (string.IsNullOrWhiteSpace(LicenseCode))
-            {
-                MessageBox.Show(
-                    "Please enter a license code.",
-                    "License Required",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
-            }
+            //// 1) Ensure LicenseCode is entered
+            //if (string.IsNullOrWhiteSpace(LicenseCode))
+            //{
+            //    MessageBox.Show(
+            //        "Please enter a license code.",
+            //        "License Required",
+            //        MessageBoxButton.OK,
+            //        MessageBoxImage.Warning
+            //    );
+            //    return;
+            //}
 
             // 2) Check license in database
-            bool isValidCode;
-            using (var db = new DatabaseService())
-            {
-                isValidCode = db.IsLicenseCodeValid(LicenseCode);
-            }
+            //bool isValidCode;
+            //using (var db = new DatabaseService())
+            //{
+            //    isValidCode = db.IsLicenseCodeValid(LicenseCode);
+            //}
 
-            if (!isValidCode)
-            {
-                MessageBox.Show(
-                    "The license code you entered is invalid or expired.",
-                    "Invalid License",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
-                return;
-            }
+            //if (!isValidCode)
+            //{
+            //    MessageBox.Show(
+            //        "The license code you entered is invalid or expired.",
+            //        "Invalid License",
+            //        MessageBoxButton.OK,
+            //        MessageBoxImage.Error
+            //    );
+            //    return;
+            //}
 
             // 3) Attempt Service Layer login
             try
             {
                 await SlClient.LoginAsync(CompanyDB, UserName, Password);
+
+                // ✅ 로그인 성공했으니 Remember ID 반영
+                var remember = chkRememberId.IsChecked == true;
+                Properties.Settings.Default.RememberId = remember;
+                Properties.Settings.Default.SavedUserId = remember ? UserName : string.Empty;
+                Properties.Settings.Default.Save();
 
                 // 4) Store the logged‐in userID into the shared state:
                 AutomationWizardState.Current.UserName = UserName;
@@ -101,8 +114,8 @@ namespace SimplifyQuoter.Views
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    $"Service Layer login failed:\n{ex.Message}",
-                    "Login Error",
+                    $"Password Incorrected.\n{ex.Message}",
+                    "Password Error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );
@@ -124,6 +137,11 @@ namespace SimplifyQuoter.Views
             {
                 return "127.0.0.1";
             }
+        }
+
+        private void txtLicenseCode_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+
         }
     }
 }

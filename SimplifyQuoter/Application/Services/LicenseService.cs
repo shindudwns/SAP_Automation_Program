@@ -70,7 +70,7 @@ SELECT company_name, valid_until, is_active
             DateTime timestamp,
             string version,
             string deviceInfo,
-            string licenseCode,
+            //string licenseCode, 라이센스 제거
             bool licenseAccept,
             string companyName)
         {
@@ -90,7 +90,7 @@ INSERT INTO acceptance_log(
                 cmd.Parameters.AddWithValue("at", timestamp);
                 cmd.Parameters.AddWithValue("ver", version);
                 cmd.Parameters.AddWithValue("dev", deviceInfo);
-                cmd.Parameters.AddWithValue("code", licenseCode);
+                //cmd.Parameters.AddWithValue("code", licenseCode);라이센스 제거
                 cmd.Parameters.AddWithValue("acc", licenseAccept);
                 cmd.Parameters.AddWithValue("cmp", companyName);
                 cmd.ExecuteNonQuery();

@@ -111,7 +111,6 @@ INSERT INTO acceptance_log (
 ";
                 // Add the new parameter first:
                 cmd.Parameters.AddWithValue("user", userId ?? string.Empty);
-
                 cmd.Parameters.AddWithValue("ip", (object)ipAddress ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("ver", agreementVersion ?? string.Empty);
                 cmd.Parameters.AddWithValue("device", (object)deviceInfo ?? DBNull.Value);

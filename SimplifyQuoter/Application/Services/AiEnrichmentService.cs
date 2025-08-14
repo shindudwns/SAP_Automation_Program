@@ -10,8 +10,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
+using System.Text.RegularExpressions;
+
+
 namespace SimplifyQuoter.Services
 {
+
     public class AiEnrichmentService : IDisposable
     {
         private readonly DatabaseService _db;
@@ -25,7 +29,7 @@ namespace SimplifyQuoter.Services
             TimeSpan.FromSeconds(1),
             TimeSpan.FromSeconds(2),
         };
-
+        
         private static readonly Dictionary<string, int> GroupLookup =
             new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
         {
@@ -60,7 +64,7 @@ namespace SimplifyQuoter.Services
                      ?? throw new InvalidOperationException(
                          "Missing OpenAI:ApiKey in App.config");
             _modelName = ConfigurationManager.AppSettings["OpenAI:Model"]
-                         ?? "gpt-3.5-turbo";
+                         ?? "gpt-4o-mini";
 
             _http = new HttpClient();
             _http.DefaultRequestHeaders.Authorization =
@@ -73,7 +77,7 @@ namespace SimplifyQuoter.Services
             _db = db;
             _apiKey = ConfigurationManager.AppSettings["OpenAI:ApiKey"];
             _modelName = ConfigurationManager.AppSettings["OpenAI:Model"]
-                         ?? "gpt-3.5-turbo";
+                         ?? "gpt-4o-mini";
 
             if (string.IsNullOrWhiteSpace(_apiKey))
                 throw new InvalidOperationException(
@@ -182,7 +186,7 @@ namespace SimplifyQuoter.Services
             var userContent =
                 "Provide a JSON array of objects with fields:\n" +
                 "  code: string,\n" +
-                "  description: ≤10-word summary\n" +
+                "  description: ≤10-word summary in english\n" +
                 "Parts:\n" + partsList;
 
             var bodyObj = new
@@ -190,7 +194,7 @@ namespace SimplifyQuoter.Services
                 model = _modelName,
                 messages = new[]
                 {
-                    new { role = "system", content = "You are an expert parts-classifier." },
+                    new { role = "system", content = "You are an American expert parts-classifier. You must translate any non-English text to English first before summarizing. Use only English in your response." },
                     new { role = "user",   content = userContent }
                 }
             };
@@ -241,7 +245,7 @@ namespace SimplifyQuoter.Services
             var inputArray = "[" + string.Join(",", jsonInputs) + "]";
             Debug.WriteLine(inputArray);
             var userBuilder = new StringBuilder()
-                .AppendLine("You are an expert parts-classifier.")
+                .AppendLine("You are an American expert parts-classifier. ")
                 .AppendLine("For each item below, given its part number (code) and brand,")
                 .AppendLine("output a JSON array of objects with fields:")
                 .AppendLine("  code: string,")
@@ -376,10 +380,61 @@ namespace SimplifyQuoter.Services
             return GroupLookup["ETC"];
         }
 
+        //
+        // ▼▼▼ 여기에 추가: DetermineItemGroupCodeAsync(...) 바로 아래, SendWithRetryAsync(...) 위 ▼▼▼
+
+        public async Task<string> ToEnglishKeywordsAsync(string rawDescription, bool uppercase = true)
+        {
+            if (string.IsNullOrWhiteSpace(rawDescription))
+                return string.Empty;
+
+            // ✅ 항상 GPT로 돌린다 (한글 감지 분기 제거)
+            var prompt =
+                "Extract ONLY core, product-related KEYWORDS from the text below. " +
+                "The input may be Korean or English. " +
+                "Rules: output MUST be English ONLY, comma-separated, NO sentences, NO period at the end, " +
+                "no filler words, no stopwords, focus on specs (e.g., size, voltage, rating, model series).\n\n" +
+                $"\"{rawDescription}\"";
+
+            string result;
+            try
+            {
+                result = await SendWithRetryAsync(prompt);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"ToEnglishKeywordsAsync failed: {ex}");
+                result = rawDescription; // 실패 시 원문 보존
+            }
+
+            if (string.IsNullOrWhiteSpace(result))
+                return string.Empty;
+
+            // 정규화
+            var normalized = result.Trim()
+                                   .Trim('.')          // 끝 마침표 제거
+                                   .Replace(" ,", ",")
+                                   .Replace(",  ", ", ")
+                                   .Replace("  ", " ");
+
+            // 🚧 방어: 혹시라도 한국어가 섞이면 제거
+            // (한글 범위 제거: 가~힣, ㅏ~ㅣ, ㄱ~ㅎ)
+            normalized = Regex.Replace(normalized, @"[가-힣\u3130-\u318F\uAC00-\uD7A3]+", string.Empty)
+                              .Replace(" ,", ",")
+                              .Replace(", ,", ",")
+                              .Trim(' ', ',');
+
+            return uppercase ? normalized.ToUpperInvariant() : normalized;
+        }
+
+        // ▲▲▲ 여기까지 추가 ▲▲▲
+
+
+
         /// <summary>
         /// Sends a user prompt via ChatCompletion with retry/backoff.
         /// </summary>
-        private async Task<string> SendWithRetryAsync(string userPrompt)
+        public async Task<string> SendWithRetryAsync(string userPrompt)
         {
             await _throttle.WaitAsync();
             try
@@ -419,7 +474,7 @@ namespace SimplifyQuoter.Services
             {
                 model = _modelName,
                 messages = new[] {
-                    new { role = "system", content = "You are an expert parts-classifier." },
+                    new { role = "system", content = "You are an American expert parts-classifier. You must translate any non-English text to English first before summarizing. Use only English in your response." },
                     new { role = "user",   content = userContent             }
                 }
             };

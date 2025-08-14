@@ -39,6 +39,8 @@ namespace SimplifyQuoter.Models
         public string UserName { get; set; }
 
         /// <summary>GUID for this SAP automation run (optional).</summary>
+        /// 
+        public bool SkipAI { get; set; } = false;
         public Guid SapFileId { get; set; }
 
         /// <summary>Which file path (or file name) the user uploaded in Step 1.</summary>
@@ -47,7 +49,7 @@ namespace SimplifyQuoter.Models
         // Store the user’s Margin % (as a plain double, e.g. 20.0 → 20%).
         public double MarginPercent { get; set; } = 20.0;
 
-        // Store the user’s chosen UoM (e.g. “EACH” or “PK” or custom).
+        // Store the user’s chosen UoM (e.g. “EACH” or “PACK” or custom).
         public string UoM { get; set; } = "EACH";
 
         /// <summary>

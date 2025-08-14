@@ -18,123 +18,170 @@
                        Padding="8"
                        TextWrapping="Wrap">
 				<TextBlock.Inlines>
-					<Run Text="SimplifyQuoter End User License Agreement (EULA)" />
-					<LineBreak/>
-					<Run Text="Version 1.0 – Effective: June 4, 2025" />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="This End User License Agreement (“Agreement”) is a legally binding contract between you (“Licensee”) and Yoon Lee (“Licensor”) governing your access to and use of the FlowScale software application (“Software”)." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="By clicking “I Agree” or using the Software, this Agreement shall be deemed legally executed and binding upon the Licensee. If you do not agree to the terms of this Agreement, you must not use the Software." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="1. Ownership" FontWeight="Bold" />
-					<LineBreak/>
-					<Run Text="All intellectual property rights in and to the Software—including but not limited to its source code, architecture, algorithms, design, documentation, and any derivative works—are and shall remain the sole and exclusive property of the Licensor, Yoon Lee." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="For the avoidance of doubt, this Software was originally conceived, designed, and developed by the Licensor in their personal capacity. Any incidental or partial use of company-owned equipment or environments (e.g., company-issued laptops or accounts) shall not constitute nor imply any assignment, transfer, or shared ownership with the Licensor’s current or former employer, including SM America." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="Nothing in this Agreement shall be interpreted as transferring or licensing any ownership rights to the Licensee or to any organization affiliated with the Licensee." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="2. Grant of License" FontWeight="Bold" />
-					<LineBreak/>
-					<Run Text="The Licensor grants the Licensee a non-exclusive, non-transferable, revocable license to use the Software solely for internal business purposes, subject to the following restrictions:" />
-					<LineBreak/>
-					<Run Text="- The Licensee may not copy, modify, reverse engineer, decompile, disassemble, distribute, sublicense, or resell the Software." />
-					<LineBreak/>
-					<Run Text="- The Licensee may not claim ownership of the Software or create derivative works." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="3. License Validity During Licensor’s Employment" FontWeight="Bold" />
-					<LineBreak/>
-					<Run Text="The Software is provided free of charge to SM America and its employees solely for internal use, and only while the Licensor (Yoon Lee) is actively employed by SM America." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="This complimentary license will immediately terminate under any of the following conditions:" />
-					<LineBreak/>
-					<Run Text="1. The Licensor resigns or is no longer employed by SM America;" />
-					<LineBreak/>
-					<Run Text="2. The Licensor's employment is suspended or terminated;" />
-					<LineBreak/>
-					<Run Text="3. The Licensor provides at least thirty (30) days’ written notice revoking the free license." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="After such termination, continued use of the Software by SM America or its personnel shall require a separate paid license agreement. The pricing and terms of such paid license shall be mutually negotiated between the Licensee and the Licensor at the time of termination of employment." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="4. Representation of Authority" FontWeight="Bold" />
-					<LineBreak/>
-					<Run Text="If the Licensee is accepting this Agreement on behalf of an organization, the Licensee represents and warrants that they have the authority to bind such entity. The organization shall be jointly and severally bound by the terms herein." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="5. Data Collection" FontWeight="Bold" />
-					<LineBreak/>
-					<Run Text="The Software may collect and log the following information for legal, security, and auditing purposes:" />
-					<LineBreak/>
-					<Run Text="- IP address" />
-					<LineBreak/>
-					<Run Text="- Device and system information" />
-					<LineBreak/>
-					<Run Text="- User ID, company name, and license code" />
-					<LineBreak/>
-					<Run Text="- Timestamp of agreement acceptance" />
-					<LineBreak/>
-					<Run Text="- License version" />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="All data will be handled in accordance with applicable data protection laws." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="6. Term and Termination" FontWeight="Bold" />
-					<LineBreak/>
-					<Run Text="This license remains valid:" />
-					<LineBreak/>
-					<Run Text="- While the Licensee holds an active subscription (free or paid); and" />
-					<LineBreak/>
-					<Run Text="- While the Licensee remains in compliance with this Agreement." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="The Licensor reserves the right to suspend or terminate the Licensee’s access to the Software without notice in the event of breach. Upon termination, all use of the Software must cease, and all copies must be destroyed." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="7. No Warranty" FontWeight="Bold" />
-					<LineBreak/>
-					<Run Text="The Software is provided “as is” without warranties of any kind, express or implied. The Licensor disclaims all warranties, including merchantability, fitness for a particular purpose, and non-infringement." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="8. Limitation of Liability" FontWeight="Bold" />
-					<LineBreak/>
-					<Run Text="In no event shall the Licensor be liable for any indirect, incidental, special, or consequential damages arising out of or relating to the use of the Software." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="9. Governing Law" FontWeight="Bold" />
-					<LineBreak/>
-					<Run Text="This Agreement shall be governed by and construed in accordance with the laws of the State of Alabama, United States. All disputes shall be resolved exclusively in the courts located in that jurisdiction." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="10. Entire Agreement" FontWeight="Bold" />
-					<LineBreak/>
-					<Run Text="This Agreement constitutes the entire agreement between the parties and supersedes all prior or contemporaneous agreements, oral or written, with respect to the subject matter hereof. No amendment shall be valid unless in writing and signed by both parties." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="11. Survival" FontWeight="Bold" />
-					<LineBreak/>
-					<Run Text="The provisions relating to ownership, limitations of liability, governing law, and dispute resolution shall survive any termination of this Agreement." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="12. No Employment or Agency" FontWeight="Bold" />
-					<LineBreak/>
-					<Run Text="Nothing in this Agreement shall be construed as creating any partnership, joint venture, agency, or employment relationship between the Licensor and the Licensee or their affiliated organization." />
-					<LineBreak/>
-					<LineBreak/>
-					<Run Text="13. Acceptance" FontWeight="Bold" />
-					<LineBreak/>
-					<Run Text="By clicking “I Agree” or otherwise using the Software, the Licensee (and, if applicable, their organization) acknowledges that they have read, understood, and accepted all terms of this Agreement." />
-				</TextBlock.Inlines>
+                    <Run Text="SimplifyQuoter – End User License Agreement (EULA)" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="Effective Date: August 4, 2025" />
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="1. Ownership" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="All ownership rights, intellectual property rights, and licensing rights to the SimplifyQuoter software (hereafter, “Software”) belong exclusively to SM America." />
+                    <LineBreak/>
+                    <Run Text="This Software was developed solely for internal use by SM America, and all design, implementation, maintenance, and future modifications remain the exclusive responsibility of SM America." />
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="2. Usage Restriction" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="The Software may only be used by employees of SM America for internal business purposes. The following actions are strictly prohibited:" />
+                    <LineBreak/>
+                    <Run Text="- Copying or transferring any part of the Software to external storage (e.g., USB drives, personal PCs, or cloud services)" />
+                    <LineBreak/>
+                    <Run Text="- Using the Software for personal purposes or for any third-party usage" />
+                    <LineBreak/>
+                    <Run Text="- Reverse-engineering, duplicating, analyzing, distributing, reselling, or using the Software to build competing products" />
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="3. Confidentiality" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="All data, algorithms, internal logic, and features of the Software are considered confidential information. Unauthorized disclosure may result in civil or criminal liability." />
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="4. Modification and Support" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="SM America exclusively controls all maintenance, updates, or modifications of the Software. No external party or former developer may alter or access the Software without written consent." />
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="5. Termination" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="Usage rights may be revoked at any time by SM America. Upon termination, the user must immediately cease all use of the Software and delete all local or backup copies." />
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="6. Legal Compliance" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="This Agreement shall be governed and interpreted in accordance with the laws of the State of Alabama, United States. Any disputes shall be resolved exclusively in the courts of that jurisdiction." />
+                    <LineBreak/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="Update Notes" FontWeight="Bold"/>
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="Version 1.0.1 – August 4, 2025" FontWeight="Bold"/>
+                    <LineBreak/>
+                    <Run Text="• Updated the user interface."/>
+                    <LineBreak/>
+                    <Run Text="• Switched from the free-tier GPT API to the paid OpenAI GPT-4o model for improved performance."/>
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="Version 1.0.2 – August 7, 2025" FontWeight="Bold"/>
+                    <LineBreak/>
+                    <Run Text="• Converted Korean item descriptions to English keywords for better compatibility."/>
+                    <LineBreak/>
+                    <Run Text="• Replaced the GPT-4o API with the paid OpenAI GPT-5 model for enhanced performance."/>
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="Version 1.0.3 – August 8, 2025" FontWeight="Bold"/>
+                    <LineBreak/>
+                    <Run Text="• Set the “I agree” checkbox to be selected by default."/>
+                    <LineBreak/>
+                    <Run Text="• Added a “Remember ID” option."/>
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="Version 1.0.4 – August 11, 2025" FontWeight="Bold"/>
+                    <LineBreak/>
+                    <Run Text="• Added a “Skip AI” feature."/>
+                    <LineBreak/>
+                    <Run Text="• Updated the startup UI with a background."/>
+                    <LineBreak/>
+                    <Run Text="• Fixed license code logic."/>
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="Version 1.0.5 – August 12, 2025" FontWeight="Bold"/>
+                    <LineBreak/>
+                    <Run Text="• Removed the license code requirement."/>
+                    <LineBreak/>
+                    <Run Text="• Removed Korean characters from Part Number and Item Code."/>
+                    <LineBreak/>
+
+                    <Run Text="Version 1.0.6 – August 13, 2025" FontWeight="Bold"/>
+                    <LineBreak/>
+                    <Run Text="• Updated the UI."/>
+                    <LineBreak/>
+
+                    <Run Text="Version 1.0.7 – August 14, 2025" FontWeight="Bold"/>
+                    <LineBreak/>
+                    <Run Text="• Added “Update Description” option for existing items."/>
+                    <LineBreak/>
+                    <Run Text="• Enabled horizontal scrolling in the Failed Items grid."/>
+                    <LineBreak/>
+
+
+                    <!--<Run Text="7. Entire Agreement" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="This EULA represents the entire agreement between the parties regarding use of the Software. Any prior agreements, whether written or verbal, are hereby nullified." />
+
+                    <Run Text="SimplifyQuoter – End User License Agreement (EULA)" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="Effective Date: August 4, 2025" />
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="1. Ownership" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="SimplifyQuoter 프로그램(이하 “소프트웨어”)에 대한 모든 저작권, 지적 재산권, 사용 권한 및 관련 권리는 SM America에 귀속됩니다." />
+                    <LineBreak/>
+                    <Run Text="이 소프트웨어는 SM America의 내부 업무용으로 개발되었으며, 모든 설계, 구현, 유지보수 및 향후 수정에 대한 권한 역시 SM America에 있습니다." />
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="2. Usage Restriction" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="소프트웨어는 오직 SM America 내부 직원만 사용할 수 있으며, 다음 행위를 엄격히 금지합니다:" />
+                    <LineBreak/>
+                    <Run Text="- 소프트웨어 파일을 외부 저장소(예: USB, 개인 PC, 클라우드)에 복사 또는 이동하는 행위" />
+                    <LineBreak/>
+                    <Run Text="- 소프트웨어를 개인 용도 또는 타사 목적에 사용하는 행위" />
+                    <LineBreak/>
+                    <Run Text="- 역컴파일, 분석, 복제, 무단 배포, 재판매, 유사 제품 개발 목적의 사용 등" />
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="3. Confidentiality" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="소프트웨어에 포함된 모든 데이터, 알고리즘, 내부 로직, 기능은 기밀 정보로 간주되며, 외부에 유출할 수 없습니다. 위반 시 민형사상 책임이 따를 수 있습니다." />
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="4. Modification and Support" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="SM America는 이 소프트웨어의 유지보수, 수정, 확장 여부를 독점적으로 결정하며, 외부 제3자 또는 전 개발자가 소프트웨어에 접근하거나 변경하는 것을 금합니다." />
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="5. Termination" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="사용자는 언제든 SM America의 결정에 따라 사용 권한을 박탈당할 수 있으며, 이 경우 즉시 사용을 중단하고 소프트웨어 사본을 모두 삭제해야 합니다." />
+                    <LineBreak/>
+                    <LineBreak/>
+
+                    <Run Text="6. Legal Compliance" FontWeight="Bold" />
+                    <LineBreak/>
+                    <Run Text="이 소프트웨어와 본 라이선스 계약은 미국 앨라배마 주 법률에 따라 해석되며, 관련 분쟁은 해당 주 법원의 배타적 관할권 하에 있습니다." />-->
+                    <LineBreak/>
+                    <LineBreak/>
+
+                  
+                </TextBlock.Inlines>
 			</TextBlock>
 		</ScrollViewer>
 	</Grid>

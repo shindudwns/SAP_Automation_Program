@@ -137,6 +137,21 @@
                             IsEnabled="False"
                             Click="BtnPatchSelected_Click"/>
 
+                    <!-- Description change update: begin -->
+                    <Button x:Name="BtnPatchDescriptions"
+                            Content="Update Descrip"
+                            Width="97" Height="28"
+                            Background="#3A7BD5"
+                            Foreground="White"
+                            FontFamily="Segoe UI"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            BorderThickness="0"
+                            Margin="6,0,0,0"
+                            IsEnabled="False"
+                            Click="BtnPatchDescriptions_Click"/>
+                    <!-- Description change update: end -->
+
                     <!-- Generate Excel -->
                     <Button x:Name="BtnGenerateExcel"
                             Content="Generate Quotation"
@@ -185,7 +200,7 @@
                           ItemsSource="{Binding FailedItems}"
                           SelectionMode="Extended"
                           RowStyle="{StaticResource NoHighlightDataGridRowStyle}"
-                          CellStyle="{StaticResource NoHighlightDataGridCellStyle}">
+                          CellStyle="{StaticResource NoHighlightDataGridCellStyle}" SelectionChanged="FailedItemsDataGrid_SelectionChanged">
 
                     <!-- Columns -->
                     <DataGrid.Columns>
@@ -263,6 +278,37 @@
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
+
+                        <!-- Description change update: begin -->
+                        <DataGridTextColumn Header="Old Description"
+                                            Binding="{Binding OldDescription}"
+                                            IsReadOnly="True"
+                                            Width="3*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Background" Value="#FFF5F5F5"/>
+                                    <Setter Property="Padding" Value="4,0"/>
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="New Description"
+                                            Binding="{Binding NewDescription}"
+                                            IsReadOnly="True"
+                                            Width="3*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Background" Value="#E6F4EA"/>
+                                    <Setter Property="Padding" Value="4,0"/>
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <!-- Description change update: end -->
                     </DataGrid.Columns>
 
                     <!-- Override header & cell styles to remove the default selection behavior -->

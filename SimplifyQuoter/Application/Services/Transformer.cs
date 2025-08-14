@@ -18,6 +18,39 @@ namespace SimplifyQuoter.Services
     /// </summary>
     public static class Transformer
     {
+
+        private static readonly Regex RegexCommaTail =
+        new Regex(@"[,，].*$", RegexOptions.Compiled);                   // 첫 콤마부터 끝까지 삭제
+        private static readonly Regex RegexParens =
+            new Regex(@"[\(\（][^)\）]*[\)\）]", RegexOptions.Compiled);     // () 또는 （） 구간 통삭제
+                                                                          // 기존에 있다면 유지
+        private static readonly Regex HangulRegex =
+            new Regex(@"[\u1100-\u11FF\u3130-\u318F\uA960-\uA97F\uAC00-\uD7A3\uD7B0-\uD7FF]", RegexOptions.Compiled);
+
+
+        private static string StripKorean(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return string.Empty;
+
+            // 보이지 않는 공백류 정리
+            s = s.Replace('\u00A0', ' ')  // NBSP -> 공백(문자)
+                 .Replace('\u200B', ' ')  // ZERO-WIDTH SPACE -> 공백(문자)
+                 .Replace('\uFEFF', ' '); // ZERO-WIDTH NO-BREAK SPACE -> 공백(문자)
+
+            // 1) 콤마부터 끝까지 제거
+            s = RegexCommaTail.Replace(s, string.Empty);
+
+            // 2) 괄호 구간 통삭제 (여러 개 있으면 전부 삭제)
+            s = RegexParens.Replace(s, string.Empty);
+
+            // 3) 한글(자모/완성형) 제거
+            s = HangulRegex.Replace(s, string.Empty);
+
+            // 공백 정돈
+            s = Regex.Replace(s, @"\s{2,}", " ").Trim();
+            return s;
+        }
+
         public static string ConvertDurationToFreeText(string raw)
         {
             if (string.IsNullOrWhiteSpace(raw))
@@ -37,8 +70,31 @@ namespace SimplifyQuoter.Services
             else
                 return $"{weeks} WEEKS ARO";
         }
+//
+        public static async Task<string> TranslateDescriptionToKeywordsAsync(string rawDescription)
+        {
+            if (string.IsNullOrWhiteSpace(rawDescription))
+                return string.Empty;
 
+            if (!Regex.IsMatch(rawDescription, @"\p{IsHangul}"))
+                return rawDescription;
 
+            try
+            {
+                using (var ai = new AiEnrichmentService())
+                {
+                    var prompt = $"Extract only the core product-related keywords from the following Korean description. Remove all full sentences or unnecessary explanations. Output: comma-separated keywords in English only.\n\n\"{rawDescription}\"";
+                    var result = await ai.SendWithRetryAsync(prompt);
+                    return result?.Trim() ?? rawDescription;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"⚠️ GPT keyword extraction failed: {ex}");
+                return rawDescription;
+            }
+        }
+//
         public static Task<string> GetDescriptionAsync(string code)
         {
             if (string.IsNullOrWhiteSpace(code))
@@ -152,6 +208,8 @@ namespace SimplifyQuoter.Services
             // 1) Extract part code, brand, raw purchase‐price, weight
             var part = rv.Cells.Length > 2 ? rv.Cells[2]?.Trim() : string.Empty;
             var brand = rv.Cells.Length > 1 ? rv.Cells[1]?.Trim() : string.Empty;
+            part = StripKorean(part);
+            brand = StripKorean(brand);
             var price = rv.Cells.Length > 9 ? rv.Cells[9]?.Trim() : null;
             var weight = rv.Cells.Length > 11 ? rv.Cells[11]?.Trim() : null;
             var remark = rv.Cells.Length > 13 ? rv.Cells[13]?.Trim() : null;
@@ -197,28 +255,31 @@ namespace SimplifyQuoter.Services
             // 5) Call AI‐enrichment as before
             using (var ai = new AiEnrichmentService())
             {
-                // 5.1) Get concise summary
+                // 5.1) Get concise summary (영문 요약)
                 var description = await ai.GeneratePartSummaryAsync(part, brand);
 
                 // 5.2) Determine SL group code
                 var groupCode = await ai.DetermineItemGroupCodeAsync(part, brand);
 
+                // 5.3) remark를 영어 키워드로 변환 (문장 제거)
+                string remarkKeywords = null;
+                if (!string.IsNullOrWhiteSpace(remark))
+                {
+                    // 영문 키워드, 콤마 구분, 대문자
+                    remarkKeywords = await ai.ToEnglishKeywordsAsync(remark, uppercase: true);
+                }
+
                 // 6) Build description part
-                string itemName = $"{brand}, {part}, {description}";
+                var parts = new List<string>();
+                if (!string.IsNullOrWhiteSpace(brand)) parts.Add(brand);
+                if (!string.IsNullOrWhiteSpace(part)) parts.Add(part);
+                if (!string.IsNullOrWhiteSpace(description)) parts.Add(description);
+                if (!string.IsNullOrWhiteSpace(remarkKeywords)) parts.Add(remarkKeywords);
+                if (!string.IsNullOrWhiteSpace(weight)) parts.Add($"{weight}KG");
 
-                if (!string.IsNullOrEmpty(remark))
-                {
-                    itemName += $", {remark}";
-                }
-                if (!string.IsNullOrEmpty(weight))
-                {
-                    itemName += $", {weight}KG";
-                }
+                var itemName = string.Join(", ", parts).ToUpperInvariant();
 
-                itemName = itemName.ToUpperInvariant();
-
-
-                // 7) Build and return the ItemDto, 
+                // 7) Build and return the ItemDto
                 return new ItemDto
                 {
                     ItemCode = "H-" + part,
@@ -226,21 +287,19 @@ namespace SimplifyQuoter.Services
                     FrgnName = part,
                     ItmsGrpCod = groupCode,
 
-                    // hard‐coded supplier info stays the same:
                     BPCode = "VL000442",
                     Mainsupplier = "VL000442",
                     CardType = "cSupplier",
 
-                    // ↓ Set these three to the user’s UoM text:
                     PurchaseUnit = uom,
                     SalesUnit = uom,
                     InventoryUOM = uom,
 
-                    // 7) Set purchasing price and the computed sales price:
                     U_PurchasingPrice = purchasePrice,
                     U_SalesPrice = salesPrice
                 };
             }
+
         }
 
 
@@ -252,6 +311,8 @@ namespace SimplifyQuoter.Services
             // 1) Extract raw cells
             var part = rv.Cells.Length > 2 ? rv.Cells[2]?.Trim() : string.Empty;
             var brand = rv.Cells.Length > 1 ? rv.Cells[1]?.Trim() : string.Empty;
+            part = StripKorean(part);
+            brand = StripKorean(brand);
             var price = rv.Cells.Length > 9 ? rv.Cells[9]?.Trim() : null;
             var weight = rv.Cells.Length > 11 ? rv.Cells[11]?.Trim() : null;
             var remark = rv.Cells.Length > 13 ? rv.Cells[13]?.Trim() : null;
@@ -358,7 +419,12 @@ namespace SimplifyQuoter.Services
             // 3) Part Number → column 3
             string partNumber = (rv.Cells.Length > 3) ? rv.Cells[3]?.Trim() : string.Empty;
 
+            itemNo = StripKorean(itemNo);
+            if (string.IsNullOrWhiteSpace(itemNo))
+                return null;   // 혹은 상위에서 continue;
             // 4) Item Group → column 4
+            itemNo = StripKorean(itemNo);
+            partNumber = StripKorean(partNumber);
             int itemGroup = 0;
             if (rv.Cells.Length > 4 && int.TryParse(rv.Cells[4]?.Trim(), out var ig))
             {

@@ -79,14 +79,21 @@ namespace SimplifyQuoter.Views
         public ReviewConfirmPage()
         {
             InitializeComponent();
+
             DataContext = this;
             Loaded += ReviewConfirmPage_Loaded;
+
         }
 
-        private void BtnSkipAI_Click(object sender, RoutedEventArgs e)
+        private async void BtnSkipAI_Click(object sender, RoutedEventArgs e)
         {
+            //_skipAi = true;
+            //BtnSkipAI.IsEnabled = false;
             _skipAi = true;
+            AutomationWizardState.Current.SkipAI = true; // 전역에도 반영
             BtnSkipAI.IsEnabled = false;
+
+            await RebuildAsync(); // 즉시 미리보기 다시 생성
 
         }
 
@@ -98,41 +105,113 @@ namespace SimplifyQuoter.Views
         /// ToItemDtoFromEditedRow(...) to trust exactly columns 1–10. Otherwise,
         /// fall back to the AI/DB route via ToItemDtoAsync(...).
         /// </summary>
+        /// 
         private async void ReviewConfirmPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            // 전역 상태 → 지역 플래그 동기화
+            _skipAi = AutomationWizardState.Current.SkipAI;
+
+            // 버튼 상태도 전역값 기준으로 맞춤
+            if (BtnSkipAI != null)
+                BtnSkipAI.IsEnabled = !_skipAi;
+
+            // 공통 재빌드
+            await RebuildAsync();
+        }
+
+        //private async void ReviewConfirmPage_Loaded(object sender, RoutedEventArgs e)
+        //{
+        //    var state = AutomationWizardState.Current;
+
+        //    // BEFORE STARTING ANY async calls, show the Loading overlay:
+        //    IsLoading = true;
+        //    TotalCount = state.SelectedRows.Count;
+        //    CurrentCount = 0;
+
+        //    try
+        //    {
+        //        // 1) Build ItemMaster DTOs using Transformer.ToItemDtoAsync
+        //        _currentItemMasterDtos = new List<ItemDto>();
+        //        double marginPct = state.MarginPercent;
+        //        string uom = state.UoM;
+
+        //        foreach (var rv in state.SelectedRows)
+        //        {
+        //            // This call may run AI/DB or not AI lookups
+        //            ItemDto dto = _skipAi
+        //                ? Transformer.ToItemDtoWithoutAI(rv, marginPct, uom)
+        //                : await Transformer.ToItemDtoAsync(rv, marginPct, uom);
+
+        //            _currentItemMasterDtos.Add(dto);
+        //            CurrentCount++;
+
+
+        //        }
+
+        //        _currentQuotationDtos = state.SelectedRows
+        //            .Select(rv => Transformer.ToQuotationDto(rv))
+        //            .ToList();
+
+        //        TabItem_QuotePreview.Header =
+        //            $"Quotation Preview ({_currentQuotationDtos.Count})";
+
+        //        BuildItemMasterColumns();
+        //        BuildQuotationColumns();
+        //        BindItemMasterGrid();
+
+        //        QuotationDataGrid.Visibility = Visibility.Collapsed;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // If something goes wrong during loading, you might want to show a message:
+        //        MessageBox.Show(
+        //            $"An error occurred while loading preview data:\n{ex.Message}",
+        //            "Load Error",
+        //            MessageBoxButton.OK,
+        //            MessageBoxImage.Error);
+        //    }
+        //    finally
+        //    {
+        //        // ───────────────────────────────────────────────────────────
+        //        // AFTER ALL async calls have completed (or on error), hide Loading:
+        //        IsLoading = false;
+
+        //        // ───────────────────────────────────────────────────────────
+        //    }
+        //}
+        private async Task RebuildAsync()
         {
             var state = AutomationWizardState.Current;
 
-            // BEFORE STARTING ANY async calls, show the Loading overlay:
+            // Loading 표시
             IsLoading = true;
             TotalCount = state.SelectedRows.Count;
             CurrentCount = 0;
 
             try
             {
-                // 1) Build ItemMaster DTOs using Transformer.ToItemDtoAsync
                 _currentItemMasterDtos = new List<ItemDto>();
                 double marginPct = state.MarginPercent;
                 string uom = state.UoM;
-                
+
                 foreach (var rv in state.SelectedRows)
                 {
-                    // This call may run AI/DB or not AI lookups
-                    ItemDto dto = _skipAi
+                    // 전역/지역 둘 중 하나라도 Skip이면 AI 미사용
+                    var useSkip = _skipAi || state.SkipAI;
+
+                    ItemDto dto = useSkip
                         ? Transformer.ToItemDtoWithoutAI(rv, marginPct, uom)
                         : await Transformer.ToItemDtoAsync(rv, marginPct, uom);
 
                     _currentItemMasterDtos.Add(dto);
                     CurrentCount++;
-
-
                 }
 
                 _currentQuotationDtos = state.SelectedRows
                     .Select(rv => Transformer.ToQuotationDto(rv))
                     .ToList();
 
-                TabItem_QuotePreview.Header =
-                    $"Quotation Preview ({_currentQuotationDtos.Count})";
+                TabItem_QuotePreview.Header = $"Quotation Preview ({_currentQuotationDtos.Count})";
 
                 BuildItemMasterColumns();
                 BuildQuotationColumns();
@@ -142,7 +221,6 @@ namespace SimplifyQuoter.Views
             }
             catch (Exception ex)
             {
-                // If something goes wrong during loading, you might want to show a message:
                 MessageBox.Show(
                     $"An error occurred while loading preview data:\n{ex.Message}",
                     "Load Error",
@@ -151,11 +229,7 @@ namespace SimplifyQuoter.Views
             }
             finally
             {
-                // ───────────────────────────────────────────────────────────
-                // AFTER ALL async calls have completed (or on error), hide Loading:
                 IsLoading = false;
-
-                // ───────────────────────────────────────────────────────────
             }
         }
 

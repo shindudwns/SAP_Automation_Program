@@ -3,7 +3,7 @@
     x:Class="SimplifyQuoter.Views.WizardWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="SAP Automation"
+    Title="SM AMERICA, LLC"
     Height="640"
     Width="1000"
     WindowStartupLocation="CenterScreen"
