@@ -4,4 +4,14 @@
              ShutdownMode="OnLastWindowClose"
              Startup="Application_Startup">
     <!-- no StartupUri -->
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="UI/Styles/FioriTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- 전체 기본 텍스트를 72 폰트로 -->
+            <Style TargetType="TextBlock" BasedOn="{StaticResource FioriTextBlock}"/>
+        </ResourceDictionary>
+    </Application.Resources>
 </Application>

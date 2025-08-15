@@ -18,9 +18,10 @@
                        Padding="8"
                        TextWrapping="Wrap">
 				<TextBlock.Inlines>
-                    <Run Text="SimplifyQuoter – End User License Agreement (EULA)" FontWeight="Bold" />
+                    <Run Text="SimplifyQuoter – End User License Agreement (EULA)" FontWeight="Bold" FontSize="20" />
                     <LineBreak/>
-                    <Run Text="Effective Date: August 4, 2025" />
+                    <LineBreak/>
+                    <Run Text="                                                                                             Effective Date: August 4, 2025" />
                     <LineBreak/>
                     <LineBreak/>
 
@@ -176,7 +177,7 @@
 
                     <Run Text="6. Legal Compliance" FontWeight="Bold" />
                     <LineBreak/>
-                    <Run Text="이 소프트웨어와 본 라이선스 계약은 미국 앨라배마 주 법률에 따라 해석되며, 관련 분쟁은 해당 주 법원의 배타적 관할권 하에 있습니다." />-->
+                    <Run Text="이 소프트웨어와 본 라이선스 계약은 미국 앨라배마 주 법률에 따라 해석되며, 관련 분쟁은 해당 주 법원의 배타적 관할권 하에 있습니다." 2025 />-->
                     <LineBreak/>
                     <LineBreak/>
 

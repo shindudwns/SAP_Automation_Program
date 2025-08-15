@@ -7,6 +7,7 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI">
+    <!--FontFamily="{StaticResource FioriFont}"  SAP 글꼴-->
 
     <!-- ===== Theme Resources / Styles (그대로) ===== -->
     <Window.Resources>

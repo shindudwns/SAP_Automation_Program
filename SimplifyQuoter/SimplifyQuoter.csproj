@@ -239,6 +239,9 @@
     <Compile Include="UI\Views\WizardWindow.xaml.cs">
       <DependentUpon>WizardWindow.xaml</DependentUpon>
     </Compile>
+    <Page Include="UI\Styles\FioriTheme.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\Views\ImportWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -297,6 +300,18 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <Resource Include="Assets\Fonts\._BusinessSuiteInAppSymbols.ttf" />
+    <Resource Include="Assets\Fonts\72-Black.ttf" />
+    <Resource Include="Assets\Fonts\72-Bold.ttf" />
+    <Resource Include="Assets\Fonts\72-BoldItalic.ttf" />
+    <Resource Include="Assets\Fonts\72-Condensed.ttf" />
+    <Resource Include="Assets\Fonts\72-CondensedBold.ttf" />
+    <Resource Include="Assets\Fonts\72-Italic.ttf" />
+    <Resource Include="Assets\Fonts\72-Light.ttf" />
+    <Resource Include="Assets\Fonts\72-Regular.ttf" />
+    <Resource Include="Assets\Fonts\72-Semibold.ttf" />
+    <Resource Include="Assets\Fonts\72-SemiboldDuplex.ttf" />
+    <Resource Include="Assets\Fonts\SAP-icons.ttf" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -343,5 +358,6 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

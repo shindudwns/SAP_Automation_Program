@@ -8,6 +8,51 @@
     <!-- We need this converter to toggle Visibility from a boolean -->
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- ▼▼▼ (ADDED) Palette & minimal button styles only ▼▼▼ -->
+        <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F6F7FB"/>
+        <SolidColorBrush x:Key="CardBackgroundBrush"   Color="#FFFFFFFF"/>
+        <SolidColorBrush x:Key="SurfaceBrush"          Color="#FFF2F4F8"/>
+        <SolidColorBrush x:Key="AccentBrush"           Color="#4F46E5"/>
+        <SolidColorBrush x:Key="AccentBrushLight"      Color="#E8E7FF"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush"      Color="#111827"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush"    Color="#6B7280"/>
+        <SolidColorBrush x:Key="BorderBrushSoft"       Color="#E5E7EB"/>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <!-- 로컬에 지정한 Background/Foreground 값이 있으면 그대로 사용됨 (TemplateBinding) -->
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderBrush" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#5F56F0"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#4038CF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="{StaticResource AccentBrushLight}"/>
+        </Style>
+        <!-- ▲▲▲ (ADDED) only styles; no 기존 요소 변경 없음 ▲▲▲ -->
     </UserControl.Resources>
 
     <!-- ──────────────────────────────────────────────────────────────────── -->
@@ -68,7 +113,8 @@
                     Foreground="White"
                     FontWeight="SemiBold"
                     Click="BtnConfirm_Click"
-                    Margin="8,0,0,0"/>
+                    Margin="8,0,0,0"
+                    Style="{StaticResource PrimaryButton}"/>
 
             <!-- (3) Replace Excel (docked Right) -->
             <Button x:Name="BtnReplaceExcel"
@@ -79,7 +125,8 @@
                     Padding="12,0"
                     FontWeight="SemiBold"
                     Click="BtnReplaceExcel_Click"
-                    Margin="0,0,8,0"/>
+                    Margin="0,0,8,0"
+                    Style="{StaticResource GhostButton}"/>
 
             <!-- (4) Download Icon (docked Right) -->
             <Button x:Name="BtnDownload"
@@ -176,10 +223,7 @@
         <!-- Row 3: Spacer (blank) -->
         <Grid Grid.Row="3"/>
 
-        <!-- ──────────────────────────────────────────────────────────────────── -->
-        <!-- LOADING OVERLAY (covers Row 0–3 when IsLoading=true)              -->
-        <!-- This is a sibling of the above content, all inside the same parent Grid. -->
-        <!-- ──────────────────────────────────────────────────────────────────── -->
+        <!-- LOADING OVERLAY (covers Row 0–3 when IsLoading=true) -->
         <Border
             Background="#CCFFFFFF"
             Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
@@ -187,21 +231,20 @@
 
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        >
+                        VerticalAlignment="Center">
                 <TextBlock
                     Text="{Binding LoadingText}"
                     FontSize="24"
                     FontWeight="Bold"
-                    Foreground="#444444"/>
+                    Foreground="#444444"
+                    Margin="0,0,12,0"/>
                 <Button x:Name="BtnSkipAI"
                         Content="Skip AI"
                         FontSize="14"
                         Padding="8,4"
-                        Click="BtnSkipAI_Click"/>
+                        Click="BtnSkipAI_Click"
+                        Style="{StaticResource GhostButton}" Width="60"/>
             </StackPanel>
         </Border>
-
-
     </Grid>
 </UserControl>
