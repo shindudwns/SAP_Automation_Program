@@ -68,7 +68,7 @@
                     <LineBreak/>
                     <LineBreak/>
                     <LineBreak/>
-                    <Run Text="Update Notes" FontWeight="Bold"/>
+                    <Run Text="Update Notes" FontSize="15" FontWeight="Bold"/>
                     <LineBreak/>
                     <LineBreak/>
 
