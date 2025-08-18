@@ -127,6 +127,19 @@
                     Click="BtnReplaceExcel_Click"
                     Margin="0,0,8,0"
                     Style="{StaticResource GhostButton}"/>
+            <!-- (3.1) Sample Excel (docked Right)  ▶▶▶ ADDED -->
+            <Button x:Name="BtnSampleExcel" <!--added the sample file download button--> 
+            DockPanel.Dock="Right"
+            Content="Sample Excel"
+            Width="110"
+            Height="32"
+            Padding="12,0"
+            FontWeight="SemiBold"
+            Click="BtnSampleExcel_Click"
+            Margin="0,0,8,0"
+            ToolTip="Download 'New Import Data Form'"
+            Style="{StaticResource GhostButton}"/>
+
 
             <!-- (4) Download Icon (docked Right) -->
             <Button x:Name="BtnDownload"
@@ -240,10 +253,10 @@
                     Margin="0,0,12,0"/>
                 <Button x:Name="BtnSkipAI"
                         Content="Skip AI"
-                        FontSize="14"
+                        FontSize="18"
                         Padding="8,4"
                         Click="BtnSkipAI_Click"
-                        Style="{StaticResource GhostButton}" Width="60"/>
+                        Style="{StaticResource GhostButton}" Width="82" Height="41"/>
             </StackPanel>
         </Border>
     </Grid>

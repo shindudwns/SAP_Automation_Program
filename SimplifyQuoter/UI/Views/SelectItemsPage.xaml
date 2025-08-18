@@ -292,7 +292,7 @@
                              LostFocus="TxtRange_LostFocus"
                              ToolTip="e.g. 4-8, 11, 56-90"/>
                 </Border>
-                <Button Content="Apply" Click="BtnApplyRange_Click" Margin="13,0,8,0" Padding="8,4" VerticalAlignment="Center" Style="{StaticResource PrimaryButton}" Width="57"/>
+                <Button Content="Apply" Click="BtnApplyRange_Click" Margin="13,0,8,0" Padding="8,4" VerticalAlignment="Center" Style="{StaticResource PrimaryButton}" Width="57" Height="24"/>
                 <Button x:Name="BtnNext" Content="Next" Width="51" Margin="0,0,10,0" Click="BtnNext_Click" Style="{StaticResource GhostButton}"/>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
                     <CheckBox x:Name="ChkSkipAI"

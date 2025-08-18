@@ -16,6 +16,8 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Reflection;          // ADDED For Sample Excel Button
+using System.Windows.Resources;   // ADDED For Sample Excel Button
 
 namespace SimplifyQuoter.Views
 {
@@ -392,6 +394,150 @@ namespace SimplifyQuoter.Views
 
 
         #region ► TOOLBAR BUTTON HANDLERS
+
+        // ====================== ADDED: Sample Excel download support ======================
+
+private async void BtnSampleExcel_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "Save Sample Excel",
+                Filter = "Excel Files (*.xlsx)|*.xlsx",
+                FileName = "New Import Data Form.xlsx"
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            // C# 7.3 호환: using var 대신 일반 변수 + using 블록
+            Stream src = TryOpenTemplateStream();
+            if (src == null)
+            {
+                MessageBox.Show(
+                    "Template file not found.\n\n" +
+                    "Place the file in one of the following locations:\n" +
+                    "• Assets/NewImportDataForm.xlsx  (Build Action: Resource)\n" +
+                    "• Assets/New Import Data Form.xlsx (Resource)\n" +
+                    "• <AppFolder>/Templates/NewImportDataForm.xlsx\n" +
+                    "• <AppFolder>/Templates/New Import Data Form.xlsx",
+                    "File Not Found",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
+            }
+
+            using (src) // src가 null 아님을 확인했으니 안전
+            using (var fs = File.Create(dlg.FileName))
+            {
+                await src.CopyToAsync(fs);
+            }
+
+            Process.Start(new ProcessStartInfo(dlg.FileName) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to save sample Excel:\n{ex.Message}",
+                            "Save Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+        }
+    }
+
+
+        /// <summary>
+        /// 템플릿 스트림을 열어 반환.
+        /// 우선순위: WPF Pack 리소스 → 임베디드 리소스 → 실행 폴더의 파일(Assets/ 또는 Templates/)
+        /// </summary>
+        // C# 7.3 호환: 'Stream?' -> 'Stream'
+        // 참고: C# 7.3에선 참조형은 원래 null 반환 가능하므로 그대로 null 리턴해도 됨.
+        // ▼▼ Replace this whole method ▼▼
+        private Stream TryOpenTemplateStream()
+        {
+            Func<Uri, Stream> tryRead = (uri) =>
+            {
+                try
+                {
+                    var sri = Application.GetResourceStream(uri);
+                    return (sri != null) ? sri.Stream : null;
+                }
+                catch { return null; }
+            };
+
+            // 파일명 후보 (둘 다 지원)
+            string[] names = { "NewImportDataForm.xlsx", "New Import Data Form.xlsx" };
+            string asmName = Assembly.GetExecutingAssembly().GetName().Name;
+
+            // (A) WPF Resource - 상대 경로 (Assets/Samples/)
+            foreach (var n in names)
+            {
+                var s = tryRead(new Uri("Assets/Samples/" + n, UriKind.Relative));
+                if (s != null) return s;
+            }
+
+            // (B) WPF Resource - 같은 어셈블리 component 경로
+            foreach (var n in names)
+            {
+                var s =
+                    tryRead(new Uri("/" + asmName + ";component/Assets/Samples/" + n, UriKind.Relative)) ??
+                    tryRead(new Uri("pack://application:,,,/" + asmName + ";component/Assets/Samples/" + n, UriKind.Absolute)) ??
+                    tryRead(new Uri("pack://application:,,,/Assets/Samples/" + n, UriKind.Absolute));
+                if (s != null) return s;
+            }
+
+            // (C) 혹시 Assets 루트에 있는 경우도 보조로 탐색
+            foreach (var n in names)
+            {
+                var s =
+                    tryRead(new Uri("Assets/" + n, UriKind.Relative)) ??
+                    tryRead(new Uri("/" + asmName + ";component/Assets/" + n, UriKind.Relative)) ??
+                    tryRead(new Uri("pack://application:,,,/Assets/" + n, UriKind.Absolute));
+                if (s != null) return s;
+            }
+
+            // (D) Embedded Resource 로 들어간 경우
+            try
+            {
+                var asm = Assembly.GetExecutingAssembly();
+                var name = asm.GetManifestResourceNames()
+                              .FirstOrDefault(x =>
+                                  x.EndsWith("Assets.Samples.NewImportDataForm.xlsx", StringComparison.OrdinalIgnoreCase) ||
+                                  x.EndsWith("Assets.Samples.New Import Data Form.xlsx", StringComparison.OrdinalIgnoreCase) ||
+                                  x.EndsWith("NewImportDataForm.xlsx", StringComparison.OrdinalIgnoreCase) ||
+                                  x.EndsWith("New Import Data Form.xlsx", StringComparison.OrdinalIgnoreCase));
+                if (name != null)
+                {
+                    var stream = asm.GetManifestResourceStream(name);
+                    if (stream != null) return stream;
+                }
+            }
+            catch { }
+
+            // (E) 실행 폴더 물리 파일 (배포 후 폴더에 넣는 경우)
+            try
+            {
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string[] candidates =
+                {
+            Path.Combine(baseDir, "Assets", "Samples", "NewImportDataForm.xlsx"),
+            Path.Combine(baseDir, "Assets", "Samples", "New Import Data Form.xlsx"),
+            Path.Combine(baseDir, "Assets", "NewImportDataForm.xlsx"),
+            Path.Combine(baseDir, "Assets", "New Import Data Form.xlsx"),
+            Path.Combine(baseDir, "Templates", "NewImportDataForm.xlsx"),
+            Path.Combine(baseDir, "Templates", "New Import Data Form.xlsx"),
+        };
+                var hit = candidates.FirstOrDefault(File.Exists);
+                if (hit != null) return File.OpenRead(hit);
+            }
+            catch { }
+
+            return null;
+        }
+        // ▲▲ Replace ends ▲▲
+
+
+        // ====================== /ADDED ====================================================
+
 
         private void BtnSearch_Click(object sender, RoutedEventArgs e)
         {
