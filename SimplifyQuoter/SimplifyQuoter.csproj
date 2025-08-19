@@ -224,6 +224,7 @@
     <Compile Include="UI\Views\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\Views\LogWindow.xaml.cs" />
     <Compile Include="UI\Views\ProcessPage.xaml.cs">
       <DependentUpon>ProcessPage.xaml</DependentUpon>
     </Compile>
@@ -252,6 +253,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Views\LoginWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Views\LogWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Views\MainWindow.xaml">

@@ -30,6 +30,15 @@
             <ColumnDefinition Width="4*"/>
             <ColumnDefinition Width="282*"/>
         </Grid.ColumnDefinitions>
+        <Button x:Name="BtnLog"
+            Content="Log"
+            Width="50"
+            Height="32"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Bottom"
+            Margin="12"
+            Visibility="Collapsed"
+            Click="BtnLog_Click"/>
         <Canvas Grid.ColumnSpan="4">
             <!-- SAP Automation -->
             <Button x:Name="BtnSapAutomation"
@@ -58,6 +67,7 @@
                      HorizontalAlignment="Center"/>
                 </StackPanel>
             </Button>
+
         </Canvas>
 
     </Grid>

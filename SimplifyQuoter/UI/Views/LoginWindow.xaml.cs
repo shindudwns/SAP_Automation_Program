@@ -61,7 +61,7 @@ namespace SimplifyQuoter.Views
             //bool isValidCode;
             //using (var db = new DatabaseService())
             //{
-            //    isValidCode = db.IsLicenseCodeValid(LicenseCode);
+            //    isValidCode = db.IsLicenseCodeValid(LicenseCode);  라이센스 요구 코드삭제
             //}
 
             //if (!isValidCode)
@@ -107,9 +107,14 @@ namespace SimplifyQuoter.Views
                         ipAddress: localIp
                     );
                 }
+                Application.Current.Properties["CurrentUser"] = txtUserName.Text?.Trim();
+
+                var mw = new SimplifyQuoter.MainWindow();
+                mw.Show();
+                Application.Current.MainWindow = mw; // 안전용(선택): 로그인 창이 MainWindow였던 경우 대비
 
                 // 6) Indicate success, close dialog
-                DialogResult = true;  // This will make ShowDialog() return “true”
+                //DialogResult = true;  // This will make ShowDialog() return “true”
             }
             catch (Exception ex)
             {
@@ -119,6 +124,10 @@ namespace SimplifyQuoter.Views
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );
+
+                // 재입력 편의
+                txtPassword.Clear();
+                txtPassword.Focus();
                 // Do not set DialogResult, so ShowDialog() returns false
             }
         }

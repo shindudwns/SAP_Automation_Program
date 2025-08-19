@@ -17,7 +17,37 @@ namespace SimplifyQuoter
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            // (optional debugging)
+            var allowed = new System.Collections.Generic.HashSet<string>(
+                    new[] { "Young" }, StringComparer.OrdinalIgnoreCase); // 이름 추가시 추가 로그 사용자 추가 가능
+            try
+            {
+                var user = (Application.Current.Properties["CurrentUser"] as string ?? string.Empty).Trim();
+                // [CHANGED-ADD-ONLY] 기존 if 대신 아래 한 줄만 사용해도 됨(원본 if는 남겨두고 주석)
+                // if (string.Equals(user, "Young", StringComparison.OrdinalIgnoreCase))
+                if (allowed.Contains(user))
+                    BtnLog.Visibility = Visibility.Visible;
+                else
+                    BtnLog.Visibility = Visibility.Collapsed;
+
+                //var user = (Application.Current.Properties["CurrentUser"] as string ?? string.Empty).Trim();
+                //if (string.Equals(user, "Young", StringComparison.OrdinalIgnoreCase))
+                //    BtnLog.Visibility = System.Windows.Visibility.Visible;
+                //else
+                //    BtnLog.Visibility = System.Windows.Visibility.Collapsed;
+            }
+            catch
+            {
+                BtnLog.Visibility = System.Windows.Visibility.Collapsed;
+            }
+        }
+        // [NEW] Log 버튼 클릭 → 로그 전용 창 오픈
+        private void BtnLog_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            var w = new SimplifyQuoter.Views.LogWindow
+            {
+                Owner = this
+            };
+            w.Show();
         }
 
         private void BtnSapAutomation_Click(object sender, RoutedEventArgs e)
