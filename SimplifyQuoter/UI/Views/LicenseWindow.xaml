@@ -114,17 +114,29 @@
                     <Run Text="• Removed Korean characters from Part Number and Item Code."/>
                     <LineBreak/>
 
+                    <LineBreak/>
                     <Run Text="Version 1.0.6 – August 13, 2025" FontWeight="Bold"/>
                     <LineBreak/>
                     <Run Text="• Updated the UI."/>
                     <LineBreak/>
 
+                    <LineBreak/>
                     <Run Text="Version 1.0.7 – August 14, 2025" FontWeight="Bold"/>
                     <LineBreak/>
                     <Run Text="• Added “Update Description” option for existing items."/>
                     <LineBreak/>
                     <Run Text="• Enabled horizontal scrolling in the Failed Items grid."/>
                     <LineBreak/>
+
+                    <LineBreak/>
+                    <Run Text="Version 1.5.0 – August 19, 2025" FontWeight="Bold"/>
+                    <LineBreak/>
+                    <Run Text="• Added the “Import data” feature (second core function)."/>
+                    <LineBreak/>
+                    <Run Text="• Fixed UOM selection error."/>
+                    <LineBreak/>
+                    <Run Text="• Fixed range input handling in Select Items (range parsing/validation issue)."/>
+
 
 
                     <!--<Run Text="7. Entire Agreement" FontWeight="Bold" />
