@@ -290,7 +290,8 @@
                              Foreground="Gray"
                              GotFocus="TxtRange_GotFocus"
                              LostFocus="TxtRange_LostFocus"
-                             ToolTip="e.g. 4-8, 11, 56-90"/>
+                             ToolTip="e.g. 4-8, 11, 56-90" 
+                             TextChanged="TxtRange_TextChanged"/>
                 </Border>
                 <Button Content="Apply" Click="BtnApplyRange_Click" Margin="13,0,8,0" Padding="8,4" VerticalAlignment="Center" Style="{StaticResource PrimaryButton}" Width="57" Height="24"/>
                 <Button x:Name="BtnNext" Content="Next" Width="51" Margin="0,0,10,0" Click="BtnNext_Click" Style="{StaticResource GhostButton}"/>
@@ -317,7 +318,7 @@
                              ToolTip="Enter margin as a percentage (e.g. 20)"/>
                 </Border>
                 <Rectangle Width="24" Fill="Transparent"/>
-                <TextBlock Text="UoM" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBlock Text="UOM" VerticalAlignment="Center" Margin="0,0,12,0"/>
                 <Border Background="#EEE" CornerRadius="4" Padding="4,2" VerticalAlignment="Center">
                     <ComboBox x:Name="CmbUoM"
                               Width="100"
@@ -326,7 +327,7 @@
                               IsEditable="True"
                               FontSize="14"
                               VerticalContentAlignment="Center"
-                              Style="{StaticResource ModernComboBox}">
+                              >
                         <ComboBoxItem Content="EACH"/>
                         <ComboBoxItem Content="PACK"/>
                     </ComboBox>

@@ -128,7 +128,7 @@
                     Margin="0,0,8,0"
                     Style="{StaticResource GhostButton}"/>
             <!-- (3.1) Sample Excel (docked Right)  ▶▶▶ ADDED -->
-            <Button x:Name="BtnSampleExcel" <!--added the sample file download button--> 
+            <Button x:Name="BtnSampleExcel" 
             DockPanel.Dock="Right"
             Content="Sample Excel"
             Width="110"

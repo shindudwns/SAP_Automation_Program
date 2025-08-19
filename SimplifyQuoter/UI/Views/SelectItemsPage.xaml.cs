@@ -16,7 +16,7 @@ namespace SimplifyQuoter.Views
     /// </summary>
     public partial class SelectItemsPage : UserControl
     {
-        private const string RangePlaceholder = "13, 56-90";
+        private const string RangePlaceholder = "4-8, 11, 56-90";
 
         public event EventHandler ProceedToReview;
 
@@ -33,6 +33,11 @@ namespace SimplifyQuoter.Views
             {
                 TxtRange.Text = RangePlaceholder;
                 TxtRange.Foreground = Brushes.Gray;
+            }
+            else
+            {
+                // 시작 텍스트가 플레이스홀더면 회색, 아니면 검정
+                TxtRange.Foreground = (TxtRange.Text == RangePlaceholder) ? Brushes.Gray : Brushes.Black;
             }
 
             // 2) Populate the grids
@@ -268,11 +273,11 @@ namespace SimplifyQuoter.Views
         private void TxtRange_GotFocus(object sender, RoutedEventArgs e)
         {
             if (TxtRange.Text == RangePlaceholder)
-            {
-                TxtRange.Text = "";
-                TxtRange.Foreground = Brushes.Black;
-            }
+                TxtRange.Text = string.Empty;
+
+            TxtRange.Foreground = Brushes.Black;
         }
+
 
         private void TxtRange_LostFocus(object sender, RoutedEventArgs e)
         {
@@ -285,7 +290,8 @@ namespace SimplifyQuoter.Views
 
         private void TxtRange_TextChanged(object sender, TextChangedEventArgs e)
         {
-
+            // 사용자가 입력하면 항상 검정, 플레이스홀더면 회색
+            TxtRange.Foreground = (TxtRange.Text == RangePlaceholder) ? Brushes.Gray : Brushes.Black;
         }
     }
 }
