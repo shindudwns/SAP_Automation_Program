@@ -29,15 +29,12 @@ namespace SimplifyQuoter
                 else
                     BtnLog.Visibility = Visibility.Collapsed;
 
-                //var user = (Application.Current.Properties["CurrentUser"] as string ?? string.Empty).Trim();
-                //if (string.Equals(user, "Young", StringComparison.OrdinalIgnoreCase))
-                //    BtnLog.Visibility = System.Windows.Visibility.Visible;
-                //else
-                //    BtnLog.Visibility = System.Windows.Visibility.Collapsed;
+
             }
             catch
             {
                 BtnLog.Visibility = System.Windows.Visibility.Collapsed;
+
             }
         }
         // [NEW] Log 버튼 클릭 → 로그 전용 창 오픈
@@ -76,54 +73,6 @@ namespace SimplifyQuoter
 
         private void BtnImport_Click(object sender, RoutedEventArgs e)
         {
-            //    //try
-            //    //{
-            //    //    // Import TXT 전용 창을 모달로 띄움
-            //    //    var win = new SimplifyQuoter.Views.ImportWindow
-            //    //    {
-            //    //        Owner = this
-            //    //    };
-            //    //    win.ShowDialog();
-            //    //}
-            //    //catch (Exception ex)
-            //    //{
-            //    //    MessageBox.Show(
-            //    //        $"Failed to open Import TXT window:\n{ex.Message}",
-            //    //        "Error",
-            //    //        MessageBoxButton.OK,
-            //    //        MessageBoxImage.Error
-            //    //    );
-            //    //}
-            //    MessageBox.Show(
-            //        //"This feature is under construction.",
-            //        "Hello, World!",
-            //        "Coming Soon",
-            //        MessageBoxButton.OK,
-            //        MessageBoxImage.Information
-            //    );
-            //    //}
-            //    var state = AutomationWizardState.Current;
-
-            //    // SAP Automation 버튼과 동일한 로그인 가드
-            //    if (state.SlClient == null || !state.SlClient.IsLoggedIn)
-            //    {
-            //        MessageBox.Show(
-            //            "You must be logged in to use SAP Automation.",
-            //            "Not Logged In",
-            //            MessageBoxButton.OK,
-            //            MessageBoxImage.Warning
-            //        );
-            //        return;
-            //    }
-
-            //    // 마법사 창을 띄우되, 열기 전에 바로 Step 3으로 이동
-            //    var wizard = new SimplifyQuoter.Views.WizardWindow
-            //    {
-            //        Owner = this
-            //    };
-            //    wizard.ShowStep(3);   // ★ 핵심 한 줄
-            //    wizard.ShowDialog();
-            //}
             var state = AutomationWizardState.Current;
             if (state.SlClient == null || !state.SlClient.IsLoggedIn)
             {
@@ -139,5 +88,19 @@ namespace SimplifyQuoter
             var wizard = new SimplifyQuoter.Views.WizardWindow(startStep: 3) { Owner = this };
             wizard.ShowDialog();
         }
+        private void MainWindow_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                // Audit 헬퍼를 이미 만들었다면 이 라인만 사용
+                SimplifyQuoter.Services.Audit.Log("logout");
+
+                // [대안 - Audit.cs가 없다면 아래 두 줄로 대체]
+                // var user = (Application.Current.Properties["CurrentUser"] as string ?? "").Trim();
+                // using (var db = new DatabaseService()) db.LogEvent(user, "logout", null, Environment.MachineName, null);
+            }
+            catch { /* no-op */ }
         }
+    }
+
 }

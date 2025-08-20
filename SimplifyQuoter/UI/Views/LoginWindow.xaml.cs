@@ -31,7 +31,33 @@ namespace SimplifyQuoter.Views
             chkRememberId.IsChecked = Properties.Settings.Default.RememberId;
             if (Properties.Settings.Default.RememberId)
                 txtUserName.Text = Properties.Settings.Default.SavedUserId ?? string.Empty;
+            // [NEW] 로그인 창이 실제로 닫힐 때만 로그아웃을 기록하기 위해 구독
+            this.Closed += LoginWindow_Closed;
         }
+
+        // [NEW] LoginWindow 닫힐 때만 로그아웃 기록
+        private void LoginWindow_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                // 사용자 없으면 패스
+                var user = (Application.Current.Properties["CurrentUser"] as string ?? "").Trim();
+                if (string.IsNullOrWhiteSpace(user)) return;
+
+                var dbName = (Application.Current.Properties["CompanyDB"] as string) ?? this.CompanyDB;
+
+                // 실제 로그아웃 기록
+                SimplifyQuoter.Services.Audit.LogWithIp(
+            "logout",
+            new { companyDb = dbName },
+            user: user,
+            ip: GetLocalIPAddress()
+        );
+
+            }
+            catch { /* no-op */ }
+        }
+
 
         private void BtnViewLicense_Click(object sender, RoutedEventArgs e)
         {
@@ -78,12 +104,25 @@ namespace SimplifyQuoter.Views
             // 3) Attempt Service Layer login
             try
             {
+
                 await SlClient.LoginAsync(CompanyDB, UserName, Password);
+
+                Application.Current.Properties["CompanyDB"] = CompanyDB;
+
+                // [NEW] 한 줄로 기록: User + Meta(DB) + IP 컬럼
+                SimplifyQuoter.Services.Audit.EnsureTable();
+                SimplifyQuoter.Services.Audit.LogWithIp(
+                    "login",
+                    new { companyDb = CompanyDB },   // Meta에는 DB만
+                    user: UserName,                  // User 컬럼
+                    ip: GetLocalIPAddress()          // IP 컬럼
+                );
 
                 // ✅ 로그인 성공했으니 Remember ID 반영
                 var remember = chkRememberId.IsChecked == true;
                 Properties.Settings.Default.RememberId = remember;
-                Properties.Settings.Default.SavedUserId = remember ? UserName : string.Empty;
+
+
                 Properties.Settings.Default.Save();
 
                 // 4) Store the logged‐in userID into the shared state:
@@ -110,6 +149,11 @@ namespace SimplifyQuoter.Views
                 Application.Current.Properties["CurrentUser"] = txtUserName.Text?.Trim();
 
                 var mw = new SimplifyQuoter.MainWindow();
+
+
+                // [NEW] 메인창이 닫히면 로그인창을 닫아(=여기서만 로그아웃 기록됨)
+                //mw.Closed += (_, __) => { try { this.Close(); } catch { /* no-op */ } };
+
                 mw.Show();
                 Application.Current.MainWindow = mw; // 안전용(선택): 로그인 창이 MainWindow였던 경우 대비
 
@@ -129,6 +173,14 @@ namespace SimplifyQuoter.Views
                 txtPassword.Clear();
                 txtPassword.Focus();
                 // Do not set DialogResult, so ShowDialog() returns false
+                // [NEW-OPTIONAL] 실패 기록(비밀번호 등 민감정보는 절대 기록 X)
+                SimplifyQuoter.Services.Audit.LogWithIp(
+                    "login_failed",
+                    new { companyDb = CompanyDB, error = ex.Message }, // Meta = DB + 에러
+                    user: UserName,                                    // User 컬럼
+                    ip: GetLocalIPAddress()                            // Ip 컬럼
+                );
+
             }
         }
 

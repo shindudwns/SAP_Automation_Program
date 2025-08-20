@@ -4,7 +4,64 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Log" Width="900" Height="600"
         WindowStartupLocation="CenterOwner" Background="White">
+
+
+    <!-- [NEW] Window의 유일한 컨텐츠 -->
     <Grid Margin="12">
-        <TextBlock Text="로그 화면 (임시). 이후 확장하세요." FontSize="16"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 상단 필터 바 -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <TextBlock Text="User:" VerticalAlignment="Center"/>
+            <TextBox x:Name="TxtUser" Width="95" Margin="4,0,0,0"/>
+
+            <TextBlock Text="From:" VerticalAlignment="Center" Margin="12,0,0,0"/>
+            <DatePicker x:Name="DpFrom" Width="140" Margin="4,0,0,0"/>
+
+            <TextBlock Text="To:" VerticalAlignment="Center"/>
+            <DatePicker x:Name="DpTo" Width="140" Margin="4,0,0,0"/>
+
+            <Button x:Name="BtnRange1d"  Content="오늘"  Padding="10,4" Margin="12,0,0,0" Click="BtnRange1d_Click"/>
+            <Button x:Name="BtnRange7d"  Content="7일"  Padding="10,4" Margin="6,0,0,0"  Click="BtnRange7d_Click"/>
+            <Button x:Name="BtnRange30d" Content="30일" Padding="10,4" Margin="6,0,0,0" Click="BtnRange30d_Click"/>
+            <Button x:Name="BtnRangeAll" Content="전체"     Padding="10,4" Margin="6,0,0,0"  Click="BtnRangeAll_Click"/>
+
+            <!-- 자동 새로고침(원하면 사용) -->
+            <CheckBox x:Name="ChkAuto"
+              Content="Auto (10s)"
+              VerticalAlignment="Center"
+              Margin="8,0,0,0"
+              Checked="ChkAuto_Checked"
+              Unchecked="ChkAuto_Unchecked"/>
+
+            <Button x:Name="BtnExportCsv"
+            Content="CSV Down"
+            Padding="12,4"
+            Margin="12,0,0,0"
+            Click="BtnExportCsv_Click"/>
+        </StackPanel>
+
+        <!-- 로그 표 -->
+        <DataGrid x:Name="GridLogs"
+            Grid.Row="1"
+            Margin="0,8,0,0"
+            AutoGenerateColumns="False"
+            IsReadOnly="True"
+            CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Time"    Binding="{Binding Ts}"       Width="180"/>
+                <DataGridTextColumn Header="User"    Binding="{Binding UserId}"   Width="120"/>
+                <DataGridTextColumn Header="Event"   Binding="{Binding Event}"    Width="160"/>
+                <DataGridTextColumn Header="Meta"    Binding="{Binding MetaJson}" Width="*"/>
+                <DataGridTextColumn Header="Machine" Binding="{Binding Machine}"  Width="120"/>
+                <DataGridTextColumn Header="IP"      Binding="{Binding IpAddress}" Width="120"/>
+                <DataGridTextColumn Header="GPT Tokens" Binding="{Binding GptTotalTokens}" Width="110"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
+
+
 </Window>

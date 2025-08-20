@@ -8,6 +8,8 @@ using SimplifyQuoter.Models;
 
 namespace SimplifyQuoter.Services
 {
+
+
     /// <summary>
     /// Wraps an open NpgsqlConnection, plus helpers for
     /// part-cache and job/row flag updates.
@@ -61,6 +63,8 @@ SELECT 1
                 return (result != null);
             }
         }
+
+
 
         /// <summary>
         /// Inserts a new row into "acceptance_log", using the given licenseCode.
@@ -362,8 +366,193 @@ INSERT INTO job_log (
         }
 
 
+        /// <summary>
+        /// [NEW] 현재 연결된 서버/DB 정보 확인용 (디버깅용)
+        /// </summary>
+        /// <summary>
+        /// [NEW] 현재 연결된 서버/DB 정보 확인용 (디버깅용)
+        /// </summary>
+        public (string Host, int? Port, string Db) GetServerInfo()
+        {
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = "select inet_server_addr()::text, inet_server_port(), current_database();";
+                using (var r = cmd.ExecuteReader())
+                {
+                    if (r.Read())
+                    {
+                        string host = r.IsDBNull(0) ? null : r.GetString(0);
+                        int? port = r.IsDBNull(1) ? (int?)null : r.GetInt32(1);
+                        string db = r.IsDBNull(2) ? null : r.GetString(2);
+                        return (host, port, db);
+                    }
+                }
+            }
+            return (null, null, null);
+        }
+
+        // [NEW] 안전 Ordinal 헬퍼 (없으면 추가)
+        private static bool TryGetOrdinal(System.Data.IDataRecord rec, string name, out int ordinal)
+        {
+            try { ordinal = rec.GetOrdinal(name); return true; }
+            catch { ordinal = -1; return false; }
+        }
+
+
+        // ===== [NEW] Diagnostics & User Event Log =====
+
+        /// [NEW] user_event_log 테이블이 없으면 생성
+        /// </summary>
+        public void EnsureUserEventLogTable()
+        {
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+create table if not exists user_event_log (
+  id bigserial primary key,
+  ts timestamptz not null default now(),
+  user_id text not null,
+  event text not null,
+  meta jsonb,
+  machine text,
+  ip_address text
+);
+create index if not exists ix_user_event_log_ts on user_event_log(ts);
+create index if not exists ix_user_event_log_user on user_event_log(user_id);
+create index if not exists ix_user_event_log_event on user_event_log(event);";
+               cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// [NEW] 사용자 이벤트 로그 INSERT
+        ///   meta 객체는 JSON으로 직렬화되어 meta(jsonb)에 저장됨
+        /// </summary>
+        public void LogEvent(string userId, string @event, object meta = null, string machine = null, string ip = null)
+        {
+            string metaJson = (meta == null) ? null : Newtonsoft.Json.JsonConvert.SerializeObject(meta);
+
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+insert into user_event_log(user_id, event, meta, machine, ip_address)
+values (@user_id, @event, @meta, @machine, @ip);";
+
+                cmd.Parameters.AddWithValue("user_id", userId ?? string.Empty);
+                cmd.Parameters.AddWithValue("event", @event ?? string.Empty);
+
+                var pMeta = new Npgsql.NpgsqlParameter("meta", NpgsqlTypes.NpgsqlDbType.Jsonb);
+                pMeta.Value = (object)metaJson ?? DBNull.Value;
+                cmd.Parameters.Add(pMeta);
+
+                cmd.Parameters.AddWithValue("machine", (object)machine ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("ip", (object)ip ?? DBNull.Value);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// [NEW] 사용자 이벤트 로그 SELECT (필터 가능)
+        /// </summary>
+        // [CHANGED-COMMENTED-OUT - C# 7.3에서는 nullable reference syntax 미지원]
+        // public System.Collections.Generic.List<UserEventLog> GetEventLogs(string? userId, DateTime? from, DateTime? to, int limit = 500)
+        // { ... }
+
+        // [NEW - C# 7.3 호환 버전]
+        public System.Collections.Generic.List<UserEventLog> GetEventLogs(string userId, DateTime? from, DateTime? to, int limit = 500)
+        {
+
+            var list = new System.Collections.Generic.List<UserEventLog>();
+
+            var where = new System.Text.StringBuilder("where 1=1 ");
+            if (!string.IsNullOrWhiteSpace(userId)) where.Append("and user_id = @user_id ");
+            if (from.HasValue) where.Append("and ts >= @from ");
+            if (to.HasValue) where.Append("and ts <  @to ");
+
+
+
+            using (var cmd = _conn.CreateCommand())
+            {
+                //                cmd.CommandText = $@"
+                //select id, ts, user_id, event, meta::text as meta, machine, ip_address
+                //from user_event_log
+                //{where}
+                //order by ts desc
+                //limit @limit;";
+                // [NEW] meta(JSON)에서 GPT 필드들을 뽑아 컬럼으로 노출
+                cmd.CommandText = $@"
+select
+  id,
+  ts,
+  user_id,
+  event,
+  meta::text as meta,
+  machine,
+  ip_address,
+  nullif(meta->>'prompt_tokens','')::int           as gpt_prompt_tokens,
+  nullif(meta->>'completion_tokens','')::int       as gpt_completion_tokens,
+  coalesce(
+    nullif(meta->>'total_tokens','')::int,
+    (nullif(meta->>'prompt_tokens','')::int + nullif(meta->>'completion_tokens','')::int)
+  )                                                as gpt_total_tokens,
+  meta->>'model'                                   as gpt_model,
+  meta->>'feature'                                 as gpt_feature,
+  meta->>'part_code'                               as gpt_part_code,
+  nullif(meta->>'items','')::int                   as gpt_items
+from user_event_log
+{where}
+order by ts desc
+limit @limit;";
+
+
+
+                if (!string.IsNullOrWhiteSpace(userId)) cmd.Parameters.AddWithValue("user_id", userId);
+                if (from.HasValue) cmd.Parameters.AddWithValue("from", from.Value);
+                if (to.HasValue) cmd.Parameters.AddWithValue("to", to.Value);
+                cmd.Parameters.AddWithValue("limit", limit);
+
+                using (var r = cmd.ExecuteReader())
+                {
+                    while (r.Read())
+                    {
+                        var item = new UserEventLog
+                        {
+                            Id = r.GetInt64(0),
+                            Ts = r.GetDateTime(1),
+                            UserId = r.GetString(2),
+                            Event = r.GetString(3),
+                            MetaJson = r.IsDBNull(4) ? null : r.GetString(4),
+                            Machine = r.IsDBNull(5) ? null : r.GetString(5),
+                            IpAddress = r.IsDBNull(6) ? null : r.GetString(6),
+                        };
+
+                        // [NEW] GPT 세부 필드 (없으면 NULL)
+                        int ord;
+                        item.GptPromptTokens = r.IsDBNull(7) ? (int?)null : r.GetInt32(7);
+                        item.GptCompletionTokens = r.IsDBNull(8) ? (int?)null : r.GetInt32(8);
+                        item.GptTotalTokens = r.IsDBNull(9) ? (int?)null : r.GetInt32(9);
+                        item.GptModel = r.IsDBNull(10) ? null : r.GetString(10);
+                        item.GptFeature = r.IsDBNull(11) ? null : r.GetString(11);
+                        item.GptPartCode = r.IsDBNull(12) ? null : r.GetString(12);
+                        item.GptItems = r.IsDBNull(13) ? (int?)null : r.GetInt32(13);
+                        list.Add(item);
+                    }
+                }
+
+            }
+
+            return list;
+        }
+
+        // ===== [END NEW] =====
+
+
+
 
         // ————— IDisposable —————
+
+
 
         public void Dispose()
         {

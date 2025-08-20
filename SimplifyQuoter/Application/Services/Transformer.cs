@@ -16,8 +16,13 @@ namespace SimplifyQuoter.Services
     /// Converts Korean durations to "WEEK ERO" and
     /// asynchronously fetches/generates part descriptions & item-groups via AI.
     /// </summary>
+    /// 
+
+
     public static class Transformer
     {
+        public static AiEnrichmentService.GptUsage LastUsage { get; private set; }
+
 
         private static readonly Regex RegexCommaTail =
         new Regex(@"[,，].*$", RegexOptions.Compiled);                   // 첫 콤마부터 끝까지 삭제
@@ -76,7 +81,7 @@ namespace SimplifyQuoter.Services
             if (string.IsNullOrWhiteSpace(rawDescription))
                 return string.Empty;
 
-            if (!Regex.IsMatch(rawDescription, @"\p{IsHangul}"))
+            if (!HangulRegex.IsMatch(rawDescription))
                 return rawDescription;
 
             try
@@ -85,8 +90,11 @@ namespace SimplifyQuoter.Services
                 {
                     var prompt = $"Extract only the core product-related keywords from the following Korean description. Remove all full sentences or unnecessary explanations. Output: comma-separated keywords in English only.\n\n\"{rawDescription}\"";
                     var result = await ai.SendWithRetryAsync(prompt);
+                    Transformer.LastUsage = ai.LastUsage;  // ai.GeneratePartSummaryAsync / DetermineItemGroupCodeAsync 등 호출 직후
                     return result?.Trim() ?? rawDescription;
+
                 }
+
             }
             catch (Exception ex)
             {
@@ -124,6 +132,7 @@ namespace SimplifyQuoter.Services
                 {
                     var ai = new AiEnrichmentService(db);
                     await ai.EnrichMissingAsync(new[] { code });
+                    Transformer.LastUsage = ai.LastUsage;  // ai.GeneratePartSummaryAsync / DetermineItemGroupCodeAsync 등 호출 직후
                 }
             }
             catch (Exception ex)
@@ -147,7 +156,7 @@ namespace SimplifyQuoter.Services
         public static Task<string> GetItemGroupAsync(string code, string brand)
         {
             if (string.IsNullOrWhiteSpace(code))
-                return Task.FromResult("string.Empty");
+                return Task.FromResult(string.Empty);
 
             return GetItemGroupInternalAsync(code.Trim(), brand ?? "");
         }
@@ -177,6 +186,8 @@ namespace SimplifyQuoter.Services
                     {
                         new PartContext { Code = code, Brand = brand}
                     });
+                    Transformer.LastUsage = ai.LastUsage;  // ai.GeneratePartSummaryAsync / DetermineItemGroupCodeAsync 등 호출 직후
+
                 }
             }
             catch (Exception ex)
@@ -269,6 +280,27 @@ namespace SimplifyQuoter.Services
                     remarkKeywords = await ai.ToEnglishKeywordsAsync(remark, uppercase: true);
                 }
 
+                Transformer.LastUsage = ai.LastUsage;  // ai.GeneratePartSummaryAsync / DetermineItemGroupCodeAsync 등 호출 직후
+                try
+                {
+                    if (ai.LastUsage != null)
+                    {
+                        SimplifyQuoter.Services.Audit.LogGptUsage(
+                            feature: "item_dto",
+                            promptTokens: ai.LastUsage.PromptTokens,
+                            completionTokens: ai.LastUsage.CompletionTokens,
+                            totalTokens: ai.LastUsage.TotalTokens,
+                            model: ai.LastUsage.Model,
+                            user: AutomationWizardState.Current?.UserName,
+                            partCode: part,
+                            items: 1
+                        );
+                    }
+                }
+                catch { /* no-op */ }
+
+
+
                 // 6) Build description part
                 var parts = new List<string>();
                 if (!string.IsNullOrWhiteSpace(brand)) parts.Add(brand);
@@ -347,7 +379,7 @@ namespace SimplifyQuoter.Services
             }
 
             // 5) Build fallback description, inserting commas only when fields are present
-            string desc = $"{brand}, {part}, WRITEHERE";
+            string desc = $"{brand}, {part},  WRITE_HERE ";
 
             if (!string.IsNullOrEmpty(remark))
             {

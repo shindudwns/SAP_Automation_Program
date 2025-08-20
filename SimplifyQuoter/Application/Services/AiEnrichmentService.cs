@@ -1,4 +1,5 @@
-﻿using System;
+﻿// File: Services/AiEnrichmentService.cs
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
@@ -9,13 +10,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-
+using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
-
+// using System.Data.SqlTypes;  // [OLD] 사용하지 않으므로 주석 처리
 
 namespace SimplifyQuoter.Services
 {
-
     public class AiEnrichmentService : IDisposable
     {
         private readonly DatabaseService _db;
@@ -29,7 +29,10 @@ namespace SimplifyQuoter.Services
             TimeSpan.FromSeconds(1),
             TimeSpan.FromSeconds(2),
         };
-        
+
+        public class GptUsage { public int PromptTokens; public int CompletionTokens; public int TotalTokens; public string Model; }
+        public GptUsage LastUsage { get; private set; }
+
         private static readonly Dictionary<string, int> GroupLookup =
             new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
         {
@@ -58,78 +61,93 @@ namespace SimplifyQuoter.Services
             { "Charge", 122 },
             { "SERVICE", 123 },
         };
+
         public AiEnrichmentService()
         {
+            _db = null; // [NEW] 기본 생성자에서는 DB 의존 안함
             _apiKey = ConfigurationManager.AppSettings["OpenAI:ApiKey"]
-                     ?? throw new InvalidOperationException(
-                         "Missing OpenAI:ApiKey in App.config");
-            _modelName = ConfigurationManager.AppSettings["OpenAI:Model"]
-                         ?? "gpt-4o-mini";
+                     ?? throw new InvalidOperationException("Missing OpenAI:ApiKey in App.config");
+            _modelName = ConfigurationManager.AppSettings["OpenAI:Model"] ?? "gpt-4o-mini";
 
             _http = new HttpClient();
             _http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _apiKey);
         }
-
 
         public AiEnrichmentService(DatabaseService db)
         {
             _db = db;
             _apiKey = ConfigurationManager.AppSettings["OpenAI:ApiKey"];
-            _modelName = ConfigurationManager.AppSettings["OpenAI:Model"]
-                         ?? "gpt-4o-mini";
+            _modelName = ConfigurationManager.AppSettings["OpenAI:Model"] ?? "gpt-4o-mini";
 
             if (string.IsNullOrWhiteSpace(_apiKey))
-                throw new InvalidOperationException(
-                    "Missing OpenAI API key in App.config under <appSettings> key: OpenAI:ApiKey");
+                throw new InvalidOperationException("Missing OpenAI API key in App.config under <appSettings> key: OpenAI:ApiKey");
 
             _http = new HttpClient();
             _http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _apiKey);
         }
 
-        /// <summary>
-        /// Enrich *just* descriptions (legacy).
-        /// </summary>
+        /// <summary>Enrich *just* descriptions (legacy).</summary>
         public async Task EnrichMissingAsync(IEnumerable<string> allCodes)
         {
-            var distinct = allCodes
+            var distinct = (allCodes ?? Array.Empty<string>())
                 .Where(c => !string.IsNullOrWhiteSpace(c))
+                .Select(c => c.Trim())
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
+
             var known = _db.GetKnownPartCodes(distinct).ToList();
-            var missing = distinct.Except(known, StringComparer.OrdinalIgnoreCase).ToList();
+
+            // [OLD]
+            // var missing = distinct.Except(known, StringComparer.OrdinalIgnoreCase).ToList();
+
+            // [NEW] HashSet으로 대체 (프레임워크/확장메서드 이슈 회피)
+            var knownSet = new HashSet<String>(known, StringComparer.OrdinalIgnoreCase);
+            var missing = new List<string>();
+            foreach (var code in distinct)
+                if (!knownSet.Contains(code)) missing.Add(code);
 
             // chunk 20
             for (int i = 0; i < missing.Count; i += 20)
             {
-                var batch = missing.GetRange(i, Math.Min(20, missing.Count - i));
+                int countLeft = missing.Count - i;
+                int take = countLeft < 20 ? countLeft : 20;
+                var batch = missing.GetRange(i, take);
                 await CallOpenAiWithRetryAsync(batch);
             }
         }
 
-        /// <summary>
-        /// Enrich both description & item_group, using full context.
-        /// </summary>
+
+        /// <summary>Enrich both description & item_group, using full context.</summary>
         public async Task EnrichMissingWithContextAsync(IEnumerable<PartContext> parts)
         {
-            var list = parts
+            var list = (parts ?? Array.Empty<PartContext>())
                 .Where(p => !string.IsNullOrWhiteSpace(p.Code))
                 .Distinct(new PartContextComparer())
                 .ToList();
 
             var codes = list.Select(p => p.Code).ToList();
             var known = _db.GetKnownPartCodes(codes);
-            var missing = list
-                .Where(p => !known.Contains(p.Code))
-                .ToList();
+
+            // [OLD]
+            // var missing = list.Where(p => !known.Contains(p.Code)).ToList();
+
+            // [NEW] 대소문자 무시 비교를 위해 HashSet 사용
+            var knownSet = new HashSet<string>(known, StringComparer.OrdinalIgnoreCase);
+            var missing = new List<PartContext>();
+            foreach (var p in list)
+                if (!knownSet.Contains(p.Code)) missing.Add(p);
 
             for (int i = 0; i < missing.Count; i += 20)
             {
-                var batch = missing.GetRange(i, Math.Min(20, missing.Count - i));
+                int countLeft = missing.Count - i;
+                int take = countLeft < 20 ? countLeft : 20;
+                var batch = missing.GetRange(i, take);
                 await CallOpenAiContextWithRetryAsync(batch);
             }
         }
+
 
         private async Task CallOpenAiWithRetryAsync(List<string> batch)
         {
@@ -201,16 +219,28 @@ namespace SimplifyQuoter.Services
 
             var req = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions")
             {
-                Content = new StringContent(
-                    JsonConvert.SerializeObject(bodyObj),
-                    Encoding.UTF8,
-                    "application/json")
+                Content = new StringContent(JsonConvert.SerializeObject(bodyObj), Encoding.UTF8, "application/json")
             };
 
             var rsp = await _http.SendAsync(req);
             rsp.EnsureSuccessStatusCode();
 
             var json = await rsp.Content.ReadAsStringAsync();
+
+            // ▼ [OLD] 직접 파싱 블록
+            // try {
+            //     var jo = JObject.Parse(json);
+            //     var usage = jo["usage"];
+            //     int pt = (int?)usage?["prompt_tokens"] ?? 0;
+            //     int ct = (int?)usage?["completion_tokens"] ?? 0;
+            //     int tt = (int?)usage?["total_tokens"] ?? (pt + ct);
+            //     string model = (string)(jo["model"] ?? "unknown");
+            //     LastUsage = new GptUsage { PromptTokens = pt, CompletionTokens = ct, TotalTokens = tt, Model = model };
+            // } catch { }
+
+            // ▼ [NEW] 공통 헬퍼로 usage/model 캡처
+            CaptureUsageFromJson(json);
+
             dynamic parsed = JsonConvert.DeserializeObject(json);
             string content = ((string)parsed.choices[0].message.content ?? "").Trim();
 
@@ -239,11 +269,10 @@ namespace SimplifyQuoter.Services
 
         private async Task CallOpenAiWithContextAsync(List<PartContext> batch)
         {
-            var jsonInputs = batch
-                .Select(p =>
-                    $"{{\"code\":\"{p.Code}\",\"brand\":\"{p.Brand}\"}}");
+            var jsonInputs = batch.Select(p => $"{{\"code\":\"{p.Code}\",\"brand\":\"{p.Brand}\"}}");
             var inputArray = "[" + string.Join(",", jsonInputs) + "]";
             Debug.WriteLine(inputArray);
+
             var userBuilder = new StringBuilder()
                 .AppendLine("You are an American expert parts-classifier. ")
                 .AppendLine("For each item below, given its part number (code) and brand,")
@@ -251,7 +280,6 @@ namespace SimplifyQuoter.Services
                 .AppendLine("  code: string,")
                 .AppendLine("  description: ≤20-word summary including details, such as length, voltage etc,")
                 .AppendLine("  item_group: one of [")
-                // full item group list here:
                 .AppendLine("    Automation and Controls, BRASS FITTINGS, Bearings and Power Transmission,")
                 .AppendLine("    Bolts, Nuts, Washers, Charge, ETC, Electrical Components, Facility Maintenance,")
                 .AppendLine("    Fasteners and Hardware, HVAC and Refrigeration, IT and Office Supplies,")
@@ -266,24 +294,22 @@ namespace SimplifyQuoter.Services
             var bodyObj = new
             {
                 model = _modelName,
-                messages = new[]
-                {
-                    new { role = "system", content = userBuilder.ToString() }
-                }
+                messages = new[] { new { role = "system", content = userBuilder.ToString() } }
             };
 
             var req = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions")
             {
-                Content = new StringContent(
-                    JsonConvert.SerializeObject(bodyObj),
-                    Encoding.UTF8,
-                    "application/json")
+                Content = new StringContent(JsonConvert.SerializeObject(bodyObj), Encoding.UTF8, "application/json")
             };
 
             var rsp = await _http.SendAsync(req);
             rsp.EnsureSuccessStatusCode();
 
             var json = await rsp.Content.ReadAsStringAsync();
+
+            // ▼ [NEW] usage/model 캡처 (이전엔 누락)
+            CaptureUsageFromJson(json);
+
             dynamic parsed = JsonConvert.DeserializeObject(json);
             string content = ((string)parsed.choices[0].message.content ?? "").Trim();
 
@@ -306,23 +332,16 @@ namespace SimplifyQuoter.Services
             foreach (var p in results)
             {
                 using (var d = new DatabaseService())
-                    d.UpsertPart(
-                        p.code,
-                        p.description,
-                        p.item_group,
-                        p.is_manual);
+                    d.UpsertPart(p.code, p.description, p.item_group, p.is_manual);
             }
         }
 
-        /// <summary>
-        /// Generate a ≤20-word summary for the specified part code.
-        /// </summary>
+        /// <summary>Generate a ≤20-word summary for the specified part code.</summary>
         public async Task<string> GeneratePartSummaryAsync(string code, string brand)
         {
             if (string.IsNullOrWhiteSpace(code))
                 return string.Empty;
 
-            // Prompt for concise summary
             var prompt = $@"
                 You are an expert in industrial/electromechanical parts. Given only a Part number and Brand, output a very short, all-caps product description containing only the core details (e.g., series/family, function, channel count, voltage). Omit any packaging, bus compatibility, or ancillary features.
 
@@ -347,22 +366,18 @@ namespace SimplifyQuoter.Services
 
                 Now generate for:
 
-
-                Part number: ""{code}"" 
+                Part number: ""{code}""
                 Brand: ""{brand}""";
 
             return await SendWithRetryAsync(prompt);
         }
 
-        /// <summary>
-        /// Selects the best item group code given part & brand. Defaults to ETC (121).
-        /// </summary>
+        /// <summary>Selects the best item group code given part & brand. Defaults to ETC (121).</summary>
         public async Task<int> DetermineItemGroupCodeAsync(string code, string brand)
         {
             if (string.IsNullOrWhiteSpace(code))
                 return GroupLookup["ETC"];
 
-            // Build a JSON-style list of choices
             var choices = string.Join(", ", GroupLookup.Keys.Select(k => $"\"{k}\""));
             var prompt = new StringBuilder()
                 .AppendLine($"Given part number \"{code}\" and brand \"{brand}\",")
@@ -380,15 +395,12 @@ namespace SimplifyQuoter.Services
             return GroupLookup["ETC"];
         }
 
-        //
-        // ▼▼▼ 여기에 추가: DetermineItemGroupCodeAsync(...) 바로 아래, SendWithRetryAsync(...) 위 ▼▼▼
-
+        // ▼▼▼ DetermineItemGroupCodeAsync(...) 아래, SendWithRetryAsync(...) 위 — (기존 위치 그대로)
         public async Task<string> ToEnglishKeywordsAsync(string rawDescription, bool uppercase = true)
         {
             if (string.IsNullOrWhiteSpace(rawDescription))
                 return string.Empty;
 
-            // ✅ 항상 GPT로 돌린다 (한글 감지 분기 제거)
             var prompt =
                 "Extract ONLY core, product-related KEYWORDS from the text below. " +
                 "The input may be Korean or English. " +
@@ -410,15 +422,12 @@ namespace SimplifyQuoter.Services
             if (string.IsNullOrWhiteSpace(result))
                 return string.Empty;
 
-            // 정규화
             var normalized = result.Trim()
-                                   .Trim('.')          // 끝 마침표 제거
+                                   .Trim('.')
                                    .Replace(" ,", ",")
                                    .Replace(",  ", ", ")
                                    .Replace("  ", " ");
 
-            // 🚧 방어: 혹시라도 한국어가 섞이면 제거
-            // (한글 범위 제거: 가~힣, ㅏ~ㅣ, ㄱ~ㅎ)
             normalized = Regex.Replace(normalized, @"[가-힣\u3130-\u318F\uAC00-\uD7A3]+", string.Empty)
                               .Replace(" ,", ",")
                               .Replace(", ,", ",")
@@ -427,13 +436,7 @@ namespace SimplifyQuoter.Services
             return uppercase ? normalized.ToUpperInvariant() : normalized;
         }
 
-        // ▲▲▲ 여기까지 추가 ▲▲▲
-
-
-
-        /// <summary>
-        /// Sends a user prompt via ChatCompletion with retry/backoff.
-        /// </summary>
+        /// <summary>Sends a user prompt via ChatCompletion with retry/backoff.</summary>
         public async Task<string> SendWithRetryAsync(string userPrompt)
         {
             await _throttle.WaitAsync();
@@ -465,9 +468,7 @@ namespace SimplifyQuoter.Services
             return string.Empty; // fallback
         }
 
-        /// <summary>
-        /// One-off ChatCompletion call, returns the assistant’s reply text.
-        /// </summary>
+        /// <summary>One-off ChatCompletion call, returns the assistant’s reply text.</summary>
         private async Task<string> CallChatCompletionAsync(string userContent)
         {
             var body = new
@@ -475,29 +476,65 @@ namespace SimplifyQuoter.Services
                 model = _modelName,
                 messages = new[] {
                     new { role = "system", content = "You are an American expert parts-classifier. You must translate any non-English text to English first before summarizing. Use only English in your response." },
-                    new { role = "user",   content = userContent             }
+                    new { role = "user",   content = userContent }
                 }
             };
 
-            var req = new HttpRequestMessage(
-                HttpMethod.Post,
-                "https://api.openai.com/v1/chat/completions")
+            var req = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions")
             {
-                Content = new StringContent(
-                    JsonConvert.SerializeObject(body),
-                    Encoding.UTF8,
-                    "application/json")
+                Content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json")
             };
 
             var resp = await _http.SendAsync(req);
             resp.EnsureSuccessStatusCode();
 
             var json = await resp.Content.ReadAsStringAsync();
-            dynamic parsed = JsonConvert.DeserializeObject(json);
-            string content = ((string)parsed.choices[0].message.content ?? "")
-                             .Trim();
+
+            // ▼ [OLD] 내부에서 직접 파싱
+            // dynamic parsed = JsonConvert.DeserializeObject(json);
+            // string content = ((string)parsed.choices[0].message.content ?? "").Trim();
+            // try {
+            //     var jo = JObject.Parse(json);
+            //     var usage = jo["usage"];
+            //     int pt = (int?)usage?["prompt_tokens"] ?? 0;
+            //     int ct = (int?)usage?["completion_tokens"] ?? 0;
+            //     int tt = (int?)usage?["total_tokens"] ?? (pt + ct);
+            //     string model = (string)(jo["model"] ?? "unknown");
+            //     LastUsage = new GptUsage { PromptTokens = pt, CompletionTokens = ct, TotalTokens = tt, Model = model };
+            // } catch { }
+
+            // ▼ [NEW] 공통 헬퍼로 usage/model 캡처 후 content 추출
+            CaptureUsageFromJson(json);
+            var jo2 = JObject.Parse(json);
+            string content = jo2["choices"]?[0]?["message"]?["content"]?.ToString()?.Trim() ?? "";
 
             return content;
+        }
+
+        // ▼ [NEW] usage/model 파싱 공통 헬퍼
+        private void CaptureUsageFromJson(string json)
+        {
+            try
+            {
+                var jo = JObject.Parse(json);
+                var usage = jo["usage"];
+                int pt = (int?)usage?["prompt_tokens"] ?? 0;
+                int ct = (int?)usage?["completion_tokens"] ?? 0;
+                int tt = (int?)usage?["total_tokens"] ?? (pt + ct);
+                string model = jo["model"]?.ToString() ?? jo["id"]?.ToString() ?? "unknown";
+
+                LastUsage = new GptUsage
+                {
+                    PromptTokens = pt,
+                    CompletionTokens = ct,
+                    TotalTokens = tt,
+                    Model = model
+                };
+            }
+            catch
+            {
+                // usage가 없거나 파싱 실패해도 무시
+            }
         }
 
         public void Dispose()
@@ -505,7 +542,6 @@ namespace SimplifyQuoter.Services
             _http?.Dispose();
             _throttle?.Dispose();
         }
-
 
         private class Part
         {
@@ -515,15 +551,12 @@ namespace SimplifyQuoter.Services
             public bool is_manual { get; set; }
         }
 
-        /// <summary>
-        /// Distinct-by-code comparer for PartContext.
-        /// </summary>
+        /// <summary>Distinct-by-code comparer for PartContext.</summary>
         private class PartContextComparer : IEqualityComparer<PartContext>
         {
             public bool Equals(PartContext x, PartContext y)
             {
-                return string.Equals(x.Code, y.Code,
-                                     StringComparison.OrdinalIgnoreCase);
+                return string.Equals(x.Code, y.Code, StringComparison.OrdinalIgnoreCase);
             }
             public int GetHashCode(PartContext obj)
             {

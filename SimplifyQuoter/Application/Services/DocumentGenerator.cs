@@ -87,7 +87,43 @@ namespace SimplifyQuoter.Services
             return s.Trim(' ', ',');                    // 앞뒤 콤마/공백 제거
         }
 
+        private static void LogGptFromAi(AiEnrichmentService ai, string feature, string partCode)
+        {
+            try
+            {
+                var u = ai?.LastUsage;
+                SimplifyQuoter.Services.Audit.LogGptUsage(
+                    feature,
+                    u?.PromptTokens ?? 0,
+                    u?.CompletionTokens ?? 0,
+                    u?.TotalTokens ?? ((u?.PromptTokens ?? 0) + (u?.CompletionTokens ?? 0)),
+                    model: u?.Model ?? "unknown",
+                    user: AutomationWizardState.Current?.UserName,
+                    partCode: partCode,
+                    items: 1
+                );
+            }
+            catch { /* no-op */ }
+        }
 
+        // [NEW] GPT 사용 로그 헬퍼(Transformer 기반: Description/ItemGroup에 사용)
+        private static void LogGptFromTransformer(string feature, string partCode)
+        {
+            try
+            {
+                SimplifyQuoter.Services.Audit.LogGptUsage(
+                    feature,
+                    promptTokens: 0,
+                    completionTokens: 0,
+                    totalTokens: 0,
+                    model: "unknown",
+                    user: AutomationWizardState.Current?.UserName,
+                    partCode: partCode,
+                    items: 1
+                );
+            }
+            catch { /* no-op */ }
+        }
 
         // … DocumentGenerator 클래스 안쪽 …
 
@@ -245,11 +281,22 @@ namespace SimplifyQuoter.Services
                         ? Transformer.GetDescriptionAsync(code).Result
                         : ai.ToEnglishKeywordsAsync(descRaw, uppercase: true).GetAwaiter().GetResult();
 
+                    /* [NEW] GPT 사용 로그: DESCRIPTION/KEYWORDS */
+                    if (string.IsNullOrWhiteSpace(descRaw))
+                        LogGptFromTransformer("auto_description", code);  // 코드 기반 요약
+                    else
+                        LogGptFromAi(ai, "ai_keywords", code);            // 원문→영문 키워드 추출
+
+
+
+
                     var row = dt.NewRow();
                     row["Item Code"] = "HX-" + code;
                     row["PART#"] = code;
                     row["BRAND"] = brand;
                     row["Item Group"] = Transformer.GetItemGroupAsync(code, brand).Result;
+                    /* [NEW] GPT 사용 로그: ITEM GROUP */
+                    LogGptFromTransformer("auto_item_group", code);
                     row["DESCRIPTION"] = BuildDescription(brand, code, descFinal).ToUpperInvariant();
                     row["Purchasing UOM"] = "EACH";
                     row["Sales UOM"] = "EACH";
@@ -282,11 +329,20 @@ namespace SimplifyQuoter.Services
                         ? Transformer.GetDescriptionAsync(code).Result
                         : ai.ToEnglishKeywordsAsync(descRaw, uppercase: true).GetAwaiter().GetResult();
 
+                    /* [NEW] GPT 사용 로그: DESCRIPTION/KEYWORDS */
+                    if (string.IsNullOrWhiteSpace(descRaw))
+                        LogGptFromTransformer("auto_description", code);
+                    else
+                        LogGptFromAi(ai, "ai_keywords", code);
+
+
                     var row = dt.NewRow();
                     row["Item Code"] = "HX-" + code;
                     row["PART#"] = code;
                     row["BRAND"] = brand;
                     row["Item Group"] = Transformer.GetItemGroupAsync(code, brand).Result;
+                    /* [NEW] GPT 사용 로그: ITEM GROUP */
+                    LogGptFromTransformer("auto_item_group", code);
                     row["DESCRIPTION"] = BuildDescription(brand, code, descFinal).ToUpperInvariant();
                     row["Purchasing UOM"] = "EACH";
                     row["Sales UOM"] = "EACH";
