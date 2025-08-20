@@ -79,7 +79,7 @@ Edit `App.config`:
     <add key="ConnectionStrings:DefaultConnection" value="Host=…;Port=…;Username=…;Password=…;Database=…;" />
     <!-- OpenAI -->
     <add key="OpenAI:ApiKey"   value="sk-…" />
-    <add key="OpenAI:Model"    value="gpt-3.5-turbo" />
+    <add key="OpenAI:Model"    value="gpt-5.0" />
   </appSettings>
 </configuration>
 ```
