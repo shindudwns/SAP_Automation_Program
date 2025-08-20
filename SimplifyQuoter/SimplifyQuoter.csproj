@@ -192,6 +192,7 @@
     <Compile Include="Domain\Models\AutomationWizardState.cs" />
     <Compile Include="Domain\Models\FormattedExportRow.cs" />
     <Compile Include="Domain\Models\JobLogEntry.cs" />
+    <Compile Include="Domain\Models\Models\GptReports.cs" />
     <Compile Include="Domain\Models\UserEventLog.cs" />
     <Compile Include="Infrastructure\ServiceLayer\Clients\HttpClientExtensions.cs" />
     <Compile Include="Infrastructure\ServiceLayer\Services\ODataBatchHelper.cs" />
@@ -367,6 +368,8 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="UI\Views\Views\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

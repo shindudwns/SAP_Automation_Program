@@ -4,7 +4,7 @@
         xmlns:views="clr-namespace:SimplifyQuoter.Views"
         Title="SM AMERICA, LLC"
         Height="371" Width="658"
-                Loaded="MainWindow_Loaded">
+        Loaded="MainWindow_Loaded">
 
     <Window.Resources>
         <Style x:Key="IconButtonStyle" TargetType="Button">

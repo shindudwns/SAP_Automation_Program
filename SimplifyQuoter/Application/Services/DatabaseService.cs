@@ -5,6 +5,9 @@ using System.Configuration;
 using System.Linq;
 using Npgsql;
 using SimplifyQuoter.Models;
+using NpgsqlTypes;
+using System.Data;
+using System.Text;
 
 namespace SimplifyQuoter.Services
 {
@@ -544,6 +547,201 @@ limit @limit;";
 
             return list;
         }
+            // [NEW] 공통: 토큰 계산식 (SQL 조각)
+            // meta->>'total_tokens' 가 있으면 그것, 없으면 prompt+completion 합
+            private const string _sqlTokenExpr = @"
+coalesce(
+  nullif(meta->>'total_tokens','')::int,
+  (nullif(meta->>'prompt_tokens','')::int + nullif(meta->>'completion_tokens','')::int)
+)";
+        // [REPLACE] Daily × User (로그인/토큰/호출을 공백/대소문자/특수공백/로컬라이즈 문자열에 강건하게 집계)
+        public List<SimplifyQuoter.Models.GptDailyRow> GetGptUsageDaily(string userId, DateTime? from, DateTime? to, int limitDays = 365)
+        {
+            var list = new List<SimplifyQuoter.Models.GptDailyRow>();
+
+            // 날짜/사용자 필터(사용자 비교도 특수공백 제거 + trim)
+            var where = new StringBuilder("where 1=1 ");
+            if (!string.IsNullOrWhiteSpace(userId))
+                where.Append("and btrim(regexp_replace(replace(replace(user_id, chr(160), ''), chr(8203), ''),'\\s','','g')) = @user_id ");
+            if (from.HasValue) where.Append("and ts >= @from ");
+            if (to.HasValue) where.Append("and ts <  @to ");
+
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = $@"
+with norm as (
+  select
+    date_trunc('day', ts)::date                                                             as day,
+    btrim(regexp_replace(replace(replace(user_id, chr(160), ''), chr(8203), ''),'\\s','','g')) as user_id,
+    lower(regexp_replace(replace(replace(event,   chr(160), ''), chr(8203), ''),'\\s','','g')) as ev_norm,
+    event,  -- 원문도 보관(한글 '로그인' 탐지용)
+    meta
+  from user_event_log
+  {where}
+)
+select
+  day,
+  user_id,
+  sum(case
+        when (ev_norm like '%login%' or ev_norm like '%signin%' or event like '%로그인%') then 1
+        else 0
+      end)                                                                                 as logins,
+  sum(case when (meta ? 'total_tokens' or meta ? 'prompt_tokens' or meta ? 'completion_tokens')
+           then {_sqlTokenExpr} else 0 end)                                                as tokens,
+  sum(case when (meta ? 'total_tokens' or meta ? 'prompt_tokens' or meta ? 'completion_tokens')
+           then 1 else 0 end)                                                              as calls
+from norm
+group by 1,2
+order by day desc, user_id
+limit @lim;";
+
+                if (!string.IsNullOrWhiteSpace(userId)) cmd.Parameters.AddWithValue("user_id", userId.Trim());
+                if (from.HasValue) cmd.Parameters.AddWithValue("from", from.Value);
+                if (to.HasValue) cmd.Parameters.AddWithValue("to", to.Value);
+                cmd.Parameters.AddWithValue("lim", limitDays);
+
+                using (var r = cmd.ExecuteReader())
+                {
+                    while (r.Read())
+                    {
+                        list.Add(new SimplifyQuoter.Models.GptDailyRow
+                        {
+                            Day = r.GetDateTime(0),
+                            UserId = r.GetString(1),
+                            Logins = r.IsDBNull(2) ? 0 : r.GetInt32(2),
+                            Tokens = r.IsDBNull(3) ? 0 : r.GetInt32(3),
+                            Calls = r.IsDBNull(4) ? 0 : r.GetInt32(4),
+                        });
+                    }
+                }
+            }
+            return list;
+        }
+
+
+
+
+
+
+        // [NEW] ② 사용자 TOP (기간 전체)
+        // [REPLACE] ② 사용자 TOP (기간 전체) — user_id 정규화 일관화
+        public List<SimplifyQuoter.Models.GptTopUserRow> GetGptTopUsers(DateTime? from, DateTime? to, int limit = 10)
+        {
+            var list = new List<SimplifyQuoter.Models.GptTopUserRow>();
+
+            const string tokenExpr = @"
+coalesce(
+  nullif(meta->>'total_tokens','')::int,
+  (nullif(meta->>'prompt_tokens','')::int + nullif(meta->>'completion_tokens','')::int)
+)";
+
+            var where = new StringBuilder("where (meta ? 'total_tokens' or meta ? 'prompt_tokens' or meta ? 'completion_tokens') ");
+            if (from.HasValue) where.Append("and ts >= @from ");
+            if (to.HasValue) where.Append("and ts <  @to ");
+
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = $@"
+with norm as (
+  select
+    btrim(regexp_replace(replace(replace(user_id, chr(160), ''), chr(8203), ''),'\\s','','g')) as user_id,
+    meta,
+    ts
+  from user_event_log
+  {where}
+)
+select
+  user_id,
+  sum({tokenExpr}) as tokens,
+  count(*)         as calls
+from norm
+group by user_id
+order by tokens desc
+limit @lim;";
+
+                if (from.HasValue) cmd.Parameters.AddWithValue("from", from.Value);
+                if (to.HasValue) cmd.Parameters.AddWithValue("to", to.Value);
+                cmd.Parameters.AddWithValue("lim", limit);
+
+                using (var r = cmd.ExecuteReader())
+                {
+                    while (r.Read())
+                    {
+                        var tokens = r.IsDBNull(1) ? 0 : r.GetInt32(1);
+                        var calls = r.IsDBNull(2) ? 0 : r.GetInt32(2);
+                        list.Add(new SimplifyQuoter.Models.GptTopUserRow
+                        {
+                            UserId = r.GetString(0),
+                            Tokens = tokens,
+                            Calls = calls,
+                            AvgTokens = (calls > 0) ? (int)Math.Round(tokens / (double)calls) : 0
+                        });
+                    }
+                }
+            }
+            return list;
+        }
+
+
+        // [REPLACE] ③ 기능별 사용량 — user 필터도 정규화해서 정확히 매치
+        public List<SimplifyQuoter.Models.GptFeatureRow> GetGptUsageByFeature(string userId, DateTime? from, DateTime? to)
+        {
+            var list = new List<SimplifyQuoter.Models.GptFeatureRow>();
+
+            const string tokenExpr = @"
+coalesce(
+  nullif(meta->>'total_tokens','')::int,
+  (nullif(meta->>'prompt_tokens','')::int + nullif(meta->>'completion_tokens','')::int)
+)";
+
+            var where = new StringBuilder("where (meta ? 'total_tokens' or meta ? 'prompt_tokens' or meta ? 'completion_tokens') ");
+            if (from.HasValue) where.Append("and ts >= @from ");
+            if (to.HasValue) where.Append("and ts <  @to ");
+
+            // userId가 들어오면 정규화 후 비교
+            bool filterUser = !string.IsNullOrWhiteSpace(userId);
+
+            using (var cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = $@"
+with norm as (
+  select
+    coalesce(nullif(meta->>'feature',''), '(unknown)')                               as feature,
+    {tokenExpr}                                                                       as tokens,
+    ts,
+    btrim(regexp_replace(replace(replace(user_id, chr(160), ''), chr(8203), ''),'\\s','','g')) as user_norm
+  from user_event_log
+  {where}
+)
+select
+  feature,
+  sum(tokens) as tokens,
+  count(*)    as calls
+from norm
+{(filterUser ? "where user_norm = @user_id" : "")}
+group by feature
+order by tokens desc;";
+
+                if (from.HasValue) cmd.Parameters.AddWithValue("from", from.Value);
+                if (to.HasValue) cmd.Parameters.AddWithValue("to", to.Value);
+                if (filterUser) cmd.Parameters.AddWithValue("user_id", userId.Trim());
+
+                using (var r = cmd.ExecuteReader())
+                {
+                    while (r.Read())
+                    {
+                        list.Add(new SimplifyQuoter.Models.GptFeatureRow
+                        {
+                            Feature = r.IsDBNull(0) ? "(unknown)" : r.GetString(0),
+                            Tokens = r.IsDBNull(1) ? 0 : r.GetInt32(1),
+                            Calls = r.IsDBNull(2) ? 0 : r.GetInt32(2),
+                        });
+                    }
+                }
+            }
+            return list;
+        }
+
 
         // ===== [END NEW] =====
 
