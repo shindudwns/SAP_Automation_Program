@@ -7,6 +7,10 @@
         Loaded="MainWindow_Loaded">
 
     <Window.Resources>
+        <!-- ✅ 추가: PrimaryButton에서 사용하는 브러시 리소스 -->
+        <SolidColorBrush x:Key="AccentBrush" Color="#2563EB"/>
+        <SolidColorBrush x:Key="AccentBrushDark" Color="#1E4FD6"/>
+
         <Style x:Key="IconButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -16,7 +20,45 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <ContentPresenter HorizontalAlignment="Center"
-                              VerticalAlignment="Center"/>
+                                          VerticalAlignment="Center"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd"
+                                Background="White"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd"
+                                        Property="Background"
+                                        Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd"
+                                        Property="Background"
+                                        Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd"
+                                        Property="Background"
+                                        Value="#9CA3AF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -30,45 +72,48 @@
             <ColumnDefinition Width="4*"/>
             <ColumnDefinition Width="282*"/>
         </Grid.ColumnDefinitions>
+
+        <!-- ✅ ZIndex 올려서 Canvas 위에 보이도록 -->
         <Button x:Name="BtnLog"
-            Content="Log"
-            Width="50"
-            Height="32"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Bottom"
-            Margin="12"
-            Visibility="Collapsed"
-            Click="BtnLog_Click"/>
+                Content="Log"
+                Width="50"
+                Height="32"
+                Style="{StaticResource PrimaryButton}"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Bottom"
+                Margin="12"
+                Panel.ZIndex="10"
+                Visibility="Collapsed"
+                Click="BtnLog_Click"/>
+
         <Canvas Grid.ColumnSpan="4">
             <!-- SAP Automation -->
             <Button x:Name="BtnSapAutomation"
-              Style="{StaticResource IconButtonStyle}"
-              Click="BtnSapAutomation_Click"
-              Canvas.Left="141" Canvas.Top="119">
+                    Style="{StaticResource IconButtonStyle}"
+                    Click="BtnSapAutomation_Click"
+                    Canvas.Left="141" Canvas.Top="119">
                 <StackPanel>
                     <Image Source="/SimplifyQuoter;component/Assets/sap (5).svg.png"
-                 Width="160" Height="80"/>
+                           Width="160" Height="80"/>
                     <TextBlock Text="SAP Automation"
-                     Margin="0,8,0,0"
-                     HorizontalAlignment="Center"/>
+                               Margin="0,8,0,0"
+                               HorizontalAlignment="Center"/>
                 </StackPanel>
             </Button>
 
             <!-- Import TXT -->
             <Button x:Name="BtnImport"
-              Style="{StaticResource IconButtonStyle}"
-              Click="BtnImport_Click"
-              Canvas.Left="421" Canvas.Top="114">
+                    Style="{StaticResource IconButtonStyle}"
+                    Click="BtnImport_Click"
+                    Canvas.Left="421" Canvas.Top="114">
                 <StackPanel>
                     <Image Source="/SimplifyQuoter;component/Assets/txt_icon(2).png"
-                 Width="89" Height="90"/>
+                           Width="89" Height="90"/>
                     <TextBlock Text="Import Data"
-                     Margin="0,8,0,0"
-                     HorizontalAlignment="Center"/>
+                               Margin="0,8,0,0"
+                               HorizontalAlignment="Center"/>
                 </StackPanel>
             </Button>
-
         </Canvas>
-
     </Grid>
 </Window>

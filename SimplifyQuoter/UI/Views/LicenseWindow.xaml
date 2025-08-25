@@ -136,6 +136,14 @@
                     <Run Text="• Fixed UOM selection error."/>
                     <LineBreak/>
                     <Run Text="• Fixed range input handling in Select Items (range parsing/validation issue)."/>
+                    <LineBreak/>
+                    
+                    <LineBreak/>
+                    <Run Text="Version 1.5.1 – August 20, 2025" FontWeight="Bold"/>
+                    <LineBreak/>
+                    <Run Text="• Added the “GPT USAGE” feature"/>
+                    <LineBreak/>
+                    <Run Text="• Fixed features"/>
 
 
 

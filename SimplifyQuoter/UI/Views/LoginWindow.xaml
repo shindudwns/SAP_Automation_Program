@@ -2,13 +2,13 @@
 <Window x:Class="SimplifyQuoter.Views.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="SAP Automation V1.5.0"
+        Title="SAP Automation V1.5.1"
         Width="960" Height="600"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI">
     <!--FontFamily="{StaticResource FioriFont}"  SAP 글꼴-->
- 
+
     <!-- ===== Theme Resources / Styles (그대로) ===== -->
     <Window.Resources>
         <SolidColorBrush x:Key="AccentBrush" Color="#2563EB"/>
@@ -126,10 +126,14 @@
 
     <!-- ===== Root ===== -->
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="43*"/>
+            <ColumnDefinition Width="277*"/>
+        </Grid.ColumnDefinitions>
         <!-- 1) 배경 이미지 (Grid의 첫 요소) -->
         <Image Source="pack://application:,,,/Assets/Background_img.png"
        Stretch="UniformToFill"
-       RenderOptions.BitmapScalingMode="HighQuality">
+       RenderOptions.BitmapScalingMode="HighQuality" Grid.ColumnSpan="2">
             <!--<Image.Effect>
                 <BlurEffect Radius=""/>
                 -->
@@ -140,7 +144,7 @@
 
 
         <!-- 2) 살짝 어둡게 -->
-        <Rectangle IsHitTestVisible="False">
+        <Rectangle IsHitTestVisible="False" Grid.ColumnSpan="2">
             <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                     <GradientStop Color="#1A000000" Offset="0.0"/>
@@ -157,11 +161,11 @@
         <Border Background="White"
                 CornerRadius="12"
                 Padding="0"
-                Width="415"
+                Width="416"
                 Height="320"
-                HorizontalAlignment="Center"
+                HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-                SnapsToDevicePixels="True" Margin="0,93,0,0">
+                SnapsToDevicePixels="True" Margin="143,93,0,0" Grid.Column="1">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="18" ShadowDepth="2" Opacity="0.15"/>
             </Border.Effect>
